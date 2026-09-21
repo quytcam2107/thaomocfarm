@@ -1,17 +1,15 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Models;
 
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Cast;
-use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -24,10 +22,13 @@ class User extends Authenticatable
 
     /** @var list<string> */
     protected $fillable = [
-        'name', 'email', 'phone', 'password', 'role',
+        'name',
+        'email',
+        'phone',
+        'password',
+        'role',
     ];
 
-    /** User là admin hoặc staff (có quyền truy cập trang quản trị) */
     public function isStaff(): bool
     {
         return in_array($this->role, ['admin', 'staff'], true);
@@ -38,31 +39,31 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-    /** @return HasMany<Address, $this> */
+    /**
+     * Quan hệ app-level với addresses.
+     * Không có FK ở DB: nếu user bị xóa thủ công, addresses sẽ trở thành orphan.
+     * Service layer chịu trách nhiệm xóa addresses khi xóa user.
+     */
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);
     }
 
-    /** @return HasMany<Order, $this> */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    /** @return HasMany<Wishlist, $this> */
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
     }
 
-    /** @return HasOne<Cart, $this> */
     public function cart(): HasOne
     {
         return $this->hasOne(Cart::class);
     }
 
-    /** @return HasMany<Review, $this> */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

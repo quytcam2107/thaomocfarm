@@ -27,7 +27,6 @@ class Promotion extends Model
         'status',
     ];
 
-    /** @return HasMany<PromotionProduct, $this> */
     public function products(): HasMany
     {
         return $this->hasMany(PromotionProduct::class);
@@ -43,7 +42,6 @@ class Promotion extends Model
         return $query->where('type', 'flash_sale')->active();
     }
 
-    /** Scope: flash sale đang diễn ra tại thời điểm gọi */
     public function scopeCurrentlyRunning(Builder $query): Builder
     {
         $now = now();

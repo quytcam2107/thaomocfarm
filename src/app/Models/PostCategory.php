@@ -20,7 +20,6 @@ class PostCategory extends Model
     /** @var list<string> */
     protected $fillable = ['name', 'slug', 'sort_order', 'status'];
 
-    /** @return HasMany<Post, $this> */
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class, 'post_category_id');

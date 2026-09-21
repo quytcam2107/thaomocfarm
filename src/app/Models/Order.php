@@ -39,43 +39,31 @@ class Order extends Model
         'cancelled_at',
     ];
 
-    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
-    /** @return HasMany<OrderItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
-
-    /** @return BelongsTo<Coupon, $this> */
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
     }
-
-    /** @return HasOne<Payment, $this> */
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
     }
-
-    /** @return HasOne<Shipment, $this> */
     public function shipment(): HasOne
     {
         return $this->hasOne(Shipment::class);
     }
-
-    /** @return HasMany<OrderStatusHistory, $this> */
     public function statusHistories(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class);
     }
 
-    /** Format tổng tiền kiểu Việt */
     public function formattedTotal(): string
     {
         return number_format($this->total, 0, ',', '.') . '₫';

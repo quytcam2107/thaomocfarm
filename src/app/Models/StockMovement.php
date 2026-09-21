@@ -28,19 +28,14 @@ class StockMovement extends Model
         'created_by',
     ];
 
-    /** @return BelongsTo<ProductVariant, $this> */
     public function variant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
-
-    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-
-    /** @return MorphTo<Model, $this> */
     public function ref(): MorphTo
     {
         return $this->morphTo();

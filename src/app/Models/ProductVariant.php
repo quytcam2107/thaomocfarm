@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Database\Factories\ProductVariantFactory;
@@ -26,13 +28,12 @@ class ProductVariant extends Model
         'sort_order',
     ];
 
-    /** @return BelongsTo<Product, $this> */
+    /** Quan hệ app-level với product */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    /** Giá hiển thị cho khách (đã ưu tiên giá sale) */
     public function displayPrice(): int
     {
         return $this->price;

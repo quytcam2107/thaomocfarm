@@ -29,31 +29,24 @@ class PromotionProduct extends Model
         'sort_order',
     ];
 
-    /** @return BelongsTo<Promotion, $this> */
     public function promotion(): BelongsTo
     {
         return $this->belongsTo(Promotion::class);
     }
-
-    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
-
-    /** @return BelongsTo<ProductVariant, $this> */
     public function variant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
-    /** Số slot còn lại (cho progress bar UI flash sale) */
     public function slotsLeft(): int
     {
         return max(0, $this->qty_total - $this->qty_sold);
     }
 
-    /** Phần trăm đã bán */
     public function soldPercent(): int
     {
         return $this->qty_total > 0

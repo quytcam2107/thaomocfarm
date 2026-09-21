@@ -33,19 +33,14 @@ class Coupon extends Model
         'description',
     ];
 
-    /** @return BelongsToMany<Product, $this> */
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'coupon_products');
     }
-
-    /** @return BelongsToMany<Category, $this> */
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'coupon_categories');
     }
-
-    /** @return HasMany<CouponUsage, $this> */
     public function usages(): HasMany
     {
         return $this->hasMany(CouponUsage::class);
@@ -56,7 +51,6 @@ class Coupon extends Model
         return $query->where('status', 'active');
     }
 
-    /** Scope: mã đang trong thời hạn sử dụng */
     public function scopeValid(Builder $query): Builder
     {
         $now = now();
@@ -65,11 +59,11 @@ class Coupon extends Model
             ->where(fn(Builder $q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', $now));
     }
 
-    /** Scope: mã đủ điều kiện hiển thị block "Mã giảm giá" trang chủ */
     public function scopeDisplayable(Builder $query): Builder
     {
         return $query->valid()->where(function (Builder $q): void {
-            $q->whereNull('usage_limit')->orWhereRaw('(SELECT COUNT(*) FROM coupon_usages WHERE coupon_id = coupons.id) < usage_limit');
+            $q->whereNull('usage_limit')
+                ->orWhereRaw('(SELECT COUNT(*) FROM coupon_usages WHERE coupon_id = coupons.id) < usage_limit');
         });
     }
 

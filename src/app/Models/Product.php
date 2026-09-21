@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -39,43 +40,37 @@ class Product extends Model
         'seo',
     ];
 
-    /** @return BelongsTo<Category, $this> */
+    /** Quan hệ app-level với category: không FK, không auto cascade */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    /** @return HasMany<ProductVariant, $this> */
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
     }
 
-    /** @return HasMany<ProductImage, $this> */
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
     }
 
-    /** @return HasMany<Review, $this> */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    /** @return HasMany<Wishlist, $this> */
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
     }
 
-    /** @return HasMany<PromotionProduct, $this> */
     public function promotionProducts(): HasMany
     {
         return $this->hasMany(PromotionProduct::class);
     }
 
-    /** Scope: sản phẩm active + đã publish */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active')
@@ -83,19 +78,16 @@ class Product extends Model
             ->where('published_at', '<=', now());
     }
 
-    /** Scope: sản phẩm được ghim "Danh mục nổi bật" / "Bán chạy" */
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->where('is_featured', true);
     }
 
-    /** Scope: sắp xếp theo số lượng đã bán (block "Bán chạy tuần này") */
     public function scopeBestSeller(Builder $query): Builder
     {
         return $query->orderByDesc('sold_count');
     }
 
-    /** Scope: tìm kiếm FULLTEXT tên sản phẩm, fallback LIKE */
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
         $term = trim((string) $term);
@@ -108,14 +100,12 @@ class Product extends Model
         });
     }
 
-    /** Biến thể mặc định (mỗi sản phẩm bắt buộc có 1) */
     public function defaultVariant(): HasOne
     {
         return $this->hasOne(ProductVariant::class)
             ->ofMany([], fn(Builder $q) => $q->where('is_default', true));
     }
 
-    /** Ảnh bìa dùng làm thumbnail trên card sản phẩm */
     public function coverImage(): HasOne
     {
         return $this->hasOne(ProductImage::class)
@@ -127,13 +117,11 @@ class Product extends Model
         return route('web.product.show', $this->slug);
     }
 
-    /** Format giá VND theo chuẩn Việt Nam */
     public function formattedPriceMin(): string
     {
         return number_format($this->price_min, 0, ',', '.') . '₫';
     }
 
-    /** Tăng view_count bằng increment() nguyên tử */
     public function incrementViews(): void
     {
         $this->newQuery()->where('id', $this->id)->increment('view_count');

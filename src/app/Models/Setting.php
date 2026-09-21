@@ -18,10 +18,6 @@ class Setting extends Model
     /** @var list<string> */
     protected $fillable = ['key', 'value', 'group_name'];
 
-    /**
-     * Đọc giá trị setting theo key, tự decode JSON khi cần
-     * (địa chỉ cửa hàng, social links...)
-     */
     public static function get(string $key, mixed $default = null): mixed
     {
         $row = self::where('key', $key)->first();
@@ -32,9 +28,6 @@ class Setting extends Model
         return (json_last_error() === JSON_ERROR_NONE) ? $decoded : $row->value;
     }
 
-    /**
-     * Ghi / cập nhật setting theo key, tự encode array thành JSON
-     */
     public static function set(string $key, mixed $value, string $group = 'general'): self
     {
         $encoded = is_array($value)

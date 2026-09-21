@@ -35,7 +35,6 @@ class Banner extends Model
         return $query->where('status', 'active');
     }
 
-    /** Scope: banner theo vị trí (home_hero, home_mid...) */
     public function scopePosition(Builder $query, string $position): Builder
     {
         return $query->where('position', $position)

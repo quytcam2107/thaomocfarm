@@ -31,13 +31,11 @@ class Post extends Model
         'view_count',
     ];
 
-    /** @return BelongsTo<PostCategory, $this> */
     public function category(): BelongsTo
     {
         return $this->belongsTo(PostCategory::class, 'post_category_id');
     }
 
-    /** Scope: bài viết đã xuất bản + trong thời hạn hiển thị */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', 'published')

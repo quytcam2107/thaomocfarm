@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -23,31 +24,27 @@ class Category extends Model
         'sort_order', 'is_featured', 'status',
     ];
 
-    /** @return BelongsTo<Category, $this> */
+    /** Quan hệ app-level: self-referencing, không FK constraint */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    /** @return HasMany<Category, $this> */
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
     }
 
-    /** @return HasMany<Product, $this> */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
-    /** Scope: chỉ lấy danh mục đang hoạt động */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
     }
 
-    /** Scope: danh mục được ghim lên pills trang chủ */
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->where('is_featured', true);

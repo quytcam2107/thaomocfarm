@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Models;
 
 use Database\Factories\AddressFactory;
-use Illuminate\Database\Eloquent\Attributes\Cast;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,13 +22,12 @@ class Address extends Model
         'district', 'ward', 'detail', 'is_default',
     ];
 
-    /** @return BelongsTo<User, $this> */
+    /** Quan hệ app-level: user_id chỉ là tham chiếu, không FK constraint */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /** Chuỗi địa chỉ đầy đủ dùng cho snapshot đơn hàng */
     public function full(): string
     {
         return trim("{$this->detail}, {$this->ward}, {$this->district}, {$this->province}");

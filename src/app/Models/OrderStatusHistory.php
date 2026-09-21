@@ -24,13 +24,10 @@ class OrderStatusHistory extends Model
         'created_by',
     ];
 
-    /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
-
-    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

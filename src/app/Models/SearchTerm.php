@@ -19,10 +19,6 @@ class SearchTerm extends Model
     /** @var list<string> */
     protected $fillable = ['term', 'hits'];
 
-    /**
-     * Ghi nhận lượt tìm kiếm (tăng hits nếu đã có, tạo mới nếu chưa).
-     * Dùng DB::raw để không N+1, atomic trên MySQL.
-     */
     public static function track(string $term): void
     {
         $term = trim(mb_strtolower($term));
