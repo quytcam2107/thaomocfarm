@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b4d34"/><stop offset="1" stop-color="#4c8c6a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#g)"/>
+  <circle cx="980" cy="180" r="200" fill="#ffffff" opacity=".08"/>
+  <circle cx="200" cy="760" r="260" fill="#ffffff" opacity=".06"/>
+  <path d="M600 330c-90 54-134 120-134 190 0 76 60 134 134 134s134-58 134-134c0-70-44-136-134-190zm0 288c-18 0-33-15-33-33 0-48 33-96 33-96s33 48 33 96c0 18-15 33-33 33z" fill="#eaf3ee" opacity=".35"/>
+  <text x="600" y="640" font-family="Arial, sans-serif" font-size="46" fill="#eaf3ee" text-anchor="middle">Banner 1200 × 900</text>
+  <text x="600" y="700" font-family="Arial, sans-serif" font-size="26" fill="#bcd8c8" text-anchor="middle">Thay bằng ảnh chiến dịch / ảnh vùng trồng Tây Bắc</text>
+</svg>

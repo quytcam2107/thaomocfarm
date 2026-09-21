@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+  <rect width="600" height="600" fill="#f3efe4"/>
+  <rect x="10" y="10" width="580" height="580" rx="26" fill="none" stroke="#d8d0bd" stroke-width="3" stroke-dasharray="12 9"/>
+  <path d="M300 170c-78 46-116 104-116 164 0 66 52 116 116 116s116-50 116-116c0-60-38-118-116-164zm0 250c-16 0-29-13-29-29 0-42 29-84 29-84s29 42 29 84c0 16-13 29-29 29z" fill="#c9c2ab"/>
+  <text x="300" y="480" font-family="Arial, sans-serif" font-size="34" fill="#8f8871" text-anchor="middle">Ảnh sản phẩm</text>
+  <text x="300" y="522" font-family="Arial, sans-serif" font-size="24" fill="#b0a88f" text-anchor="middle">600 × 600 · thay bằng ảnh thật</text>
+</svg>
