@@ -7,13 +7,13 @@
                 <x-ui.category-card :url="$cat->url" :image="$cat->image" :name="$cat->name" :count="$cat->products_count" />
             @endforeach
         @else
-            <x-ui.category-card url="{{ url('/category/thao-moc') }}" image="images/thaomoc.png" name="Thảo mộc"
+            <x-ui.category-card url="{{ url('/category/thao-moc') }}" image="assets/images/thaomoc.png" name="Thảo mộc"
                 :count="24" />
-            <x-ui.category-card url="{{ url('/category/thit-gac-bep') }}" image="images/thị_gac_bep.png" name="Thịt gác bếp"
+            <x-ui.category-card url="{{ url('/category/thit-gac-bep') }}" image="assets/images/thị_gac_bep.png" name="Thịt gác bếp"
                 :count="32" />
-            <x-ui.category-card url="{{ url('/category/gia-vi-tay-bac') }}" image="images/gia_vi_tay_bac.png"
+            <x-ui.category-card url="{{ url('/category/gia-vi-tay-bac') }}" image="assets/images/gia_vi_tay_bac.png"
                 name="Gia vị Tây Bắc" :count="21" />
-            <x-ui.category-card url="{{ url('/category/mat-ong') }}" image="images/mat_ong.png" name="Mật ong"
+            <x-ui.category-card url="{{ url('/category/mat-ong') }}" image="assets/images/mat_ong.png" name="Mật ong"
                 :count="11" />
         @endif
     </div>

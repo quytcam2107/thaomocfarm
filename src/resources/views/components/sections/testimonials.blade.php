@@ -6,7 +6,7 @@
             @foreach($reviews as $r)
                 <article class="voice">
                     <p class="voice__head">
-                        <span class="voice__avatar"><img src="{{ asset($r->avatar ?? 'images/placeholder.svg') }}"
+                        <span class="voice__avatar"><img src="{{ asset($r->avatar ?? 'assets/images/placeholder.svg') }}"
                                 alt="Ảnh khách hàng" width="88" height="88" loading="lazy"></span>
                         <span><b>{{ $r->name }}</b><small>{{ $r->location }} · đã mua {{ $r->orders }} đơn</small></span>
                     </p>
@@ -17,7 +17,7 @@
         @else
             <article class="voice">
                 <p class="voice__head">
-                    <span class="voice__avatar"><img src="{{ asset('images/placeholder.svg') }}"
+                    <span class="voice__avatar"><img src="{{ asset('assets/images/placeholder.svg') }}"
                             alt="Ảnh khách hàng chị Hương" width="88" height="88" loading="lazy"></span>
                     <span><b>Chị Thu Hương</b><small>Cầu Giấy, Hà Nội · đã mua 6 đơn</small></span>
                 </p>
@@ -27,7 +27,7 @@
             </article>
             <article class="voice">
                 <p class="voice__head">
-                    <span class="voice__avatar"><img src="{{ asset('images/placeholder.svg') }}"
+                    <span class="voice__avatar"><img src="{{ asset('assets/images/placeholder.svg') }}"
                             alt="Ảnh khách hàng anh Minh" width="88" height="88" loading="lazy"></span>
                     <span><b>Anh Quốc Minh</b><small>Thủ Đức, TP.HCM · đã mua 4 đơn</small></span>
                 </p>
@@ -37,7 +37,7 @@
             </article>
             <article class="voice">
                 <p class="voice__head">
-                    <span class="voice__avatar"><img src="{{ asset('images/placeholder.svg') }}" alt="Ảnh khách hàng cô Lan"
+                    <span class="voice__avatar"><img src="{{ asset('assets/images/placeholder.svg') }}" alt="Ảnh khách hàng cô Lan"
                             width="88" height="88" loading="lazy"></span>
                     <span><b>Cô Ngọc Lan</b><small>Hoàn Kiếm, Hà Nội · đã mua 9 đơn</small></span>
                 </p>

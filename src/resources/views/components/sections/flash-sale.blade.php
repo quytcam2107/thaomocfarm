@@ -15,16 +15,16 @@
                         :oldPrice="$p->old_price" :discount="$p->discount" :rating="$p->rating" :sold="$p->sold" />
                 @endforeach
             @else
-                <x-ui.product-card url="#" image="images/cu_tam_that_1.jpg"
+                <x-ui.product-card url="#" image="assets/images/cu_tam_that_1.jpg"
                     name="Củ Tam Thất Bắc Khô Loại 1 Nguyên Củ Chuẩn" price="800.000₫" oldPrice="1.100.000₫" :discount="20"
                     rating="4.9" sold="3.1k" />
-                <x-ui.product-card url="#" image="images/hoa_tam_that_1.png"
+                <x-ui.product-card url="#" image="assets/images/hoa_tam_that_1.png"
                     name="Nụ Tam Thất Bắc Loại 1 Túi 500g Nguyên Chất" price="150.000₫" oldPrice="950.000₫" :discount="35"
                     rating="4.9" sold="2.7k" />
-                <x-ui.product-card url="#" image="images/thit_trau_gac_bep.png"
+                <x-ui.product-card url="#" image="assets/images/thit_trau_gac_bep.png"
                     name="Thịt Trâu Gác Bếp Chuẩn Tây Bắc - Mắc Khén Hạt Dổi" price="115.000₫" oldPrice="155.000₫"
                     :discount="25" rating="4.8" sold="1.8k" />
-                <x-ui.product-card url="#" image="images/tao_do1.png" name="Táo Đỏ Sấy Khô Quả To Loại 1" price="185.000₫"
+                <x-ui.product-card url="#" image="assets/images/tao_do1.png" name="Táo Đỏ Sấy Khô Quả To Loại 1" price="185.000₫"
                     oldPrice="225.000₫" :discount="18" rating="4.9" sold="2.2k" />
             @endif
         </div>

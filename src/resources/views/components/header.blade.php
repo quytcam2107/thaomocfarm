@@ -17,7 +17,7 @@
             </svg>
         </button>
         <a class="brand" href="{{ url('/') }}">
-            <img class="brand__logo" src="{{ asset('images/logo_thao_moc_farm.png') }}" alt="Logo Thảo mộc Farm"
+            <img class="brand__logo" src="{{ asset('assets/images/logo_thao_moc_farm.png') }}" alt="Logo Thảo mộc Farm"
                 width="50" height="50">
             <span class="brand__text">Thảo Mộc Farm<small>Thảo mộc & Đặc sản Tây Bắc</small></span>
         </a>
@@ -27,7 +27,7 @@
             <button type="submit" aria-label="Tìm kiếm">🔍</button>
         </form>
         <div class="header__acts">
-            {{-- Đoạn check Auth an toàn, không dùng @if --}}
+            {{-- Dùng @auth thay vì @if để tránh lỗi quên @endif --}}
             @auth
                 <a class="act" href="{{ url('/account') }}"
                     aria-label="Tài khoản">👤<span>{{ Auth::user()->name ?? 'Tài khoản' }}</span></a>

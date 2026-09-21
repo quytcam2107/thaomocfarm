@@ -1,5 +1,5 @@
 <section class="container region reveal" aria-labelledby="regionTitle">
-    <img src="{{ asset('images/cay_tam_that.png') }}" alt="Vùng nguyên liệu Tây Bắc: Sơn La, Điện Biên, Hà Giang"
+    <img src="{{ asset('assets/images/cay_tam_that.png') }}" alt="Vùng nguyên liệu Tây Bắc: Sơn La, Điện Biên, Hà Giang"
         width="800" height="600" loading="lazy">
     <div class="region__text">
         <span class="region__tag">Câu chuyện vùng miền</span>

@@ -44,7 +44,7 @@
         </div>
         <div class="hero__art">
             <span class="hero__blob" aria-hidden="true"></span>
-            <img class="hero__img" src="{{ asset('images/banner_head2.png') }}"
+            <img class="hero__img" src="{{ asset('assets/images/banner_head2.png') }}"
                 alt="Đặc sản Tây Bắc và trà hoa thảo mộc" width="1200" height="900" fetchpriority="high">
             <p class="hero__badge">★ 4.9 / 1.480 đánh giá thực</p>
         </div>
