@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Database\Factories\OrderStatusHistoryFactory;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+#[UseFactory(OrderStatusHistoryFactory::class)]
+class OrderStatusHistory extends Model
+{
+    /** @use HasFactory<OrderStatusHistoryFactory> */
+    use HasFactory;
+
+    /** @var list<string> */
+    protected $fillable = [
+        'order_id',
+        'status',
+        'note',
+        'created_by',
+    ];
+
+    /** @return BelongsTo<Order, $this> */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+}
