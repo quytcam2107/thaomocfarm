@@ -35,7 +35,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: laravel_mysql
+    container_name: thao_moc_farm_mysql
     restart: unless-stopped
     ports:
       - "127.0.0.1:3306:3306"
@@ -56,7 +56,7 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: laravel_redis
+    container_name: thao_moc_farm_redis
     restart: unless-stopped
     ports:
       - "127.0.0.1:6379:6379"
