@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,9 +11,9 @@ return new class extends Migration {
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('product_id')->index();
+            $table->unsignedBigInteger('user_id')->index();
+            $table->unsignedBigInteger('order_id')->nullable()->index();
             $table->unsignedTinyInteger('rating');
             $table->text('content');
             $table->json('images')->nullable();
@@ -23,5 +26,9 @@ return new class extends Migration {
             $table->index(['product_id', 'rating']);
         });
     }
-    public function down(): void { Schema::dropIfExists('reviews'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('reviews');
+    }
 };

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,13 +12,12 @@ return new class extends Migration {
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('category_id')->index(); // không FK
             $table->string('sku')->unique();
             $table->string('slug')->unique();
             $table->string('name');
             $table->string('subtitle')->nullable();
             $table->longText('description')->nullable();
-            // Tiền tệ lưu INTEGER VND unsigned
             $table->unsignedInteger('price_min')->default(0);
             $table->unsignedInteger('compare_price')->default(0);
             $table->unsignedInteger('stock_total')->default(0);
@@ -34,5 +36,9 @@ return new class extends Migration {
         });
         DB::statement('ALTER TABLE products ADD FULLTEXT search_name (name)');
     }
-    public function down(): void { Schema::dropIfExists('products'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('products');
+    }
 };

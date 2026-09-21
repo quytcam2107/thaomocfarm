@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,7 +11,7 @@ return new class extends Migration {
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_category_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('post_category_id')->nullable()->index();
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('excerpt')->nullable();
@@ -22,5 +25,9 @@ return new class extends Migration {
             $table->index(['status', 'published_at']);
         });
     }
-    public function down(): void { Schema::dropIfExists('posts'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('posts');
+    }
 };

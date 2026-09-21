@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,7 +11,7 @@ return new class extends Migration {
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->unique()->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('order_id')->unique();
             $table->string('method');
             $table->unsignedInteger('amount');
             $table->enum('status', ['pending', 'success', 'failed'])->default('pending');
@@ -18,5 +21,9 @@ return new class extends Migration {
             $table->timestamps();
         });
     }
-    public function down(): void { Schema::dropIfExists('payments'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('payments');
+    }
 };

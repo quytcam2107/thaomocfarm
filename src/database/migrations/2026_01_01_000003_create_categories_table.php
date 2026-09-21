@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,7 +11,7 @@ return new class extends Migration {
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('parent_id')->nullable()->constrained('categories')->nullOnDelete();
+            $table->unsignedBigInteger('parent_id')->nullable()->index(); // tự tham chiếu, không FK
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('icon')->nullable();
@@ -21,5 +24,9 @@ return new class extends Migration {
             $table->index(['is_featured', 'status']);
         });
     }
-    public function down(): void { Schema::dropIfExists('categories'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('categories');
+    }
 };

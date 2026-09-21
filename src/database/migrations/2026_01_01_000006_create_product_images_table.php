@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,7 +11,7 @@ return new class extends Migration {
     {
         Schema::create('product_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('product_id')->index();
             $table->string('path');
             $table->string('thumb_path')->nullable();
             $table->string('alt')->nullable();
@@ -18,5 +21,9 @@ return new class extends Migration {
             $table->index(['product_id', 'sort_order']);
         });
     }
-    public function down(): void { Schema::dropIfExists('product_images'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('product_images');
+    }
 };
