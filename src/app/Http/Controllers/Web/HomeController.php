@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
 {
+
     public function __construct(
         private readonly HomeService $homeService,
     ) {
@@ -23,6 +24,7 @@ class HomeController extends Controller
     {
         return view('web.home', [
             'featuredCategories' => $this->homeService->featuredCategories(),
+            'flashProducts' => $this->homeService->flashSale(),
         ]);
     }
 }

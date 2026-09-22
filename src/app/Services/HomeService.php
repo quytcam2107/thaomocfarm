@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Category;
+use App\Models\Promotion;
+use App\Models\PromotionProduct;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class HomeService
 {
@@ -15,6 +18,11 @@ class HomeService
 
     /** TTL cache của block danh mục nổi bật (10 phút) */
     private const FEATURED_TTL = 600;
+    /** Số sản phẩm flash sale tối đa hiển thị ở block trang chủ */
+    private const FLASH_LIMIT = 8;
+
+    /** TTL cache block flash sale (giây) – ngắn hơn vì deal đổi thường xuyên */
+    private const FLASH_TTL = 300;
 
     /**
      * Danh sách danh mục nổi bật kèm số sản phẩm đang bán.
@@ -49,5 +57,112 @@ class HomeService
                 ])
                 ->all();
         });
+    }
+    /**
+     * Block flash sale "Giá siêu hời" đang chạy.
+     * - Chọn promotion flash_sale active + trong khung giờ
+     * - Eager load product + coverImage + defaultVariant (không N+1)
+     * - Cột select của relation ofMany phải định danh tên bảng (tránh lỗi 1052)
+     * - Trả về null nếu không có deal => view tự ẩn block
+     *
+     * @return array{promotion_id: int, promotion_name: string, ends_at: string, ends_at_unix: int, items: array<int, array<string, mixed>>}|null
+     */
+    public function flashSale(): ?array
+    {
+        return remember_group('home', 'flash_sale', self::FLASH_TTL, function (): ?array {
+            /** @var Promotion|null $promotion */
+            $promotion = Promotion::query()
+                ->where('type', 'flash_sale')
+                ->where('status', 'active')
+                ->where('start_at', '<=', now())
+                ->where('end_at', '>', now())
+                ->orderBy('end_at')
+                ->first(['id', 'name', 'end_at']);
+
+            if ($promotion === null) {
+                return null;
+            }
+
+            $items = PromotionProduct::query()
+                ->where('promotion_id', $promotion->id)
+                ->with([
+                    'product' => function (Relation $query): void {
+                        $query
+                            ->where('status', 'active')
+                            ->select(['id', 'name', 'slug', 'price_min', 'rating_avg', 'rating_count', 'sold_count'])
+                            ->with([
+                                'coverImage' => function (Relation $q): void {
+                                    $q->select([
+                                        'product_images.id',
+                                        'product_images.product_id',
+                                        'product_images.path',
+                                        'product_images.alt',
+                                    ]);
+                                },
+                                'defaultVariant' => function (Relation $q): void {
+                                    $q->select([
+                                        'product_variants.id',
+                                        'product_variants.product_id',
+                                        'product_variants.price',
+                                    ]);
+                                },
+                            ]);
+                    },
+                ])
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->limit(self::FLASH_LIMIT)
+                ->get(['id', 'product_id', 'product_variant_id', 'flash_price', 'discount_percent', 'qty_total', 'qty_sold', 'sort_order'])
+                ->filter(fn(PromotionProduct $pp): bool => $pp->product !== null
+                    && ($pp->product_variant_id !== null || $pp->product->defaultVariant !== null))
+                ->map(fn(PromotionProduct $pp): array => $this->mapFlashItem($pp))
+                ->values()
+                ->all();
+
+            if ($items === []) {
+                return null;
+            }
+            return [
+                'promotion_id' => (int) $promotion->id,
+                'promotion_name' => $promotion->name,
+                'ends_at' => $promotion->end_at->toIso8601String(),
+                'ends_at_unix' => $promotion->end_at->getTimestamp(),
+                'items' => $items,
+            ];
+        });
+    }
+
+    /**
+     * Map 1 dòng promotion_products sang mảng hiển thị cho view
+     *
+     * @return array<string, mixed>
+     */
+    private function mapFlashItem(PromotionProduct $pp): array
+    {
+        $product = $pp->product;
+
+        // % giảm: ưu tiên giá trị admin nhập, thiếu thì tự tính từ giá gốc
+        $discount = $pp->discount_percent > 0
+            ? (int) $pp->discount_percent
+            : (int) round((1 - $pp->flash_price / max(1, (int) $product->price_min)) * 100);
+        $imageUrl = $product->coverImage
+            ? asset('assets/images/' . $product->coverImage->path)
+            : asset('images/product-default.svg');
+            // dd($imageUrl);
+        return [
+            'id' => (int) $pp->id,
+            'product_id' => (int) $product->id,
+            'variant_id' => (int) ($pp->product_variant_id ?? $product->defaultVariant?->id),
+            'name' => $product->name,
+            'url' => route('web.product.show', ['slug' => $product->slug]),
+            'image' => $imageUrl,
+            'rating_avg' => number_format((float) $product->rating_avg, 1, '.', ''),
+            'sold_text' => format_number_compact((int) $product->sold_count),
+            'discount_percent' => $discount,
+            'flash_price_formatted' => format_vnd((int) $pp->flash_price),
+            'original_price_formatted' => format_vnd((int) $product->price_min),
+            'slots_left' => $pp->slotsLeft(),
+            'sold_percent' => $pp->soldPercent(),
+        ];
     }
 }
