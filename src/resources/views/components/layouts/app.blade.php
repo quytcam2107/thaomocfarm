@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#2e7d4f">
 
-    {{-- CSRF token: bắt buộc để JS fetch POST (nút "Thêm vào giỏ") hoạt động --}}
+    {{-- CSRF token cho JS fetch (BẮT BUỘC để nút "Thêm vào giỏ" hoạt động) --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $title ?? 'Thảo Mộc Farm' }}</title>
@@ -22,30 +22,19 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ $ogImage ?? asset('assets/images/og-cover.jpg') }}">
 
-    {{-- ===== Google Fonts: Be Vietnam Pro + Lora (có tiếng Việt) ===== --}}
-    {{-- 1. Preconnect: mở sớm kết nối TCP/TLS tới Google CDN, tiết kiệm ~200ms --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    {{-- 2. Preload file CSS font (LCP-friendly): tải song song với HTML --}}
-    <link rel="preload" as="style"
-        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
-
-    {{-- 3. Load cả 2 font trong 1 request duy nhất (giảm RTT so với 2 link riêng) --}}
-    {{-- subset=vietnamese được tự động include nhờ unicode-range trong file CSS của Google --}}
-    <link
-        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
-        rel="stylesheet">
-    {{-- ===== End Google Fonts ===== --}}
+    {{-- ===== PRELOAD FONT QUAN TRỌNG NHẤT (giảm LCP) ===== --}}
+    {{-- Lora 700 cho heading, Be Vietnam Pro 400 cho body text --}}
+    <link rel="preload" href="{{ asset('fonts/lora-vietnamese-700-normal.woff2') }}" as="font" type="font/woff2"
+        crossorigin>
+    <link rel="preload" href="{{ asset('fonts/be-vietnam-pro-vietnamese-400-normal.woff2') }}" as="font"
+        type="font/woff2" crossorigin>
+    {{-- ===== END PRELOAD ===== --}}
 
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
-    {{-- Slot riêng cho Schema JSON-LD (Product, BreadcrumbList...) --}}
     {{ $schema ?? '' }}
     @stack('styles')
 </head>
-
-{{-- THÊM: $bodyClass để trang product truyền 'has-buybar' --}}
 
 <body class="{{ $bodyClass ?? '' }}">
     <a class="skip-link" href="#main">Bỏ qua menu</a>
@@ -60,7 +49,6 @@
     <x-floatnav />
     <x-drawer />
 
-    {{-- Slot cho các thành phần đặc biệt (như buybar của product) --}}
     {{ $extra ?? '' }}
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
