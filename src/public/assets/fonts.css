@@ -1,0 +1,69 @@
+/* ===== SELF-HOSTED FONTS (Fontsource - tiếng Việt) ===== */
+
+/* Be Vietnam Pro - font sans-serif cho body */
+@font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/be-vietnam-pro-vietnamese-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/be-vietnam-pro-vietnamese-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/be-vietnam-pro-vietnamese-600-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/be-vietnam-pro-vietnamese-700-normal.woff2') format('woff2');
+}
+
+/* Lora - font serif cho heading */
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/lora-vietnamese-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/lora-vietnamese-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/lora-vietnamese-600-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/lora-vietnamese-700-normal.woff2') format('woff2');
+}
+
+/* ===== END SELF-HOSTED FONTS ===== */
