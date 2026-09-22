@@ -19,7 +19,7 @@ class CategoryController extends Controller
             ->where('slug', $slug)
             ->where('status', 'active')
             ->firstOrFail();
-
+        
         return "Danh mục: {$category->name} – trang đầy đủ sẽ triển khai ở batch sau.";
     }
 }
