@@ -209,12 +209,12 @@ class HomeService
                 $discount = $oldPrice !== null
                     ? (int) round((($oldPrice - $price) / $oldPrice) * 100)
                     : 0;
-
+                
                 return [
                     'id' => (int) $p->id,
                     'name' => $p->name,
                     'url' => route('web.product.show', $p->slug),
-                    'image' => $p->coverImage?->thumb_path ??asset('assets/images/' . $p->coverImage?->path) ?? 'images/placeholder.svg',
+                    'image' => $p->coverImage?->thumb_path ??asset('assets/images/' . $p->coverImage?->path) ?? asset('assets/images/placeholder.svg'),
                     'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
                     'sold_count' => (int) $p->sold_count,
                     'price' => format_vnd((int) $p->price_min),
