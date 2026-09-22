@@ -10,6 +10,9 @@ use App\Models\PromotionProduct;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use App\Enums\ProductStatus;
+use App\Models\Product;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class HomeService
 {
@@ -23,6 +26,11 @@ class HomeService
 
     /** TTL cache block flash sale (giây) – ngắn hơn vì deal đổi thường xuyên */
     private const FLASH_TTL = 300;
+    /** Số sản phẩm bán chạy tối đa hiển thị */
+    private const BEST_SELLERS_LIMIT = 8;
+
+    /** TTL cache block bán chạy (10 phút) */
+    private const BEST_SELLERS_TTL = 600;
 
     /**
      * Danh sách danh mục nổi bật kèm số sản phẩm đang bán.
@@ -148,7 +156,7 @@ class HomeService
         $imageUrl = $product->coverImage
             ? asset('assets/images/' . $product->coverImage->path)
             : asset('images/product-default.svg');
-            // dd($imageUrl);
+        // dd($imageUrl);
         return [
             'id' => (int) $pp->id,
             'product_id' => (int) $product->id,
@@ -164,5 +172,56 @@ class HomeService
             'slots_left' => $pp->slotsLeft(),
             'sold_percent' => $pp->soldPercent(),
         ];
+    }
+    /**
+     * Khối "Bán chạy tuần này": top sản phẩm active sắp theo sold_count.
+     * - 1 query chính + 1 eager load ảnh bìa (ofMany định danh bảng)
+     * - Cache array thuần (không object) để tránh lỗi unserialize
+     *
+     * @return array<int, array{id: int, name: string, url: string, image: string, rating_avg: string, sold_count: int, price: int, old_price: int|null, discount_percent: int}>
+     */
+    public function bestSellers(): array
+    {
+        return remember_group('home', 'best_sellers', self::BEST_SELLERS_TTL, function (): array {
+            $products = Product::query()
+                ->select(['id', 'slug', 'name', 'price_min', 'compare_price', 'sold_count', 'rating_avg'])
+                ->where('status', ProductStatus::ACTIVE->value)
+                ->with([
+                    'coverImage' => function (HasOne $query): void {
+                        // ofMany eager load dùng INNER JOIN derived table => bắt buộc định danh tên bảng
+                        $query->select([
+                            'product_images.id',
+                            'product_images.product_id',
+                            'product_images.path',
+                            'product_images.thumb_path',
+                        ]);
+                    }
+                ])
+                ->orderByDesc('sold_count')
+                ->limit(self::BEST_SELLERS_LIMIT)
+                ->get();
+
+            return $products->map(static function (Product $p): array {
+                $price = (int) $p->price_min;
+                $oldPrice = $p->compare_price !== null && (int) $p->compare_price > $price
+                    ? (int) $p->compare_price
+                    : null;
+                $discount = $oldPrice !== null
+                    ? (int) round((($oldPrice - $price) / $oldPrice) * 100)
+                    : 0;
+
+                return [
+                    'id' => (int) $p->id,
+                    'name' => $p->name,
+                    'url' => route('web.product.show', $p->slug),
+                    'image' => $p->coverImage?->thumb_path ??asset('assets/images/' . $p->coverImage?->path) ?? 'images/placeholder.svg',
+                    'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
+                    'sold_count' => (int) $p->sold_count,
+                    'price' => format_vnd((int) $p->price_min),
+                    'old_price' => $oldPrice !== null ? format_vnd($oldPrice) : null,
+                    'discount_percent' => $discount,
+                ];
+            })->all();
+        });
     }
 }
