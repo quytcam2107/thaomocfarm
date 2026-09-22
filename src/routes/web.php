@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Web\CategoryController;
+use App\Http\Controllers\Web\HomeController;
 
-Route::get('/', HomeController::class)->name('home');
-Route::get('/san-pham/{slug}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/', [HomeController::class, 'index'])->name('web.home');
+Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])->name('web.category.show');
