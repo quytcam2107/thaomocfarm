@@ -21,7 +21,6 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        // dd($this->homeService->featuredCategories());
         return view('web.home', [
             'featuredCategories' => $this->homeService->featuredCategories(),
         ]);
