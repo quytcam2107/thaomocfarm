@@ -105,9 +105,13 @@ class CatalogService
             ->limit(4)
             ->get()
             ->map(function ($p) {
-                $coverImg = $p->images->firstWhere('is_cover', true)?->path
-                    ?? $p->images->first()?->path
-                    ?? 'images/placeholder.svg';
+                $coverImg = asset(
+                    'assets/images/' . (
+                        $p->images->firstWhere('is_cover', true)?->path
+                        ?? $p->images->first()?->path
+                        ?? 'placeholder.svg'
+                    )
+                );
                 $defVar = $p->variants->firstWhere('is_default', true) ?? $p->variants->first();
                 $pr = $defVar ? (int) $defVar->price : (int) $p->price_min;
                 $op = $defVar && $defVar->compare_price ? (int) $defVar->compare_price : ($p->compare_price ? (int) $p->compare_price : null);
