@@ -17,7 +17,6 @@ class ProductController extends Controller
     public function show(CatalogService $catalog, string $slug)
     {
         $data = $catalog->getProductDetail($slug);
-
         // Atomic increment view_count, không ảnh hưởng đến cache
         Product::where('id', $data['product']->id)->increment('view_count');
         return view('web.product', $data);

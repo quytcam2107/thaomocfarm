@@ -66,12 +66,12 @@ class CatalogService
         if ($currentComparePrice && $currentComparePrice > $currentPrice) {
             $discountPercent = (int) round((($currentComparePrice - $currentPrice) / $currentComparePrice) * 100);
         }
-
+        
         $coverImage = $product->images->firstWhere('is_cover', true)?->path
             ?? $product->images->first()?->path
             ?? 'images/placeholder.svg';
 
-        $images = $product->images->map(fn($img) => $img->path)->values()->all();
+        $images = $product->images->map(fn($img) => asset('assets/images/' . $img->path))->values()->all();
 
         $variants = $product->variants->map(function ($v) {
             return [
@@ -112,7 +112,7 @@ class CatalogService
                 $pr = $defVar ? (int) $defVar->price : (int) $p->price_min;
                 $op = $defVar && $defVar->compare_price ? (int) $defVar->compare_price : ($p->compare_price ? (int) $p->compare_price : null);
                 $disc = ($op && $op > $pr) ? (int) round((($op - $pr) / $op) * 100) : 0;
-
+                
                 return [
                     'url' => route('web.product.show', $p->slug),
                     'image' => $coverImg,
@@ -125,7 +125,6 @@ class CatalogService
                 ];
             })
             ->all();
-
         return [
             'product_id' => $product->id,
             'product' => [
