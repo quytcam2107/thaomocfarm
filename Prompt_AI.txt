@@ -1,0 +1,416 @@
+================================================================
+PROMPT BÀN GIAO DỰ ÁN "THẢO MỘC FARM" – TRẠNG THÁI 22/09/2026
+LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
+================================================================
+
+## 0. VAI TRÒ
+Bạn là kỹ sư Laravel senior tiếp quản dự án TMĐT "Thảo Mộc Farm"
+(đặc sản Tây Bắc: thảo mộc, thịt gác bếp, gia vị, mật ong).
+Đọc TOÀN BỘ bối cảnh trước khi viết code. Không đổi quyết định
+kiến trúc, không hỏi lại những gì đã chốt. Bắt đầu từ phần cuối
+lộ trình (mục 11) trừ khi tôi yêu cầu phần khác.
+
+## 1. HẠ TẦNG BẮT BUỘC (1 VPS DUY NHẤT, CẤM DỊCH VỤ NGOÀI)
+- MONO PROJECT: web khách + admin trong 1 ứng dụng Laravel.
+  Admin dùng route prefix /admin + middleware + policy.
+- DB: MySQL 8/MariaDB cài trên server (không read replica).
+- Cache: driver file. KHÔNG Redis => CẤM Cache::tags().
+  Bắt buộc dùng cache key kèm version qua helper remember_group()
+  và bump_group_version() (xem mục 6).
+- Queue: driver database, worker chạy bằng supervisor.
+- Session: driver database.
+- File/ảnh: disk public + php artisan storage:link, Nginx serve cùng server.
+- Tìm kiếm: MySQL FULLTEXT index, fallback LIKE. Không Meilisearch/Algolia.
+- Frontend: Blade + Tailwind build local bằng Vite + Alpine.js/vanilla JS.
+  (Lưu ý: components hiện tại dùng CSS class tự đặt kiểu BEM, xem mục 8.7.)
+- Không Octane, không Docker.
+- Deploy: git pull + composer install --no-dev + php artisan optimize + migrate --force.
+
+## 2. QUY TẮC CODE BẮT BUỘC
+- PHP >= 8.3, mọi file PHP bắt đầu bằng declare(strict_types=1);
+- Model chuẩn Laravel 13: attribute #[UseFactory(XFactory::class)],
+  #[Hidden([...])]; protected $fillable dạng list; method casts();
+  docblock generics cho quan hệ: @return HasMany<Product, $this>.
+- Controller mỏng -> gọi Service (app/Services); Service trả array/DTO.
+- Docblock tiếng Việt ngắn gọn cho mọi method public.
+- Eager loading + select cột cần dùng; TUYỆT ĐỐI không N+1 ở home và list.
+- TIỀN TỆ: lưu INTEGER UNSIGNED VND (199000 = 199.000đ).
+  Hiển thị: helper format_vnd() hoặc number_format($x) . '₫'.
+- KHÔNG foreign key constraint ở tầng DB: mọi khóa ngoại là
+  unsignedBigInteger + index; quan hệ Eloquent chỉ là app-level;
+  Service layer chịu trách nhiệm toàn vẹn dữ liệu.
+- Counters denormalize trên products (price_min, stock_total, sold_count,
+  rating_avg, rating_count): cập nhật bằng increment() hoặc job queue.
+- Chốt slot flash sale và trừ tồn kho bằng conditional UPDATE nguyên tử
+  trong DB::transaction:
+  + whereColumn('qty_sold','<','qty_total') rồi update qty_sold+1
+  + where('stock','>=',$qty) rồi update stock-$qty
+  + affected rows = 0 => throw exception + rollback. CẤM select-check-update.
+- Đơn hủy / COD quá hạn: job schedule nhả tồn + hoàn slot deal +
+  ghi stock_movements.
+- Cache từng block trang chủ với TTL riêng qua remember_group().
+- Countdown flash sale: server chỉ trả end_at (ISO 8601), JS client tự đếm giây.
+- Upload ảnh: validate mime/size, lưu disk public, job queue sinh thumbnail
+  300/600/1200 (WebP hoặc JPG) bằng Intervention Image chạy GD.
+- Tìm kiếm: FULLTEXT(name) fallback LIKE; log search_terms qua queue;
+  gợi ý tìm kiếm từ top terms.
+- Bảo mật: FormRequest cho mọi input; Policy cho admin; rate limit
+  login/checkout/apply coupon; escape Blade mặc định; slug unique tự sinh;
+  order_number dạng TMX-yyyyMMdd-xxxxx.
+
+## 3. BẪY & BÀI HỌC (BẮT BUỘC TRÁNH)
+1) Closure constraint trong with() nhận RELATION
+   (BelongsTo/HasOne/HasMany...), KHÔNG phải Builder.
+   => hint Illuminate\Database\Eloquent\Relations\Relation, return void.
+   Chỉ withCount() và whereHas() mới nhận Builder.
+2) select() trong closure eager load của relation ofMany()
+   (hasOne()->ofMany()) PHẢI định danh tên bảng, ví dụ
+   'product_images.product_id', vì eager load ofMany dùng INNER JOIN
+   derived table => không định danh sẽ lỗi MySQL 1052 ambiguous.
+3) [BÀI HỌC MỚI] Cache driver file dùng serialize/unserialize:
+   CẤM đưa object (stdClass lẫn DTO) vào giá trị cache. Đã gặp lỗi
+   "incomplete object ... unserialize()" cả với stdClass lẫn
+   App\DTOs\* khi F5 (cache hit). CHUẨN: closure của remember_group()
+   chỉ trả array/scalar thuần; hydrate DTO SAU khi đọc cache về.
+4) [BÀI HỌC MỚI] Sau khi thêm/đổi route phải chạy route:clear
+   (đã gặp lỗi "Route [web.cart.add] not defined" vì blade gọi
+   route() trước khi route tồn tại / cache route cũ).
+5) [BÀI HỌC MỚI] Sau khi đổi dữ liệu hiển thị phải bump cache nhóm:
+   php artisan thaomoc:bump-cache {home|catalog|review}.
+6) [BÀI HỌC MỚI] Quy ước đường dẫn ảnh ĐANG TỒN TẠI (giữ nguyên,
+   chỉ unify khi có yêu cầu):
+   - icon danh mục: asset('assets/images/categories/' . $icon),
+     fallback asset('assets/images/category-default.svg')
+   - ảnh flash sale: asset('assets/images/' . $path),
+     fallback asset('images/product-default.svg')
+   - gallery PDP: component tự asset($path),
+     fallback 'images/placeholder.svg'
+7) [BÀI HỌC MỚI] Chuỗi thương hiệu trong blade hiện tại là
+   "Thảo Mộc Xanh" (title, schema JSON-LD); tên dự án/prefix đơn
+   hàng là TMX / "Thảo Mộc Farm". KHÔNG tự đổi tên thương hiệu.
+8) [BÀI HỌC MỚI] Biến view của block flash sale trên home tên là
+   $flashProducts (không phải $flashSale) – partial
+   web/partials/flash-sale.blade.php đang dùng tên này.
+
+## 4. SCHEMA DATABASE (InnoDB, utf8mb4_unicode_ci, mọi bảng có id + timestamps)
+users(id, name, email UQ, phone UQ null, password, role enum admin|staff|customer, email_verified_at null, remember_token)
+addresses(id, user_id idx, full_name, phone, province, district, ward, detail, is_default bool)
+categories(id, parent_id null idx self-ref, name, slug UQ, icon = đường dẫn ảnh trên disk public, description, sort_order, is_featured bool, status active|hidden; idx(parent_id,status,sort_order), idx(is_featured,status))
+products(id, category_id idx, sku UQ, slug UQ, name, subtitle, description longtext, price_min uint, compare_price uint, stock_total uint, sold_count uint, rating_avg decimal(3,2), rating_count uint, view_count uint, is_featured bool, status draft|active|hidden, published_at null, seo json; idx(status,is_featured,published_at), idx(status,sold_count), idx(category_id,status,price_min), FULLTEXT(name))
+product_variants(id, product_id idx, sku UQ, label, price uint, compare_price uint null, stock uint, is_default bool, sort_order; idx(product_id,sort_order), idx(product_id,is_default)) -- mọi sản phẩm bắt buộc >= 1 biến thể is_default
+product_images(id, product_id idx, path, thumb_path null, alt, sort_order, is_cover bool; idx(product_id,sort_order))
+promotions(id, type flash_sale|campaign, name, description, start_at, end_at, status scheduled|active|ended|cancelled; idx(status,start_at,end_at))
+promotion_products(id, promotion_id idx, product_id idx, product_variant_id null idx, flash_price uint, discount_percent, qty_total, qty_sold, per_user_limit, sort_order; idx(promotion_id,sort_order))
+coupons(id, code UQ, type fixed|percent|shipping, value uint, min_order_value uint, max_discount uint null, starts_at null, expires_at null, usage_limit uint null, per_user_limit, status active|inactive, description; idx(status,expires_at))
+coupon_products(id, coupon_id, product_id, UQ(coupon_id,product_id))
+coupon_categories(id, coupon_id, category_id, UQ(coupon_id,category_id))
+coupon_usages(id, coupon_id idx, user_id null idx, order_id null idx, discount_amount uint; idx(coupon_id,user_id))
+banners(id, position home_hero|home_mid|category|product, title, subtitle, image, link, sort_order, status active|inactive, start_at null, end_at null; idx(position,status,sort_order))
+carts(id, user_id UQ null, cart_token uuid UQ)
+cart_items(id, cart_id idx, product_id idx, product_variant_id idx NOT NULL, qty, UQ(cart_id,product_variant_id))
+wishlists(id, user_id idx, product_id idx, UQ(user_id,product_id))
+orders(id, order_number UQ, user_id null idx, customer_name, customer_phone, customer_email null, address_snapshot json, note, subtotal uint, discount_amount uint, coupon_id null idx, shipping_fee uint, total uint, payment_method cod|bank_transfer, payment_status pending|paid|refunded, status new|confirmed|packing|shipping|delivered|cancelled|returning, paid_at null, cancelled_at null; idx(customer_phone,created_at), idx(status,created_at), idx(user_id,created_at))
+order_items(id, order_id idx, product_id null idx, product_variant_id null idx, name_snapshot, sku_snapshot, image_snapshot null, price uint, qty, subtotal uint; idx(order_id), idx(product_id))
+order_status_histories(id, order_id idx, status, note, created_by null idx; idx(order_id,created_at))
+payments(id, order_id UQ, method, amount uint, status pending|success|failed, transaction_code null, payload json, paid_at null)
+shipments(id, order_id UQ, carrier internal|ghn|ghtk|vtp, tracking_code null, fee uint, status, shipped_at null, delivered_at null)
+stock_movements(id, product_variant_id idx, type import|export|adjust|order_reserve|order_release, qty int SIGNED, ref_type null, ref_id null, note, created_by null idx; idx(product_variant_id,created_at), idx(ref_type,ref_id))
+reviews(id, product_id idx, user_id idx, order_id null idx, rating tinyint, content, images json, is_verified bool, admin_reply null, status pending|approved|hidden; UQ(order_id,product_id); idx(product_id,status,created_at), idx(product_id,rating))
+testimonials(id, customer_name, customer_location, orders_count, rating, content, avatar, sort_order, status active|hidden)
+post_categories(id, name, slug UQ, sort_order, status active|hidden)
+posts(id, post_category_id null idx, title, slug UQ, excerpt, content longtext, cover null, reading_minutes, status draft|published, published_at null, view_count; idx(status,published_at))
+newsletter_subscribers(id, email UQ, status subscribed|unsubscribed)
+stores(id, name, address, phone, hours, status active|hidden)
+settings(id, key UQ, value text null, group_name; idx(group_name))
+search_terms(id, term UQ, hits; idx(hits))
+framework tables: cache, cache_locks, sessions, jobs, job_batches, failed_jobs
+
+## 5. ENUMS PHP (app/Enums, backed string)
+OrderStatus(new,confirmed,packing,shipping,delivered,cancelled,returning + label() + next())
+OrderPaymentStatus(pending,paid,refunded) | PaymentMethod(cod,bank_transfer)
+CouponType(fixed,percent,shipping) | PromotionType(flash_sale,campaign)
+PromotionStatus(scheduled,active,ended,cancelled) | ProductStatus(draft,active,hidden)
+ReviewStatus(pending,approved,hidden) | BannerPosition(home_hero,home_mid,category,product)
+ShipmentCarrier(internal,ghn,ghtk,vtp)
+StockMovementType(import,export,adjust,order_reserve,order_release)
+
+## 6. HELPER ĐÃ CÓ (app/Support/helpers.php, nạp qua composer autoload files)
+remember_group(string $group, string $key, int $ttl, Closure $cb): mixed
+  -> cache key "{group}:v{version}:{key}", version đọc từ Cache
+bump_group_version(string $group): int -> tăng version, vô hiệu cả nhóm
+group_version_key(string $group): string
+format_vnd(int $amount): string -> "800.000₫"
+format_number_compact(int $n): string -> 3100 => "3.1k"
+
+## 7. CONFIG ĐÃ CÓ: config/thaomoc.php (nội dung hiện tại)
+~~~php
+<?php
+declare(strict_types=1);
+return [
+    'order' => ['prefix' => env('ORDER_PREFIX', 'TMX'), 'random_length' => 5],
+    'rate_limits' => [
+        'login' => env('RATE_LIMIT_LOGIN', 5),
+        'checkout' => env('RATE_LIMIT_CHECKOUT', 3),
+        'apply_coupon' => env('RATE_LIMIT_APPLY_COUPON', 10),
+        'search' => env('RATE_LIMIT_SEARCH', 30),
+        'send_otp' => env('RATE_LIMIT_SEND_OTP', 3),
+    ],
+    'cache' => [
+        'home' => ['featured_categories' => 600, 'flash_sale' => 300,
+                   'best_sellers' => 600, 'banners' => 3600],
+        'catalog' => ['category_tree' => 3600, 'product_detail' => 300],
+        'content' => ['posts' => 1800, 'testimonials' => 3600],
+        'settings' => 3600,
+    ],
+    'shipping' => [
+        'default_fee' => env('SHIPPING_DEFAULT_FEE', 30000),
+        'free_threshold' => env('SHIPPING_FREE_THRESHOLD', 500000),
+        'internal_carrier_name' => 'Giao hàng nội bộ Thảo Mộc Farm',
+    ],
+    'upload' => [
+        'max_size_kb' => env('UPLOAD_MAX_SIZE_KB', 2048),
+        'allowed_mimes' => ['image/jpeg', 'image/png', 'image/webp'],
+        'thumbnails' => ['small' => 300, 'medium' => 600, 'large' => 1200],
+    ],
+    'review' => ['require_verified_purchase' => true, 'auto_approve' => false],
+];
+~~~
+
+## 8. CODE ĐÃ CÓ – KHÔNG VIẾT LẠI, CHỈ MỞ RỘNG
+
+### 8.1 Models, scopes, quan hệ đặc biệt
+- Đủ models theo schema; ĐÃ XÁC NHẬN fillable + relations của:
+  Cart(fillable user_id, cart_token; user(), items())
+  CartItem(fillable cart_id, product_id, product_variant_id, qty;
+           cart(), product(), variant() = belongsTo ProductVariant
+           khóa 'product_variant_id')
+- Scopes: Product::active/featured/bestSeller/search;
+  Promotion::currentlyRunning; Coupon::valid/displayable; Post::published.
+- ofMany: Product::coverImage(), Product::defaultVariant().
+- Method app-level: PromotionProduct::slotsLeft(), PromotionProduct::soldPercent().
+
+### 8.2 DTOs (app/DTOs) – readonly promoted properties, cache KHÔNG chứa DTO
+ProductViewDTO(int id, string name, string sku, string subtitle,
+  string description, int price, ?int old_price, int discount_percent,
+  float avg_rating, int review_count, int sold_count, int stock,
+  string image, string meta_description, ?CategoryViewDTO category)
+CategoryViewDTO(string name, string url)
+RelatedProductDTO(string url, string image, string name, int price,
+  ?int old_price, int discount_percent, float avg_rating, int sold_count)
+ReviewViewDTO(string customer, int rating, string content, string created_at)
+
+### 8.3 Services
+app/Services/HomeService.php (constants + 3 method, cache nhóm 'home'):
+- FEATURED_LIMIT=8, FEATURED_TTL=600, FLASH_LIMIT=8, FLASH_TTL=300,
+  BEST_SELLERS_LIMIT=8, BEST_SELLERS_TTL=600
+- featuredCategories(): remember_group('home','featured_categories',600)
+  withCount(['products as products_count' => fn(Builder $q): Builder => $q->active()])
+  (withCount nhận Builder – đúng bẫy 1); get(['id','name','slug','icon','sort_order']);
+  trả array{id,name,slug,image,products_count,url}; image theo quy ước mục 3.6.
+- flashSale(): remember_group('home','flash_sale',300) -> ?array
+  {promotion_id,promotion_name,ends_at(ISO8601),ends_at_unix,items[]};
+  query Promotion type flash_sale + status active + start_at<=now<end_at;
+  PromotionProduct with product (Relation closure) + nested coverImage/
+  defaultVariant (select ĐỊNH DANH bảng – bẫy 2); filter variant tồn tại;
+  item keys: id,product_id,variant_id,name,url,image,rating_avg(string
+  1 số lẻ),sold_text,discount_percent,flash_price_formatted,
+  original_price_formatted,slots_left,sold_percent. Trả null nếu không deal.
+- bestSellers(): remember_group('home','best_sellers',600) -> array thuần
+  (KHÔNG object – bài học 3). Query Product select(id,slug,name,price_min,
+  compare_price,sold_count,rating_avg) where status active, with coverImage
+  (HasOne closure, select định danh product_images.*), orderByDesc(sold_count),
+  limit 8. Item keys: id,name,url,image(thumb_path ?? path ?? placeholder),
+  rating_avg(number_format 1 số lẻ),sold_count,price,old_price(null nếu không
+  lớn hơn price),discount_percent.
+
+app/Services/CatalogService.php (cache array thuần, hydrate DTO sau cache):
+- getProductDetail(string $slug): array
+  remember_group('catalog',"product_detail:{$slug}",
+    config('thaomoc.cache.catalog.product_detail',300), fn => fetchProductDetailFromDB)
+  rồi hydrateProductDetail() mới new DTO.
+  fetch: Product where slug + status active, with category(id,name,slug) /
+  images(sort_order; id,product_id,path,thumb_path,alt,is_cover) /
+  variants(sort_order; id,product_id,label,price,compare_price,stock,is_default);
+  firstOrFail. Giá/tồn lấy từ variant is_default (fallback variant đầu);
+  discount_percent tính từ old>price; cover = is_cover ?? ảnh đầu ?? placeholder;
+  meta_description = seo['description'] ?? subtitle ?? name.
+  Array cache keys: product_id, product{...13 trường scalar...},
+  category{name,url}|null, images[] (chuỗi path), variants[] (keys:
+  label_group='Khối lượng', name='variant_id', value=(string)id, label,
+  selected, price, old_price, stock), breadcrumbs[] ({label,url}, cuối url null),
+  relatedProducts[] (cùng category, loại id hiện tại, active, limit 4, keys
+  url,image,name,price,old_price,discount_percent,avg_rating,sold_count).
+  Trả view: product(ProductViewDTO), images, variants, breadcrumbs,
+  relatedProducts(RelatedProductDTO[]), reviews(ReviewViewDTO[]), ratingStats.
+- getProductReviews(int $productId): remember_group('review',
+  "product_reviews:{$productId}",600, fn => fetchReviewsFromDB) rồi map DTO.
+  reviews: status approved, with user:id,name, latest, limit 10 ->
+  {customer(user?->name ?? 'Khách'),rating,content,created_at(d/m/Y)}.
+  ratingStats: {avg(round 1 số lẻ, mặc định 5.0),total,breakdown[5..1]}.
+
+app/Services/CartService.php:
+- addToCart(int $productId, ?int $variantId, int $qty): array
+  {success:bool,message:string,cart_count?:int,cart_total?:int}
+  Kiểm tra: product active tồn tại; variant thuộc product (null => lấy
+  is_default ?? variant đầu); variant->stock >= qty; item trùng
+  UQ(cart_id,product_variant_id) thì cộng qty (tổng không vượt stock);
+  ngược lại create CartItem.
+- getOrCreateCart(): Cart – user đăng nhập ưu tiên user_id; guest dùng
+  Cookie 'cart_token' (uuid, queue 60*24*30 phút); login mà cart guest chưa
+  user_id thì gán; chưa có thì create + queue cookie.
+- calculateCartTotal(int $cartId): int – sum(variant.price * qty), eager variant.
+
+### 8.4 Controllers (mỏng)
+App\Http\Controllers\Web\HomeController: constructor inject readonly
+HomeService; index(): view('web.home', [featuredCategories, flashProducts
+=> flashSale(), bestSellers]).
+App\Http\Controllers\Web\ProductController: show(CatalogService $catalog,
+string $slug) -> $data = getProductDetail($slug); Product::where(id)
+->increment('view_count'); view('web.product', $data).
+App\Http\Controllers\Web\CategoryController: show stub (chưa triển khai).
+App\Http\Controllers\Web\CartController: add(AddToCartRequest, CartService)
+-> JsonResponse 200 {success,message,cart_count,cart_total} hoặc 422
+{success:false,message}.
+
+### 8.5 FormRequest đã có
+App\Http\Requests\AddToCartRequest: authorize true (guest OK); rules
+product_id required integer exists:products,id; variant_id nullable integer
+exists:product_variants,id; qty required integer min1 max999; messages
+tiếng Việt đầy đủ.
+
+### 8.6 routes/web.php HIỆN TẠI (giữ nguyên, chỉ thêm)
+~~~php
+Route::get('/', [HomeController::class,'index'])->name('web.home');
+Route::get('/danh-muc/{slug}', [CategoryController::class,'show'])->name('web.category.show');
+Route::get('/san-pham/{slug}', [ProductController::class,'show'])->name('web.product.show');
+Route::get('/gia-sieu-hoi', fn()=>view('web.flash-sale'))->name('web.flash-sale.index');
+Route::post('/gio-hang/them', [CartController::class,'add'])->name('web.cart.add');
+~~~
+
+### 8.7 Views + Blade components + contract DOM/CSS
+- resources/views/web/home.blade.php: include web.partials.flash-sale
+  (biến $flashProducts) + web.partials.best-sellers (biến $bestSellers,
+  section.home-section > .container > h2.sec-title#bestSellersTitle +
+  .product-grid chứa x-ui.product-card); block danh mục nổi bật dùng
+  $featuredCategories.
+- resources/views/web/partials/best-sellers.blade.php: ĐÃ CÓ, render
+  x-ui.product-card với :url :image :name :price(number_format.'₫')
+  :oldPrice(number_format.'₫'|null) :discount :rating :sold(format_number_compact).
+- resources/views/web/product.blade.php: ĐÃ CÓ, dùng
+  <x-layouts.app :title :seoDescription ogType="product" :ogImage bodyClass="has-buybar">
+  + x-slot schema (x-product.schema) + x-slot extra (x-product.buybar + JS).
+  Body: x-ui.breadcrumb :items; .pd-layout > x-product.gallery :images :alt
+  + x-product.info :product :variants; x-product.tabs :description :reviews
+  :ratingStats; x-product.related :products.
+- Component contracts (props):
+  x-layouts.app(title, seoDescription, ogType, ogImage, bodyClass; slots
+    schema, extra; PHẢI có <meta name="csrf-token"> vì JS đọc nó)
+  x-ui.breadcrumb(items: [{label,url}], item cuối/không url => <span>)
+  x-product.schema(product) – JSON-LD Product + BreadcrumbList, brand
+    "Thảo Mộc Xanh", dùng avg_rating/review_count/price/stock/category
+  x-product.gallery(images: mảng path, alt) – #pdStageImg; nút .pd-thumbs
+    button[data-full][aria-current]
+  x-product.info(product, variants) – .pd-price > b.price + s + span.off;
+    pills radio name="variant_id" value=id; .qty[data-qty] input +
+    button[data-step="-1|1"]; nút .add-cart[data-name][data-id], #buyNow,
+    nút fav; .pd-policy 3 dòng
+  x-product.tabs(description, reviews, ratingStats) – role=tablist,
+    #tab-desc/#tab-review/#tab-policy aria-controls panel-desc/panel-review/
+    panel-policy; review-sum dùng ratingStats['avg']; lặp x-product.review-item
+  x-product.review-item(review) – props customer,rating,content,created_at
+    (KIỂM TRA file tồn tại; nội dung chưa dán trong bàn giao)
+  x-product.related(products) – .product-grid + x-ui.product-card
+  x-product.buybar(product) – .buybar > .buybar__price + .add-cart + #buyNowMobile
+  x-ui.product-card(url,image,name,price,oldPrice,discount,rating,sold)
+- JS inline trong x-slot extra của product.blade.php (vanilla, DOMContentLoaded):
+  (1) thumb click -> đổi #pdStageImg.src + aria-current;
+  (2) radio variant_id change -> cập nhật .pd-price .price, s, .off,
+      .buybar__price, qty input.max theo variants JSON @json($variants);
+  (3) stepper [data-qty] button[data-step] chặn vượt max/min 1;
+  (4) tabs đổi aria-selected/hidden;
+  (5) .add-cart fetch POST route('web.cart.add') JSON {product_id,variant_id,qty}
+      header X-CSRF-TOKEN từ meta csrf-token; trạng thái nút ⏳/✓/disable.
+- JS có sẵn: resources/js/components/countdown.js (data-countdown,
+  data-cd-hours/minutes/seconds) + resources/js/app.js.
+- Palette UI: nền kem #f6f4ef; block flash #1e4b39; accent amber-400/500;
+  chữ emerald-900; giá flash text-orange-600; badge giảm giá bg-rose-500.
+- Command: php artisan thaomoc:bump-cache {group}.
+
+## 9. DỮ LIỆU HIỆN CÓ TRONG DB (snapshot 22/09/2026)
+categories: id 1..4 = Thảo mộc, Thịt gác bếp, Gia vị Tây Bắc, Mật ong;
+  đều is_featured=1, status active (slug: kiểm tra bằng SELECT).
+products: đúng 4 bản ghi:
+~~~sql
+INSERT INTO products (id,category_id,sku,slug,name,subtitle,description,price_min,compare_price,stock_total,sold_count,rating_avg,rating_count,view_count,is_featured,status,published_at,seo,created_at,updated_at) VALUES
+(1,1,'TMF-TT-001','cu-tam-that-bac-kho-loai-1','Củ Tam Thất Bắc Khô Loại 1 Nguyên Củ Chuẩn - Phơi Khô Nguyên Chất 100%','Tam thất bắc nguyên củ, phơi khô tự nhiên','<p>Củ tam thất bắc trồng trên núi đá Hà Giang, phơi khô nguyên chất 100%.</p>',1000000,1150000,120,3100,4.90,286,8405,1,'active','2026-09-22 11:21:09',NULL,'2026-09-22 11:21:09','2026-09-22 13:20:27'),
+(2,1,'TMF-TT-002','nu-tam-that-bac-loai-1-tui-500g','Nụ Tam Thất Bắc Loại 1 Túi 500g Nguyên Chất [Giá Tốt]','Nụ tam thất bắc loại 1','<p>Nụ tam thất bắc sấy khô, hãm trà thơm dịu, vị ngọt hậu.</p>',230000,265000,200,2700,4.90,214,6137,1,'active','2026-09-22 11:21:09',NULL,'2026-09-22 11:21:09','2026-09-22 13:25:13'),
+(3,2,'TMF-TGB-001','thit-trau-gac-bep-chuan-tay-bac','Thịt Trâu Gác Bếp Chuẩn Tây Bắc - Mắc Khén Hạt Dổi [Tặng Chấm Chéo]','Thịt trâu gác bếp chuẩn bản địa','<p>Thịt trâu hun khói gác bếp, ướp mắc khén hạt dổi đậm vị vùng cao.</p>',145000,165000,150,1800,4.80,165,5200,1,'active','2026-09-22 11:21:09',NULL,'2026-09-22 11:21:09','2026-09-22 11:21:09'),
+(4,1,'TMF-TD-001','tao-do-say-kho-qua-to-loai-1','Táo Đỏ Sấy Khô Quả To Loại 1 - Hàng Chuẩn Dẻo Ngọt Nấu Chè Pha Trà','Táo đỏ sấy khô loại 1','<p>Táo đỏ sấy dẻo ngọt, nấu chè pha trà, bồi bổ sức khỏe.</p>',225000,255000,180,2200,4.90,198,5901,1,'active','2026-09-22 11:21:09',NULL,'2026-09-22 11:21:09','2026-09-22 12:55:46');
+~~~
+product_variants: mỗi product 1..4 có >= 1 dòng is_default=1 (id: SELECT).
+product_images: mỗi product 1..4 có 1 dòng is_cover=1 (path: SELECT).
+promotions: id=1, type flash_sale, status active, start_at <= now < end_at.
+promotion_products: 4 dòng gắn promotion 1 với product 1..4
+  (flash_price/discount_percent/qty_total/qty_sold: SELECT để lấy chính xác).
+CÒN TRỐNG (seeders đã bị bỏ qua theo yêu cầu chủ dự án): users (CHƯA có
+admin => phải tạo tay/seed trước khi làm admin), reviews (rating_avg/
+rating_count trên products là denormalize có sẵn), coupons + coupon_*,
+banners, carts, cart_items, wishlists, orders + order_*, payments,
+shipments, stock_movements, testimonials, post_categories, posts,
+newsletter_subscribers, stores, settings, search_terms, addresses.
+SQL fake data TUỲ CHỌN đã cấp (chưa xác nhận đã chạy): thêm products id
+5..8 (Giảo Cổ Lam 180k/220k sold 2500; Mắc Khén 85k/95k sold 2800; Mật ong
+bạc hà 450k/520k sold 2100; Lạp xưởng 220k/260k sold 1900) kèm variant
+is_default + ảnh cover cho từng sản phẩm.
+Mockup UI block "Bán chạy tuần này" (5 card: ảnh, tên 2 dòng, sao + rating
++ "3.1k đã bán", giá cam + giá gạch xám, nút + tròn xanh) CHỈ là tham khảo
+thiết kế; dữ liệu thật lấy từ bảng products.
+
+## 10. UI ĐÃ CHỐT – PHẦN CÒN LẠI PHẢI LÀM
+ĐÃ XONG: block Danh mục nổi bật; block Giá siêu hời (flash sale + countdown);
+block Bán chạy tuần này; TOÀN BỘ trang chi tiết sản phẩm (breadcrumb,
+gallery+thumb, meta rating/sold/SKU, khung giá+% giảm, pills biến thể,
+qty +/-, add cart/mua ngay/yêu thích, dòng chính sách, tabs Mô tả/Đánh giá/
+Chính sách, related, buybar mobile, schema JSON-LD).
+CÒN LẠI trang chủ: topbar thông báo; header logo + ô search có gợi ý +
+tài khoản + giỏ hàng (badge đếm từ cart); pills danh mục; hero banner kèm
+badge mùa vụ + chip rating; dải cam kết USP; block "Mã giảm giá"
+(fixed/percent/freeship + nút Sao chép); block câu chuyện vùng miền;
+testimonial "Khách hàng nói gì"; dải chứng nhận OCOP/VietGAP/ISO/TEST;
+blog "Cẩm nang vào bếp & pha trà"; form newsletter; footer.
+Trang khác: giỏ hàng; checkout COD + áp mã giảm giá; tra cứu đơn bằng SĐT +
+mã đơn; đăng nhập/đăng ký; wishlist; trang danh mục (lọc danh mục/giá, sort,
+phân trang); blog list + detail; trang cửa hàng; trang chính sách tĩnh.
+Admin tối thiểu: CRUD danh mục/sản phẩm/biến thể/ảnh; quản lý flash sale,
+coupon, banner; duyệt review; quản lý đơn + đổi trạng thái; thống kê cơ bản;
+quản lý posts/testimonials/settings.
+
+## 11. LỘ TRÌNH CÒN LẠI – VIẾT THEO THỨ TỰ
+(4) Seeders: ĐÃ BỎ QUA theo yêu cầu chủ dự án. Khi cần dữ liệu
+    (admin user, coupon SALE9K fixed 9000 min 200000, TAYBAC20 percent 20
+    max 100000, FREESHIP shipping, MOI10 percent 10, 3 testimonial, 4 post,
+    settings hotline/ship 30000/freeship 500000/topbar message) => insert
+    tay hoặc seeder riêng chạy 1 lần, KHÔNG tự ý chạy lại DatabaseSeeder.
+(5) config/thaomoc.php: ĐÃ XONG (mục 7).
+(6) Services còn thiếu: Coupon, FlashSale (checkout slot), Order, Review,
+    Search, Content + hoàn thiện CartService (badge giỏ, merge cart guest
+    khi login, xóa item, tính phí ship theo config thaomoc.shipping).
+(7) FormRequests + Controllers (Web + Admin).
+(8) routes/web.php + routes/admin.php (mở rộng, GIỮ nguyên route mục 8.6).
+(9) Blade layout + views còn lại theo mục 10.
+(10) Jobs, Listeners, Console commands, schedule (nhả tồn/hoàn slot,
+     thumbnail queue, log search_terms, COD quá hạn).
+(11) Config supervisor cho queue worker, cron schedule, Nginx vhost mẫu,
+     README cài đặt 1 server.
+(12) Feature test (Pest hoặc PHPUnit): thêm giỏ, áp coupon đúng/sai điều
+     kiện, checkout trừ tồn nguyên tử, flash sale hết slot.
+
+## 12. QUY TẮC TRẢ LỜI
+- Mỗi phần trong code block riêng, ghi rõ đường dẫn file.
+- KHÔNG viết code dạng "..." hay "// tương tự"; mọi file đầy đủ, chạy được
+  ngay sau khi copy.
+- Khi sửa file đã tồn tại: đưa TOÀN BỘ nội dung file mới hoặc diff rõ ràng.
+- Hết độ dài trả lời: dừng cleanly ở cuối phần hiện tại và chờ tôi gõ "tiếp".
+- Câu trả lời đầu tiên: xác nhận đã hiểu trong <= 5 dòng, sau đó bắt đầu
+  ngay phần đầu tiên của lộ trình còn lại (mục 11).
+================================================================
