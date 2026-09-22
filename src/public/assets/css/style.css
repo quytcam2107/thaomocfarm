@@ -309,8 +309,8 @@ h2,
 .header__acts {
     order: 3;
     display: flex;
-    gap: 4px;
-    margin: 8px auto 0;  /* top 8px, left/right auto → căn giữa */
+    gap: 10px;
+    margin: 0px auto 0; /* top 8px, left/right auto → căn giữa */
     width: fit-content;  /* Giới hạn width bằng nội dung */
 }
 
