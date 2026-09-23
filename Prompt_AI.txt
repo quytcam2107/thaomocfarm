@@ -19,7 +19,7 @@ LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
 - Session: driver **database**.
 - File/ảnh: disk `public` + `php artisan storage:link`, Nginx serve cùng server.
 - Tìm kiếm: MySQL **FULLTEXT** index, fallback **LIKE**. Không Meilisearch/Algolia.
-- Frontend: **Blade + Tailwind** build local bằng **Vite + Alpine.js/vanilla JS**. Components dùng CSS class tự đặt kiểu BEM.
+- Frontend: **Blade + Tailwind** build local bằng **Vite + Alpine.js/vanilla JS**. Components dùng CSS class tự đặt kiểu BEM, **chỉ dùng anonymous component** (file .blade.php trong `resources/views/components/`, khai báo `@props`), KHÔNG dùng class-based component.
 - Không Octane, không Docker.
 - Deploy: `git pull` + `composer install --no-dev` + `php artisan optimize` + `migrate --force`.
 
@@ -49,9 +49,13 @@ LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
 3. **Cache driver file** dùng `serialize/unserialize`: **CẤM đưa object (stdClass lẫn DTO) vào giá trị cache**. **CHUẨN**: closure của `remember_group()` chỉ trả **array/scalar thuần**; hydrate DTO **SAU** khi đọc cache về.
 4. **Sau khi thêm/đổi route** phải chạy `route:clear` (đã gặp lỗi "Route [web.cart.add] not defined").
 5. **Sau khi đổi dữ liệu hiển thị** phải bump cache nhóm: `php artisan thaomoc:bump-cache {home|catalog|review}`.
-6. **Quy ước đường dẫn ảnh** ĐANG TỒN TẠI: icon danh mục: `asset('assets/images/categories/' . $icon)`, fallback `asset('assets/images/category-default.svg')`. Ảnh flash sale: `asset('assets/images/' . $path)`, fallback `asset('images/product-default.svg')`. Gallery PDP: component tự `asset($path)`, fallback `'images/placeholder.svg'`.
+6. **Quy ước đường dẫn ảnh** ĐANG TỒN TẠI: icon danh mục: `asset('assets/images/categories/' . $icon)`, fallback `asset('assets/images/category-default.svg')`. Ảnh flash sale: `asset('assets/images/' . $path)`, fallback `asset('images/product-default.svg')`. Gallery PDP: component tự `asset($path)`, fallback `'images/placeholder.svg'`. Card danh mục: `asset('storage/' . ltrim($path, '/'))`, fallback `asset('images/product-default.svg')`.
 7. **Chuỗi thương hiệu** trong blade hiện tại là **"Thảo Mộc Xanh"** (title, schema JSON-LD); tên dự án/prefix đơn hàng là **TMX / "Thảo Mộc Farm"**. KHÔNG tự đổi tên thương hiệu.
 8. **Biến view** của block flash sale trên home tên là `$flashProducts` (không phải `$flashSale`).
+9. **PHP 8.1+ ném TypeError** khi `trim(null)` trong Blade `@if (!empty($x)) ... trim($x) ... @endif` – vì Blade compile cả khối `@if` trước khi check `!empty()`. **CHUẨN**: cast `(string)` trước `trim()` hoặc gán biến mặc định `$desc = (string) ($x ?? '');` rồi dùng `$desc`.
+10. **Route catch-all `/{slug}`** PHẢI đặt **cuối cùng** trong `routes/web.php`, sau mọi route có prefix (`/san-pham/*`, `/gio-hang/*`, `/tra-cuu-don`...). Phải ràng buộc `->where('slug', '[a-z0-9\-]+')` để không nuốt file tĩnh (`.ico`, `.xml`) hay URL có dấu `.`.
+11. **Anonymous Blade Component** dùng `@props([...])`, KHÔNG dùng `$this`, KHÔNG truyền Closure vào `:prop`, KHÔNG lồng `<main>` trong view con vì `x-layouts.app` đã bọc `<main id="main">`. View con chỉ cần `<div class="container">`.
+12. **Truyền dữ liệu cho Blade component**: chỉ truyền scalar/array thuần, không truyền Closure/Paginator object; với `Paginator` dùng `$paginator->toArray()` hoặc tự map ra `['total', 'current_page', 'last_page', 'from', 'to', 'per_page']`.
 
 ## 4. SCHEMA DATABASE (InnoDB, utf8mb4_unicode_ci, mọi bảng có id + timestamps)
 users(id, name, email UQ, phone UQ null, password, role enum admin|staff|customer, email_verified_at null, remember_token)
@@ -155,9 +159,10 @@ app/Services/HomeService.php (constants + 3 method, cache nhóm 'home'):
 - flashSale(): remember_group('home','flash_sale',300) -> ?array {promotion_id,promotion_name,ends_at(ISO8601),ends_at_unix,items[]}.
 - bestSellers(): remember_group('home','best_sellers',600) -> array thuần (KHÔNG object).
 
-app/Services/CatalogService.php (cache array thuần, hydrate DTO sau cache):
+app/Services/CatalogService.php (cache array thuần, hydrate DTO sau cache; constants CATEGORY_PER_PAGE=12, SORT_OPTIONS=[bestsell/newest/price_asc/price_desc], PRICE_RANGES=[0-100,100-250,250-]):
 - getProductDetail(string $slug): remember_group + hydrate DTO. Trả view: product(DTO), images, variants, breadcrumbs, relatedProducts(DTO[]), reviews(DTO[]), ratingStats.
 - getProductReviews(int $productId): remember_group rồi map DTO.
+- getCategoryShow(string $slug, array $rawFilters): ?array -> KHÔNG cache (tổ hợp lọc quá nhiều). Trả: category, breadcrumbs, breadcrumb_schema (BreadcrumbList JSON-LD), children (danh mục con + products_count), products (mảng thuần có id/url/image/name/price/oldPrice/discount/rating/sold), meta (total/per_page/current_page/last_page/from/to), filters, priceRanges, sortOptions. Dùng `with(['coverImage' => fn(Relation $r) => $r->select([...])])` định danh bảng đầy đủ.
 
 app/Services/CartService.php:
 - addToCart(int $productId, ?int $variantId, int $qty): kiểm tra tồn kho, UQ(cart_id,product_variant_id).
@@ -172,26 +177,34 @@ app/Services/CouponService.php:
 ### 8.4 Controllers (mỏng)
 App\Http\Controllers\Web\HomeController: inject HomeService; index().
 App\Http\Controllers\Web\ProductController: show(CatalogService, $slug) + increment view_count.
-App\Http\Controllers\Web\CategoryController: show stub.
+App\Http\Controllers\Web\CategoryController: show(CategoryShowRequest, CatalogService, $slug) -> abort_if null, 404.
 App\Http\Controllers\Web\CartController: add(AddToCartRequest, CartService).
 
 ### 8.5 FormRequest đã có
 App\Http\Requests\AddToCartRequest: authorize true; rules product_id, variant_id, qty; messages tiếng Việt.
+App\Http\Requests\CategoryShowRequest: GET query validate (sort in [bestsell,newest,price_asc,price_desc], price array in [0-100,100-250,250-], rating int nullable in [3,4,5], cat array exists:categories,id, page int 1..10000). Messages tiếng Việt.
 
-### 8.6 routes/web.php HIỆN TẠI (giữ nguyên, chỉ thêm)
+### 8.6 routes/web.php HIỆN TẠI (thứ tự QUAN TRỌNG – catch-all luôn cuối)
 Route::get('/', [HomeController::class,'index'])->name('web.home');
-Route::get('/danh-muc/{slug}', [CategoryController::class,'show'])->name('web.category.show');
-Route::get('/san-pham/{slug}', [ProductController::class,'show'])->name('web.product.show');
-Route::get('/gia-sieu-hoi', fn()=>view('web.flash-sale'))->name('web.flash-sale.index');
+Route::get('/gia-sieu-hoi', [FlashSaleController::class,'index'])->name('web.flash-sale.index');
+Route::get('/tra-cuu-don', [OrderTrackingController::class,'index'])->name('web.order-tracking.index');
+Route::get('/san-pham/{slug}', [ProductController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.product.show');
 Route::post('/gio-hang/them', [CartController::class,'add'])->name('web.cart.add');
+Route::get('/danh-muc/{slug}', [CategoryController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.category.show');
+Route::get('/{slug}', [CategoryController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.category.pretty'); // alias, CUỐI CÙNG
 
 ### 8.7 Views + Blade components + contract DOM/CSS
 - resources/views/web/home.blade.php: include flash-sale ($flashProducts) + best-sellers ($bestSellers) + featuredCategories.
-- resources/views/web/partials/best-sellers.blade.php: render x-ui.product-card.
 - resources/views/web/product.blade.php: dùng <x-layouts.app> + slots schema/extra.
-- Component contracts (props):
+- resources/views/web/category.blade.php: dùng <x-layouts.app> + slots schema/extra; <div class="container"> (KHÔNG lồng <main>); @json($products) cho JS idByUrl map; fetch POST add-cart dùng meta[name="csrf-token"].
+- resources/views/web/flash-sale.blade.php (stub).
+- resources/views/web/order-tracking.blade.php (stub).
+
+Component contracts (props) – TẤT CẢ là anonymous .blade.php với @props:
   x-layouts.app(title, seoDescription, ogType, ogImage, bodyClass; slots schema, extra; PHẢI có <meta name="csrf-token">)
   x-ui.breadcrumb(items: [{label,url}])
+  x-ui.product-card(url,image,name,price,oldPrice,discount,rating,sold)
+  x-ui.pagination(meta: {total,current_page,last_page,from,to,per_page})
   x-product.schema(product) – JSON-LD, brand "Thảo Mộc Xanh"
   x-product.gallery(images, alt) – #pdStageImg
   x-product.info(product, variants) – pills radio variant_id, stepper qty, add-cart, #buyNow
@@ -199,9 +212,16 @@ Route::post('/gio-hang/them', [CartController::class,'add'])->name('web.cart.add
   x-product.review-item(review)
   x-product.related(products)
   x-product.buybar(product) – mobile
-  x-ui.product-card(url,image,name,price,oldPrice,discount,rating,sold)
+  x-category.toolbar(total, from, to, sortOptions, currentSort)
+  x-category.chips(chips: [{label, url}])
+  x-category.filters(action, clearUrl, children, filters, priceRanges)
+  x-category.filter-groups(children, filters, priceRanges) – dùng chung sidebar + drawer
+  x-category.filter-drawer(action, clearUrl, currentSort, children, filters, priceRanges)
+  x-category.seo-text(heading, description)
+
 - JS inline trong x-slot extra của product.blade.php: (1) thumb click; (2) variant radio; (3) stepper qty; (4) tabs; (5) .add-cart fetch POST.
-- JS có sẵn: resources/js/components/countdown.js + resources/js/app.js.
+- JS inline trong x-slot extra của category.blade.php: (1) sort auto-submit filterForm; (2) chip remove data-href; (3) add-cart fetch POST từ card với idByUrl map.
+- JS có sẵn: resources/js/components/countdown.js + resources/js/app.js (xử lý drawer qua attribute data-drawer-open/close).
 - Palette UI: nền kem #f6f4ef; block flash #1e4b39; accent amber-400/500; chữ emerald-900; giá flash text-orange-600; badge giảm giá bg-rose-500.
 - Command: php artisan thaomoc:bump-cache {group}.
 
@@ -216,12 +236,70 @@ CÓ THỂ ĐÃ SEED (qua command thaomoc:seed-initial): Admin user, Coupons (SAL
 CÒN TRỐNG: reviews, coupon_*, banners, carts, wishlists, orders + order_*, payments, shipments, stock_movements, newsletter_subscribers, stores, search_terms, addresses.
 
 ## 10. UI ĐÃ CHỐT
-ĐÃ XONG: Block Danh mục nổi bật; Block Giá siêu hời (flash sale + countdown); Block Bán chạy tuần này; TOÀN BỘ trang chi tiết sản phẩm (breadcrumb, gallery+thumb, meta, khung giá+% giảm, pills biến thể, qty +/-, add cart/mua ngay/yêu thích, chính sách, tabs, related, buybar mobile, schema JSON-LD).
+ĐÃ XONG: Block Danh mục nổi bật; Block Giá siêu hời (flash sale + countdown); Block Bán chạy tuần này; TOÀN BỘ trang chi tiết sản phẩm (breadcrumb, gallery+thumb, meta, khung giá+% giảm, pills biến thể, qty +/-, add cart/mua ngay/yêu thích, chính sách, tabs, related, buybar mobile, schema JSON-LD); **TOÀN BỘ trang danh mục sản phẩm** (breadcrumb, page-head, toolbar sort+filter, chips bộ lọc đang áp dụng, sidebar filter desktop, drawer filter mobile, product-grid, pagination cửa sổ trượt, SEO text cuối trang).
 CÒN LẠI trang chủ: topbar thông báo; header logo + ô search có gợi ý + tài khoản + giỏ hàng (badge); pills danh mục; hero banner; dải cam kết USP; block "Mã giảm giá"; block câu chuyện vùng miền; testimonial; dải chứng nhận OCOP/VietGAP/ISO/TEST; blog; newsletter; footer.
-Trang khác: giỏ hàng; checkout COD + áp mã; tra cứu đơn; đăng nhập/đăng ký; wishlist; trang danh mục (lọc/sort/phan trang); blog list + detail; trang cửa hàng; trang chính sách tĩnh.
+Trang khác: giỏ hàng; checkout COD + áp mã; tra cứu đơn; đăng nhập/đăng ký; wishlist; blog list + detail; trang cửa hàng; trang chính sách tĩnh.
 Admin tối thiểu: CRUD danh mục/sản phẩm/biến thể/ảnh; flash sale, coupon, banner; duyệt review; quản lý đơn + đổi trạng thái; thống kê; posts/testimonials/settings.
 
-## 11. CÁCH TRẢ LỜI
+## 11. CẤU TRÚC FILE DỰ ÁN HIỆN TẠI (chỉ liệt kê phần đã có/đã làm)
+app/
+├── Enums/ (ProductStatus, OrderStatus, ...)
+├── Http/
+│   ├── Controllers/
+│   │   ├── Controller.php
+│   │   └── Web/
+│   │       ├── HomeController.php         // index() inject HomeService
+│   │       ├── ProductController.php      // show(CatalogService, $slug)
+│   │       ├── CategoryController.php     // show(CategoryShowRequest, CatalogService, $slug)
+│   │       ├── CartController.php         // add(AddToCartRequest, CartService)
+│   │       ├── FlashSaleController.php    // index() stub
+│   │       └── OrderTrackingController.php // index() stub
+│   └── Requests/
+│       ├── AddToCartRequest.php
+│       └── CategoryShowRequest.php
+├── Models/ (Category, Product, ProductVariant, ProductImage, ...)
+├── Services/
+│   ├── HomeService.php       // featuredCategories, flashSale, bestSellers
+│   ├── CatalogService.php    // getProductDetail, getProductReviews, getCategoryShow
+│   ├── CartService.php       // addToCart, getOrCreateCart, mergeGuestCart, ...
+│   └── CouponService.php     // applyCoupon
+├── Support/helpers.php       // remember_group, bump_group_version, format_vnd, format_number_compact
+└── View/Components/ (KHÔNG dùng - dùng anonymous component thay thế)
+config/thaomoc.php
+resources/views/
+├── web/
+│   ├── home.blade.php
+│   ├── product.blade.php
+│   ├── category.blade.php
+│   ├── flash-sale.blade.php
+│   ├── order-tracking.blade.php
+│   └── partials/
+│       └── best-sellers.blade.php
+└── components/
+    ├── layouts/
+    │   └── app.blade.php                 // có <main id="main"> + <meta csrf-token>
+    ├── ui/
+    │   ├── breadcrumb.blade.php
+    │   ├── product-card.blade.php
+    │   └── pagination.blade.php
+    ├── product/
+    │   ├── schema.blade.php              // JSON-LD brand "Thảo Mộc Xanh"
+    │   ├── gallery.blade.php             // #pdStageImg
+    │   ├── info.blade.php
+    │   ├── tabs.blade.php
+    │   ├── review-item.blade.php
+    │   ├── related.blade.php
+    │   └── buybar.blade.php              // mobile
+    └── category/
+        ├── toolbar.blade.php             // sort select + filter-btn
+        ├── chips.blade.php               // chips bộ lọc đang áp dụng
+        ├── filters.blade.php             // sidebar desktop
+        ├── filter-groups.blade.php       // dùng chung sidebar + drawer
+        ├── filter-drawer.blade.php       // drawer mobile
+        └── seo-text.blade.php            // SEO text cuối trang
+routes/web.php
+
+## 12. CÁCH TRẢ LỜI
 - Mỗi phần trong code block riêng, ghi rõ đường dẫn file.
 - KHÔNG viết code dạng "..." hay "// tương tự"; mọi file đầy đủ, chạy được ngay.
 - Khi sửa file đã tồn tại: đưa TOÀN BỘ nội dung file mới hoặc diff rõ ràng.
