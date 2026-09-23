@@ -3,7 +3,7 @@
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <ol>
                 <li><a href="{{ route('web.home') }}">Trang chủ</a></li>
-                <li><span aria-current="page">Giỏ hàng</span></li>
+                <li><span aria-current="page">Giỏ hàng ({{ $totalQty }})</span></li>
             </ol>
         </nav>
         <div class="page-head">

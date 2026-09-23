@@ -217,6 +217,7 @@ class CartService
                     'url' => route('web.product.show', $item->product->slug),
                 ];
             });
+        $totalQty = $items->sum('qty');
         $subtotal = $items->sum('subtotal');
         $totalItems = $items->sum('qty');
         
@@ -224,6 +225,7 @@ class CartService
             'items' => $items,
             'subtotal' => $subtotal,
             'total_items' => $totalItems,
+            'total_qty' => $totalQty,
         ];
     }
 

@@ -30,6 +30,7 @@ class CartController extends Controller
         
         return view('web.cart', [
             'cartItems' => $cartDetails['items'],
+            'totalQty' => $cartDetails['total_qty'],
             'subtotal' => $subtotal,
             'shippingFee' => $shippingFee,
             'total' => $total,
