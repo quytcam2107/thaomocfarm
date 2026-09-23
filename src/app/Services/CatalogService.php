@@ -13,8 +13,28 @@ use App\Models\Review;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Enums\ProductStatus;
+use App\Models\Category;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
+
 class CatalogService
 {
+    public const CATEGORY_PER_PAGE = 12;
+    /** Các lựa chọn sắp xếp hợp lệ ở trang danh mục. */
+    public const SORT_OPTIONS = [
+        'bestsell' => 'Bán chạy nhất',
+        'newest' => 'Mới nhất',
+        'price_asc' => 'Giá thấp → cao',
+        'price_desc' => 'Giá cao → thấp',
+    ];
+
+    /** Các khoảng giá lọc được (đơn vị VND, max = null nghĩa là không chặn trên). */
+    public const PRICE_RANGES = [
+        ['key' => '0-100', 'min' => 0, 'max' => 100000],
+        ['key' => '100-250', 'min' => 100000, 'max' => 250000],
+        ['key' => '250-', 'min' => 250000, 'max' => null],
+    ];
     /**
      * Lấy chi tiết sản phẩm theo slug.
      * Cache array thuần (không cache object) để tránh lỗi unserialize.
@@ -66,7 +86,7 @@ class CatalogService
         if ($currentComparePrice && $currentComparePrice > $currentPrice) {
             $discountPercent = (int) round((($currentComparePrice - $currentPrice) / $currentComparePrice) * 100);
         }
-        
+
         $coverImage = $product->images->firstWhere('is_cover', true)?->path
             ?? $product->images->first()?->path
             ?? 'images/placeholder.svg';
@@ -116,7 +136,7 @@ class CatalogService
                 $pr = $defVar ? (int) $defVar->price : (int) $p->price_min;
                 $op = $defVar && $defVar->compare_price ? (int) $defVar->compare_price : ($p->compare_price ? (int) $p->compare_price : null);
                 $disc = ($op && $op > $pr) ? (int) round((($op - $pr) / $op) * 100) : 0;
-                
+
                 return [
                     'url' => route('web.product.show', $p->slug),
                     'image' => $coverImg,
@@ -284,5 +304,241 @@ class CatalogService
                 ],
             ],
         ];
+    }
+
+    /**
+     * Lấy toàn bộ dữ liệu trang danh mục: thông tin danh mục, breadcrumb, schema,
+     * danh mục con (filter), sản phẩm phân trang theo bộ lọc, meta phân trang.
+     * KHÔNG cache danh sách vì tổ hợp lọc/sắp xếp/trang quá đa dạng; truy vấn dùng index có sẵn.
+     *
+     * @param  array<string, mixed>  $rawFilters  Dữ liệu đã validate từ CategoryShowRequest
+     * @return array<string, mixed>|null  Null khi danh mục không tồn tại / đang ẩn
+     */
+    public function getCategoryShow(string $slug, array $rawFilters): ?array
+    {
+        $category = Category::query()
+            ->where('slug', $slug)
+            ->where('status', 'active')
+            ->select(['id', 'parent_id', 'name', 'slug', 'description'])
+            ->first();
+
+        if ($category === null) {
+            return null;
+        }
+
+        $filters = $this->normalizeCategoryFilters($rawFilters);
+
+        $children = Category::query()
+            ->where('parent_id', $category->id)
+            ->where('status', 'active')
+            ->withCount([
+                'products' => function (Builder $q): void {
+                    $q->where('status', ProductStatus::ACTIVE->value);
+                }
+            ])
+            ->select(['id', 'parent_id', 'name', 'slug', 'sort_order'])
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $scopeIds = $filters['cats'] !== []
+            ? $filters['cats']
+            : array_merge([$category->id], $children->pluck('id')->all());
+
+        $query = Product::query()
+            ->whereIn('category_id', $scopeIds)
+            ->where('status', ProductStatus::ACTIVE->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->with([
+                'coverImage' => function (Relation $r): void {
+                    $r->select([
+                        'product_images.id',
+                        'product_images.product_id',
+                        'product_images.path',
+                        'product_images.thumb_path',
+                    ]);
+                }
+            ])
+            ->select(['id', 'category_id', 'slug', 'name', 'price_min', 'compare_price', 'rating_avg', 'sold_count']);
+
+        if ($filters['prices'] !== []) {
+            $query->where(function (Builder $q) use ($filters): void {
+                foreach ($filters['prices'] as $key) {
+                    $range = collect(self::PRICE_RANGES)->firstWhere('key', $key);
+                    if ($range === null) {
+                        continue;
+                    }
+                    if ($range['max'] === null) {
+                        $q->orWhere('price_min', '>=', $range['min']);
+                    } else {
+                        $q->orWhereBetween('price_min', [$range['min'], $range['max']]);
+                    }
+                }
+            });
+        }
+
+        if ($filters['rating'] !== null) {
+            $query->where('rating_avg', '>=', $filters['rating']);
+        }
+
+        $query = match ($filters['sort']) {
+            'newest' => $query->orderByDesc('published_at')->orderByDesc('id'),
+            'price_asc' => $query->orderBy('price_min')->orderByDesc('id'),
+            'price_desc' => $query->orderByDesc('price_min')->orderByDesc('id'),
+            default => $query->orderByDesc('sold_count')->orderByDesc('id'),
+        };
+
+        $paginator = $query->paginate(self::CATEGORY_PER_PAGE, ['*'], 'page', $filters['page']);
+
+        $products = $paginator->getCollection()
+            ->map(fn(Product $p): array => $this->toCategoryCard($p))
+            ->all();
+
+        $parent = $category->parent_id !== null
+            ? Category::query()
+                ->where('id', $category->parent_id)
+                ->where('status', 'active')
+                ->select(['id', 'name', 'slug'])
+                ->first()
+            : null;
+
+        $schemaCrumbs = [['label' => 'Trang chủ', 'url' => route('web.home')]];
+        if ($parent !== null) {
+            $schemaCrumbs[] = ['label' => $parent->name, 'url' => route('web.category.show', ['slug' => $parent->slug])];
+        }
+        $schemaCrumbs[] = ['label' => $category->name, 'url' => route('web.category.show', ['slug' => $category->slug])];
+
+        $breadcrumbs = $schemaCrumbs;
+        $breadcrumbs[count($breadcrumbs) - 1]['url'] = null;
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => array_values(array_map(
+                static fn(int $i, array $c): array => [
+                    '@type' => 'ListItem',
+                    'position' => $i + 1,
+                    'name' => $c['label'],
+                    'item' => $c['url'],
+                ],
+                array_keys($schemaCrumbs),
+                $schemaCrumbs
+            )),
+        ];
+
+        return [
+            'category' => [
+                'id' => (int) $category->id,
+                'name' => (string) $category->name,
+                'slug' => (string) $category->slug,
+                'description' => $category->description !== null ? (string) $category->description : null,
+            ],
+            'breadcrumbs' => $breadcrumbs,
+            'breadcrumb_schema' => $breadcrumbSchema,
+            'children' => $children->map(fn(Category $c): array => [
+                'id' => (int) $c->id,
+                'name' => (string) $c->name,
+                'slug' => (string) $c->slug,
+                'count' => (int) $c->products_count,
+            ])->all(),
+            'products' => $products,
+            'meta' => [
+                'total' => (int) $paginator->total(),
+                'per_page' => (int) $paginator->perPage(),
+                'current_page' => (int) $paginator->currentPage(),
+                'last_page' => (int) $paginator->lastPage(),
+                'from' => (int) ($paginator->firstItem() ?? 0),
+                'to' => (int) ($paginator->lastItem() ?? 0),
+            ],
+            'filters' => $filters,
+            'priceRanges' => self::PRICE_RANGES,
+            'sortOptions' => self::SORT_OPTIONS,
+        ];
+    }
+
+    /**
+     * Chuẩn hoá bộ lọc danh mục về dạng an toàn, đủ key mặc định.
+     *
+     * @param  array<string, mixed>  $raw
+     * @return array{sort: string, prices: array<int, string>, rating: int|null, cats: array<int, int>, page: int}
+     */
+    private function normalizeCategoryFilters(array $raw): array
+    {
+        $sort = isset($raw['sort']) && array_key_exists($raw['sort'], self::SORT_OPTIONS)
+            ? (string) $raw['sort']
+            : 'bestsell';
+
+        $prices = array_values(array_intersect(
+            (array) ($raw['price'] ?? []),
+            array_column(self::PRICE_RANGES, 'key')
+        ));
+
+        $rating = isset($raw['rating']) && $raw['rating'] !== null && $raw['rating'] !== ''
+            ? (int) $raw['rating']
+            : null;
+        if ($rating !== null && !in_array($rating, [3, 4, 5], true)) {
+            $rating = null;
+        }
+
+        $cats = array_values(array_unique(array_map('intval', (array) ($raw['cat'] ?? []))));
+
+        $page = max(1, (int) ($raw['page'] ?? 1));
+
+        return [
+            'sort' => $sort,
+            'prices' => $prices,
+            'rating' => $rating,
+            'cats' => $cats,
+            'page' => $page,
+        ];
+    }
+
+    /**
+     * Chuyển 1 product (đã eager-load coverImage) thành array thuần đúng contract của x-ui.product-card.
+     *
+     * @return array{id: int, url: string, image: string, name: string, price: int, oldPrice: int|null, discount: int, rating: float, sold: int}
+     */
+    private function toCategoryCard(Product $p): array
+    {
+        $old = ($p->compare_price !== null && (int) $p->compare_price > (int) $p->price_min)
+            ? (int) $p->compare_price
+            : null;
+
+        $discount = $old !== null
+            ? (int) round((1 - (int) $p->price_min / $old) * 100)
+            : 0;
+
+        return [
+            'id' => (int) $p->id,
+            'url' => route('web.product.show', ['slug' => $p->slug]),
+            'image' => $this->categoryProductImageUrl($p),
+            'name' => (string) $p->name,
+            'price' => (int) $p->price_min !== null ? format_vnd((int) $p->price_min) : null,
+            'oldPrice' => $old !== null ? format_vnd((int) $old) : null,
+            'discount' => $discount,
+            'rating' => (float) $p->rating_avg,
+            'sold' => (int) $p->sold_count,
+        ];
+    }
+
+    /**
+     * URL ảnh cover của sản phẩm cho trang danh mục.
+     * Ưu tiên thumb_path, fallback ảnh gốc, cuối cùng là ảnh mặc định.
+     * Tuân thủ quy ước: `asset($path)` cho đường dẫn tương đối trên disk public.
+     */
+    private function categoryProductImageUrl(Product $p): string
+    {
+        $cover = $p->coverImage;
+
+        if ($cover === null) {
+            return asset('images/product-default.svg');
+        }
+
+        $path = $cover->thumb_path !== null ? (string) $cover->thumb_path : (string) $cover->path;
+
+        return !empty($path)
+            ? asset('assets/images/' . $path)
+            : null;
     }
 }

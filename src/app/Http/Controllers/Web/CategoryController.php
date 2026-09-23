@@ -5,21 +5,25 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use App\Requests\CategoryShowRequest;
+use App\Services\CatalogService;
+use Illuminate\View\View;
 
+/**
+ * Controller trang danh mục sản phẩm phía khách.
+ */
 class CategoryController extends Controller
 {
     /**
-     * Stub trang danh mục – chỉ để route('web.category.show') hoạt động.
-     * Batch sau sẽ thay bằng CatalogService đầy đủ (lọc giá, sort, phân trang).
+     * Hiển thị trang danh mục theo slug: breadcrumb, bộ lọc, lưới sản phẩm, phân trang, SEO text.
+     * Trả null từ service => 404 (slug không tồn tại hoặc status != active).
      */
-    public function show(string $slug): string
+    public function show(CategoryShowRequest $request, CatalogService $service, string $slug): View
     {
-        $category = Category::query()
-            ->where('slug', $slug)
-            ->where('status', 'active')
-            ->firstOrFail();
+        $data = $service->getCategoryShow($slug, $request->validated());
         
-        return "Danh mục: {$category->name} – trang đầy đủ sẽ triển khai ở batch sau.";
+        abort_if($data === null, 404);
+
+        return view('web.category', $data);
     }
 }
