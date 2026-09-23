@@ -98,7 +98,8 @@
 
                 <x-ui.pagination :meta="$meta" />
 
-                <x-category.seo-text :heading="'Về ' . $category['name']" :description="$category['description']" />
+                <x-category.seo-text :heading="$seoText['heading']" :paragraph="$seoText['paragraph']"
+                    :subheading="$seoText['subheading']" :tips="$seoText['tips']" />
             </div>
         </div>
     </div>

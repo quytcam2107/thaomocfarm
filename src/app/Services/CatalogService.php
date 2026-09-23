@@ -35,6 +35,49 @@ class CatalogService
         ['key' => '100-250', 'min' => 100000, 'max' => 250000],
         ['key' => '250-', 'min' => 250000, 'max' => null],
     ];
+    /** Nội dung SEO text cố định theo slug danh mục (h2, đoạn văn, h3, danh sách mẹo). */
+    public const CATEGORY_SEO_TEXT = [
+        'thao-moc' => [
+            'heading' => 'Thảo mộc Tây Bắc có gì đặc biệt?',
+            'paragraph' => 'Tam thất, giảo cổ lam, táo đỏ… được trồng trên đồi núi cao Hà Giang, Lai Châu, sương mù quanh năm, thổ nhưỡng giàu khoáng nên dược chất tích tụ đậm hơn vùng xuôi. Thảo mộc thu hái đúng mùa, sơ chế thủ công, phơi khô tự nhiên, không tẩm sulphur, không chất bảo quản.',
+            'subheading' => 'Chọn thảo mộc chuẩn',
+            'tips' => [
+                'Củ và quả khô ráo, màu tự nhiên, không mốc trắng hay đốm lạ.',
+                'Mùi thơm dịu đặc trưng, không hắc mùi hoá chất.',
+                'Đóng gói hút ẩm kín, có nhãn vùng trồng và hạn dùng rõ ràng.',
+            ],
+        ],
+        'thit-gac-bep' => [
+            'heading' => 'Thịt gác bếp Tây Bắc có gì đặc biệt?',
+            'paragraph' => 'Thịt trâu, thịt lợn bản sau khi tẩm ướp mắc khén, hạt dổi, ớt rừng sẽ được treo trên gác bếp, hun bằng khói củi suốt 48 giờ. Lớp khói tạo màng bảo vệ tự nhiên giúp thịt khô dần, đậm vị và bảo quản được lâu mà không cần chất bảo quản.',
+            'subheading' => 'Chọn thịt gác bếp ngon',
+            'tips' => [
+                'Thớ thịt khô ráo, màu nâu đen óng, không mốc trắng.',
+                'Mùi khói thơm dịu, không khét gắt.',
+                'Bao bì hút chân không, có ngày đóng gói và hạn dùng rõ ràng.',
+            ],
+        ],
+        'gia-vi-tay-bac' => [
+            'heading' => 'Gia vị Tây Bắc vì sao khó lẫn?',
+            'paragraph' => 'Mắc khén, hạt dổi, ớt rừng thu hái từ rừng tự nhiên và vườn đồi Sơn La, Điện Biên, phơi nắng núi rồi rang thơm thủ công. Chính bộ ba mắc khén, hạt dổi, ớt rừng tạo nên vị tê thơm, cay ấm rất riêng mà gia vị công nghiệp không thay thế được.',
+            'subheading' => 'Chọn gia vị chuẩn rừng',
+            'tips' => [
+                'Hạt khô đều, thơm nồng khi vò nhẹ, không ẩm mốc.',
+                'Màu tự nhiên sẫm nhẹ, không phẩm màu nhuộm.',
+                'Lọ thuỷ tinh hoặc túi zip kín, ghi rõ ngày rang đóng gói.',
+            ],
+        ],
+        'mat-ong' => [
+            'heading' => 'Mật ong Tây Bắc quý ở điểm nào?',
+            'paragraph' => 'Ong rừng hút mật từ hoa bạc hà, hoa nhãn, hoa vải trên cao nguyên đá Mèo Vạc, Hà Giang nên mật sánh đậm, hậu thơm mát đặc trưng. Mật khai thác thủ công theo mùa hoa, quay lọc thô, không pha đường, không đun nấu nên giữ trọn enzyme và hương hoa bản địa.',
+            'subheading' => 'Nhận biết mật ong nguyên chất',
+            'tips' => [
+                'Mật sánh, mùi thơm hoa nhẹ, nếm có hậu chua thanh rất nhẹ.',
+                'Nhỏ giọt lên giấy thấm không loang nước nhanh.',
+                'Chai thuỷ tinh sạch; lắng đọng tự nhiên ở đáy là hiện tượng bình thường.',
+            ],
+        ],
+    ];
     /**
      * Lấy chi tiết sản phẩm theo slug.
      * Cache array thuần (không cache object) để tránh lỗi unserialize.
@@ -454,6 +497,7 @@ class CatalogService
             'filters' => $filters,
             'priceRanges' => self::PRICE_RANGES,
             'sortOptions' => self::SORT_OPTIONS,
+            'seoText' => $this->categorySeoText($category),
         ];
     }
 
@@ -491,6 +535,26 @@ class CatalogService
             'rating' => $rating,
             'cats' => $cats,
             'page' => $page,
+        ];
+    }
+    /**
+     * Lấy nội dung SEO text theo slug danh mục; slug lạ thì fallback về description.
+     *
+     * @return array{heading: string, paragraph: string|null, subheading: string|null, tips: array<int, string>}
+     */
+    private function categorySeoText(Category $category): array
+    {
+        $seo = self::CATEGORY_SEO_TEXT[$category->slug] ?? null;
+
+        if ($seo !== null) {
+            return $seo;
+        }
+
+        return [
+            'heading' => 'Về ' . $category->name,
+            'paragraph' => $category->description !== null ? trim((string) $category->description) : null,
+            'subheading' => null,
+            'tips' => [],
         ];
     }
 
