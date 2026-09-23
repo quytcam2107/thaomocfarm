@@ -1,7 +1,7 @@
 @props(['products' => collect()])
 
 <section aria-labelledby="relTitle">
-    <h2 class="sec-title" id="relTitle">Ăn kèm chuẩn vị Tây Bắc</h2>
+    <h2 class="sec-title" id="relTitle">Sản Phẩm Thường Mua Cùng</h2>
     <div class="product-grid">
         @forelse($products as $product)
             <x-ui.product-card :url="$product->url" :image="$product->image" :name="$product->name"
