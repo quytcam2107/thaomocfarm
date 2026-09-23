@@ -150,27 +150,7 @@
         set('#shipTotal', ship === 0 ? 'Miễn phí' : money(ship));
         set('#grandTotal', money(Math.max(0, sub - discount + ship)));
     }
-    qa('[data-qty]').forEach(box => {
-        const input = box.querySelector('input');
-        const minus = box.querySelector('[data-step="-1"]');
-        const sync = () => {
-            let v = parseInt(input.value, 10);
-            if (isNaN(v) || v < 1) v = 1;
-            if (v > 99) v = 99;
-            input.value = v; minus.disabled = v <= 1;
-            recalcCart();
-        };
-        box.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
-            input.value = (parseInt(input.value, 10) || 1) + parseInt(btn.dataset.step, 10);
-            sync();
-        }));
-        input.addEventListener('change', sync);
-        sync();
-    });
-    qa('[data-remove]').forEach(btn => btn.addEventListener('click', () => {
-        btn.closest('.cart-item').remove();
-        recalcCart(); toast('Đã xoá sản phẩm khỏi giỏ');
-    }));
+   
     const applyBtn = q('#applyCoupon');
     if (applyBtn) applyBtn.addEventListener('click', () => {
         const code = (q('#couponCode').value || '').trim().toUpperCase();

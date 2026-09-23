@@ -53,6 +53,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="{{ asset('assets/js/app.js') }}"></script>
+    <script src="{{ asset('assets/js/cart.js') }}"></script>
     @stack('scripts')
 </body>
 

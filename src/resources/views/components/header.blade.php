@@ -41,7 +41,7 @@
             @endauth
 
             {{-- Icon Giỏ hàng --}}
-            <a class="act" href="{{ url('/cart') }}" aria-label="Giỏ hàng">
+            <a class="act" href="{{ url('/gio-hang') }}" aria-label="Giỏ hàng">
                 <img src="{{ asset('assets/images/svg/icon-cart.svg') }}" alt="" width="20" height="20">
                 <span>Giỏ hàng</span>
                 <b class="cart-count" id="cartBadge">0</b>

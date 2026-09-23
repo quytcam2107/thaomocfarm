@@ -178,7 +178,7 @@ class HomeService
      * - 1 query chính + 1 eager load ảnh bìa (ofMany định danh bảng)
      * - Cache array thuần (không object) để tránh lỗi unserialize
      *
-     * @return array<int, array{id: int, name: string, url: string, image: string, rating_avg: string, sold_count: int, price: int, old_price: int|null, discount_percent: int}>
+     * @return array<int, array{id: int, name: string, url: string, image: string, rating_avg: string, sold_count: int, price: int, old_price: int|null, discount_percent: int, product_id: int, variant_id: int}>
      */
     public function bestSellers(): array
     {
@@ -188,12 +188,19 @@ class HomeService
                 ->where('status', ProductStatus::ACTIVE->value)
                 ->with([
                     'coverImage' => function (HasOne $query): void {
-                        // ofMany eager load dùng INNER JOIN derived table => bắt buộc định danh tên bảng
                         $query->select([
                             'product_images.id',
                             'product_images.product_id',
                             'product_images.path',
                             'product_images.thumb_path',
+                        ]);
+                    },
+                    'defaultVariant' => function (Relation $query): void {
+                        $query->select([
+                            'product_variants.id',
+                            'product_variants.product_id',
+                            'product_variants.price',
+                            'product_variants.stock',
                         ]);
                     }
                 ])
@@ -209,19 +216,21 @@ class HomeService
                 $discount = $oldPrice !== null
                     ? (int) round((($oldPrice - $price) / $oldPrice) * 100)
                     : 0;
-                
+
                 return [
                     'id' => (int) $p->id,
+                    'product_id' => (int) $p->id,
+                    'variant_id' => (int) ($p->defaultVariant?->id ?? 0),
                     'name' => $p->name,
                     'url' => route('web.product.show', $p->slug),
-                    'image' => $p->coverImage?->thumb_path ??asset('assets/images/' . $p->coverImage?->path) ?? asset('assets/images/placeholder.svg'),
+                    'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('assets/images/placeholder.svg')),
                     'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
                     'sold_count' => (int) $p->sold_count,
-                    'price' => format_vnd((int) $p->price_min),
-                    'old_price' => $oldPrice !== null ? format_vnd($oldPrice) : null,
+                    'price' => (int) $p->price_min, 
+                    'old_price' => $oldPrice,
                     'discount_percent' => $discount,
                 ];
-            })->all();
+            })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();
         });
     }
 }

@@ -6,7 +6,7 @@ namespace App\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AddToCartRequest extends FormRequest
+class UpdateCartRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,8 +16,6 @@ class AddToCartRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => 'required|integer|exists:products,id',
-            'variant_id' => 'required|integer|exists:product_variants,id',
             'qty' => 'required|integer|min:1|max:99',
         ];
     }
@@ -25,10 +23,6 @@ class AddToCartRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_id.required' => 'Sản phẩm không tồn tại',
-            'product_id.exists' => 'Sản phẩm không tồn tại',
-            'variant_id.required' => 'Biến thể không tồn tại',
-            'variant_id.exists' => 'Biến thể không tồn tại',
             'qty.required' => 'Vui lòng nhập số lượng',
             'qty.integer' => 'Số lượng phải là số nguyên',
             'qty.min' => 'Số lượng tối thiểu là 1',

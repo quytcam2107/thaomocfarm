@@ -1,21 +1,33 @@
 @props(['products' => null])
-{{-- @dd($products) --}}
-<section class="flash reveal" id="flash" aria-labelledby="flashTitle">
-    <div class="container">
-        <div class="flash__head">
-            <h2 class="flash__title" id="flashTitle">⚡ {{ $products['promotion_name'] ?? 'Giá siêu hời' }}</h2>
-            <p class="countdown" role="timer" aria-live="off">Kết thúc sau
-                <b class="cd" id="cdH">00</b>:<b class="cd" id="cdM">00</b>:<b class="cd" id="cdS">00</b>
-            </p>
-            <a class="flash__all" href="{{ url('/category') }}">Xem tất cả →</a>
-        </div>
-        <div class="flash__rail no-scrollbar" role="region" aria-label="Deal chớp nhoáng, cuộn ngang" tabindex="0">
-            @if($products && count($products['items']))
-                @foreach($products['items'] as $p)
-                    <x-ui.product-card :url="$p['url']" :image="$p['image']" :name="$p['name']" :price="$p['flash_price_formatted']"
-                        :oldPrice="$p['original_price_formatted']" :discount="$p['discount_percent']" :rating="$p['rating_avg']" :sold="$p['sold_text']" />
+
+@if($products && !empty($products['items']))
+    <section class="section section--flash" aria-labelledby="flashHeading">
+        <div class="container">
+            <header class="section__head">
+                <div>
+                    <p class="section__eyebrow">⏰ Giá siêu hời</p>
+                    <h2 class="section__title" id="flashHeading">Flash Sale hôm nay</h2>
+                </div>
+                <div class="countdown" data-ends="{{ $products['ends_at'] }}" aria-live="polite">
+                    <span class="countdown__label">Kết thúc sau</span>
+                    <span class="countdown__time" data-hours>00</span>:
+                    <span class="countdown__time" data-minutes>00</span>:
+                    <span class="countdown__time" data-seconds>00</span>
+                </div>
+            </header>
+
+            <div class="product-grid">
+                @foreach($products['items'] as $product)
+                    <x-ui.product-card :url="$product['url']" :image="$product['image']" :name="$product['name']"
+                        :price="$product['flash_price_formatted']" :oldPrice="$product['original_price_formatted']"
+                        :discount="$product['discount_percent']" :rating="$product['rating_avg']" :sold="$product['sold_text']"
+                        :productId="$product['product_id']" :variantId="$product['variant_id']" />
                 @endforeach
-            @endif
+            </div>
+
+            <footer class="section__foot">
+                <a class="btn btn--outline" href="{{ route('web.home') }}">Xem tất cả ưu đãi →</a>
+            </footer>
         </div>
-    </div>
-</section>
+    </section>
+@endif

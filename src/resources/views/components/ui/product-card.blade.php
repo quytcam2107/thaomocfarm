@@ -2,11 +2,13 @@
     'url' => '#',
     'image' => '',
     'name' => 'Sản phẩm',
-    'price' => '0₫',
+    'price' => 0,
     'oldPrice' => null,
     'discount' => null,
-    'rating' => '5.0',
-    'sold' => '0',
+    'rating' => 5.0,
+    'sold' => 0,
+    'productId' => 0,
+    'variantId' => 0,
 ])
 
 <article class="pcard">
@@ -30,12 +32,14 @@
         </p>
         <div class="pcard__buy">
             <p class="pcard__price">
-                <b>{{ $price }}</b>
+                <b>{{ is_int($price) ? number_format($price) : $price }}₫</b>
                 @if($oldPrice)
-                    <s>{{ $oldPrice }}</s>
+                    <s>{{ is_int($oldPrice) ? number_format($oldPrice) : $oldPrice }}₫</s>
                 @endif
             </p>
-            <button class="pcard__add add-cart" data-name="{{ $name }}" aria-label="Thêm {{ $name }} vào giỏ">+</button>
+            <button class="pcard__add add-cart" type="button" data-product-id="{{ $productId }}"
+                data-variant-id="{{ $variantId }}" data-name="{{ $name }}"
+                aria-label="Thêm {{ $name }} vào giỏ">+</button>
         </div>
     </div>
 </article>
