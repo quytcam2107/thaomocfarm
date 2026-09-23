@@ -468,7 +468,7 @@ h2,
 
     .act {
         flex-direction: row;
-        gap: 8px;
+        gap: 4px;
         font-size: 20px;
     }
 
