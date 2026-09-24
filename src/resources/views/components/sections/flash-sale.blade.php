@@ -1,22 +1,24 @@
 @props(['products' => null])
 
 @if($products && !empty($products['items']))
-    <section class="section section--flash" aria-labelledby="flashHeading">
+    <section class="flash reveal" id="flash" aria-labelledby="flashTitle">
         <div class="container">
-            <header class="section__head">
-                <div>
-                    <p class="section__eyebrow">⏰ Giá siêu hời</p>
-                    <h2 class="section__title" id="flashHeading">Flash Sale hôm nay</h2>
-                </div>
-                <div class="countdown" data-ends="{{ $products['ends_at'] }}" aria-live="polite">
-                    <span class="countdown__label">Kết thúc sau</span>
-                    <span class="countdown__time" data-hours>00</span>:
-                    <span class="countdown__time" data-minutes>00</span>:
-                    <span class="countdown__time" data-seconds>00</span>
-                </div>
-            </header>
+            <div class="flash__head">
+                {{-- Giữ UI của B, nhưng dùng text của A --}}
+                <h2 class="flash__title" id="flashTitle">⚡ Flash Sale hôm nay</h2>
 
-            <div class="product-grid">
+                {{-- Thêm data-ends của A vào để JS đếm ngược hoạt động đúng --}}
+                <p class="countdown" data-ends="{{ $products['ends_at'] }}" role="timer" aria-live="polite">
+                    Kết thúc sau
+                    <b class="cd" id="cdH">00</b>:<b class="cd" id="cdM">00</b>:<b class="cd" id="cdS">00</b>
+                </p>
+
+                {{-- Giữ UI của B, nhưng dùng route của A --}}
+                <a class="flash__all" href="{{ route('web.home') }}">Xem tất cả ưu đãi →</a>
+            </div>
+
+            <div class="flash__rail no-scrollbar" role="region" aria-label="Deal chớp nhoáng, cuộn ngang" tabindex="0">
+                {{-- Dùng điều kiện và biến $product y hệt Code A --}}
                 @foreach($products['items'] as $product)
                     <x-ui.product-card :url="$product['url']" :image="$product['image']" :name="$product['name']"
                         :price="$product['flash_price_formatted']" :oldPrice="$product['original_price_formatted']"
@@ -24,10 +26,6 @@
                         :productId="$product['product_id']" :variantId="$product['variant_id']" />
                 @endforeach
             </div>
-
-            <footer class="section__foot">
-                <a class="btn btn--outline" href="{{ route('web.home') }}">Xem tất cả ưu đãi →</a>
-            </footer>
         </div>
     </section>
 @endif

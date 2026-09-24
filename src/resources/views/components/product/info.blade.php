@@ -34,18 +34,18 @@
     <p class="opt-title">Số lượng</p>
     <div class="qty" data-qty>
         <button type="button" data-step="-1" aria-label="Giảm số lượng">−</button>
-        <input type="number" inputmode="numeric" min="1" max="{{ $product->stock ?? 99 }}" value="1"
+        <input type="number" name="qty" inputmode="numeric" min="1" max="{{ $product->stock ?? 99 }}" value="1"
             aria-label="Số lượng">
         <button type="button" data-step="1" aria-label="Tăng số lượng">+</button>
     </div>
 
     <div class="pd-actions">
-        <button class="btn btn--leaf add-cart" data-name="{{ $product->name }}" data-id="{{ $product->id }}">
+        <button class="btn btn--leaf add-cart" data-name="{{ $product->name }}" data-product-id="{{ $product->id }}">
             🛒 Thêm vào giỏ
         </button>
         <button class="btn btn--clay" id="buyNow" data-id="{{ $product->id }}">⚡ Mua ngay</button>
         <button class="btn btn--ghost pcard__fav--lg" aria-label="Thêm vào yêu thích" aria-pressed="false"
-            data-id="{{ $product->id }}">♡ Yêu thích</button>
+            data-product-id="{{ $product->id }}">♡ Yêu thích</button>
     </div>
 
     <ul class="pd-policy">

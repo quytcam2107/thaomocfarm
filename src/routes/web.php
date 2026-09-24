@@ -25,9 +25,6 @@ Route::get('/san-pham/{slug}', [ProductController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('web.product.show');
 
-// 3. Thêm vào giỏ (POST)
-Route::post('/gio-hang/them', [CartController::class, 'add'])->name('web.cart.add');
-
 // 4. Danh mục — URL chuẩn /danh-muc/{slug}
 Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')

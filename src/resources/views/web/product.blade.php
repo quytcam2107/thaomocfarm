@@ -105,48 +105,6 @@
                     });
                 });
 
-                // 5. Add to Cart
-                const addToCartBtns = document.querySelectorAll('.add-cart');
-                addToCartBtns.forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const selectedRadio = document.querySelector('input[name="variant_id"]:checked');
-                        const variantId = selectedRadio ? selectedRadio.value : null;
-                        const qty = parseInt(qtyInput.value) || 1;
-
-                        const originalText = btn.innerHTML;
-                        btn.disabled = true;
-                        btn.innerHTML = '⏳ Đang thêm...';
-
-                        try {
-                            const response = await fetch('{{ route("web.cart.add") }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                },
-                                body: JSON.stringify({
-                                    product_id: {{ $product->id }},
-                                    variant_id: variantId,
-                                    qty: qty,
-                                }),
-                            });
-
-                            if (response.ok) {
-                                btn.innerHTML = '✓ Đã thêm';
-                                setTimeout(() => {
-                                    btn.innerHTML = originalText;
-                                    btn.disabled = false;
-                                }, 1500);
-                            } else {
-                                throw new Error('Failed to add to cart');
-                            }
-                        } catch (error) {
-                            alert('Có lỗi xảy ra, vui lòng thử lại!');
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                        }
-                    });
-                });
             });
         </script>
     </x-slot>
