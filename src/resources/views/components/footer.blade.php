@@ -23,7 +23,7 @@
             <h4>Liên hệ</h4>
             <p>📍 123 Đường Lá Xanh, Q. Phú Nhuận, TP.HCM</p>
             <p>📞 <a href="tel:0362795897">0362 795 897</a></p>
-            <p>✉️ <a href="mailto:hello@thaomocxanh.vn">hello@thaomocxanh.vn</a></p>
+            <p>✉️ <a href="mailto:thaomocfarm@gmail.com">thaomocfarm@gmail.com</a></p>
         </div>
     </div>
     <p class="footer__bottom container">© <span id="year">{{ date('Y') }}</span> Thảo Mộc Farm · Bản quyền thuộc về Thảo
