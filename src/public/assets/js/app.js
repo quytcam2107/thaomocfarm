@@ -126,16 +126,4 @@
         const v = search.querySelector('input').value.trim();
         toast(v ? 'Demo tìm kiếm: "' + v + '"' : 'Nhập từ khoá cần tìm nhé!');
     });
-    const news = q('#newsForm');
-    if (news) news.addEventListener('submit', e => { e.preventDefault(); toast('Cảm ơn bạn đã đăng ký! 🌿'); news.reset(); });
-    const co = q('#checkoutForm');
-    if (co) co.addEventListener('submit', e => {
-        e.preventDefault();
-        if (!co.checkValidity()) { co.reportValidity(); return; }
-        toast('🎉 Đặt hàng thành công! Mã đơn: TMX' + String(Date.now()).slice(-6));
-        co.reset();
-    });
-
-    /* Năm hiện tại */
-    const y = q('#year'); if (y) y.textContent = new Date().getFullYear();
 })();

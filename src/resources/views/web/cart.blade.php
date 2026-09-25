@@ -10,6 +10,18 @@
             <h1>Giỏ hàng của bạn</h1>
         </div>
 
+        @if(session('error'))
+            <div class="alert alert--error" style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div class="alert alert--success" style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <div class="cart-layout">
             <div>
                 @if(count($cartItems) > 0)
@@ -18,11 +30,11 @@
                             <article class="cart-item" data-item-id="{{ $item['id'] }}" data-price="{{ $item['price'] }}">
                                 <span class="cart-item__media">
                                     <a href="{{ $item['url'] }}">
-                                        <img src="{{ asset($item['image']) }}" alt="{{ $item['product_name'] }}" width="200" height="200" loading="lazy"
+                                        <img src="{{ $item['image'] }}" alt="{{ $item['product_name'] }}" width="200" height="200" loading="lazy"
                                              onerror="this.src='{{ asset('assets/images/placeholder.svg') }}'">
                                     </a>
                                 </span>
-                                <div>
+                                <div class="cart-item__content">
                                     <h2 class="cart-item__name">
                                         <a href="{{ $item['url'] }}">{{ $item['product_name'] }}</a>
                                     </h2>
@@ -30,7 +42,7 @@
                                         <p class="cart-item__variant">Phân loại: {{ $item['variant_label'] }}</p>
                                     @endif
                                     @if($item['price'])
-                                        <p class="cart-item__variant">Giá: {{ $item['price'] }}</p>
+                                        <p class="cart-item__price">Giá: {{ $item['price'] }}</p>
                                     @endif
                                     <div class="cart-item__row">
                                         <div class="qty" data-qty>
@@ -42,6 +54,9 @@
                                         <span class="cart-item__total">{{ number_format($item['subtotal']) }}₫</span>
                                         <button class="remove-btn" data-remove>Xoá</button>
                                     </div>
+                                    @if($item['qty'] >= $item['stock'])
+                                        <small class="cart-item__stock-warning">Đã đạt số lượng tối đa trong kho</small>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach
@@ -81,7 +96,7 @@
                         <span>Tổng cộng</span>
                         <span>{{ number_format($total) }}₫</span>
                     </p>
-                    <a class="btn btn--clay btn--block" href="#">Thanh toán ngay</a>
+                    <a class="btn btn--clay btn--block" href="{{ route('web.checkout.index') }}">Thanh toán ngay</a>
                     <p class="sum-row sum-row--center">
                         <a class="remove-btn" href="{{ route('web.home') }}">← Tiếp tục mua sắm</a>
                     </p>
@@ -149,13 +164,14 @@
 
                 const data = await response.json();
                 if (data.success) {
+                    // Reload trang để cập nhật tổng tiền và phí ship
                     location.reload();
                 } else {
-                    alert(data.message || 'Có lỗi xảy ra');
+                    alert(data.message || 'Có lỗi xảy ra khi cập nhật số lượng');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Có lỗi xảy ra');
+                alert('Có lỗi xảy ra khi kết nối đến server');
             }
         }
 
@@ -171,13 +187,26 @@
 
                 const data = await response.json();
                 if (data.success) {
+                    // Reload trang sau khi xóa
                     location.reload();
+                } else {
+                    alert('Không thể xóa sản phẩm');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Có lỗi xảy ra');
+                alert('Có lỗi xảy ra khi xóa sản phẩm');
             }
         }
+
+        // Thêm hiệu ứng loading khi click nút +/-
+        document.querySelectorAll('[data-step]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.disabled = true;
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 500);
+            });
+        });
     </script>
     @endpush
 </x-layouts.app>

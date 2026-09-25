@@ -38,6 +38,15 @@ class Order extends Model
         'paid_at',
         'cancelled_at',
     ];
+    protected $casts = [
+        'address_snapshot' => 'array',
+        'subtotal' => 'integer',
+        'discount_amount' => 'integer',
+        'shipping_fee' => 'integer',
+        'total' => 'integer',
+        'paid_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {
