@@ -21,24 +21,19 @@ use Illuminate\Support\Facades\Route;
 // 1. Trang chủ
 Route::get('/', [HomeController::class, 'index'])->name('web.home');
 
-// 2. Sản phẩm chi tiết (prefix cố định)
-Route::get('/san-pham/{slug}', [ProductController::class, 'show'])
-    ->where('slug', '[a-z0-9\-]+')
-    ->name('web.product.show');
-
-// 4. Danh mục — URL chuẩn /danh-muc/{slug}
+// 2. Danh mục — URL chuẩn /danh-muc/{slug}
 Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('web.category.show');
     
-// 5. Gio hang
+// 3. Gio hang
 Route::get('/gio-hang', [CartController::class, 'index'])->name('web.cart.index');
 Route::post('/gio-hang/them', [CartController::class, 'add'])->name('web.cart.add');
 Route::post('/gio-hang/cap-nhat/{itemId}', [CartController::class, 'update'])->name('web.cart.update');
 Route::delete('/gio-hang/xoa/{itemId}', [CartController::class, 'remove'])->name('web.cart.remove');
 Route::get('/gio-hang/count', [CartController::class, 'count'])->name('web.cart.count');
 
-// 6. Checkout Routes
+// 4. Checkout Routes
 Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('web.checkout.index');
 Route::post('/thanh-toan', [CheckoutController::class, 'store'])->name('web.checkout.store');
 Route::get('/dat-hang-thanh-cong/{order_number}', [CheckoutController::class, 'success'])->name('web.checkout.success');
@@ -47,7 +42,7 @@ Route::get('/san-pham/{slug}', [ProductController::class,'show'])->where('slug',
 Route::get('/danh-muc/{slug}', [CategoryController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.category.show');
 
 
-// 7. Alias pretty-url /{slug} — BẮT BUỘC ở cuối cùng, KHÔNG được đặt trước
+// 5. Alias pretty-url /{slug} — BẮT BUỘC ở cuối cùng, KHÔNG được đặt trước
 Route::get('/{slug}', [CategoryController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('web.category.pretty');

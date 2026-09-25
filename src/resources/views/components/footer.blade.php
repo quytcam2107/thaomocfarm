@@ -14,10 +14,10 @@
         </nav>
         <nav aria-label="Danh mục">
             <h4>Danh mục</h4>
-            <a href="{{ url('/category/thit-gac-bep') }}">Thịt gác bếp</a>
-            <a href="{{ url('/category/gia-vi-tay-bac') }}">Gia vị Tây Bắc</a>
-            <a href="{{ url('/category/tra-hoa') }}">Trà hoa thảo dược</a>
-            <a href="{{ url('/category/combo-qua-tang') }}">Combo quà tặng</a>
+            <a href="{{ url('/thit-gac-bep') }}">Thịt gác bếp</a>
+            <a href="{{ url('/gia-vi-tay-bac') }}">Gia vị Tây Bắc</a>
+            <a href="{{ url('/tra-hoa') }}">Trà hoa thảo dược</a>
+            <a href="{{ url('/combo-qua-tang') }}">Combo quà tặng</a>
         </nav>
         <div>
             <h4>Liên hệ</h4>
