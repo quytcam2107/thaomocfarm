@@ -1,3 +1,11 @@
+@props([
+    'title' => 'Thảo Mộc Farm',
+    'seoDescription' => 'Thảo mộc & đặc sản Tây Bắc',
+    'ogType' => 'website',
+    'ogImage' => null,
+    'bodyClass' => '',
+    'hideCatnav' => false,
+])
 <!doctype html>
 <html lang="vi">
 
@@ -9,16 +17,16 @@
     {{-- CSRF token cho JS fetch (BẮT BUỘC để nút "Thêm vào giỏ" hoạt động) --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Thảo Mộc Farm' }}</title>
+    <title>{{ $title }}</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/logo_thao_moc_farm.png') }}">
 
     {{-- SEO Meta --}}
-    <meta name="description" content="{{ $seoDescription ?? 'Thảo mộc & đặc sản Tây Bắc' }}">
+    <meta name="description" content="{{ $seoDescription }}">
     <link rel="canonical" href="{{ url()->current() }}">
     <meta property="og:locale" content="vi_VN">
-    <meta property="og:type" content="{{ $ogType ?? 'website' }}">
+    <meta property="og:type" content="{{ $ogType }}">
     <meta property="og:title" content="{{ $title }}">
-    <meta property="og:description" content="{{ $seoDescription ?? '' }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ $ogImage ?? asset('assets/images/og-cover.jpg') }}">
 
@@ -36,10 +44,11 @@
     @stack('styles')
 </head>
 
-<body class="{{ $bodyClass ?? '' }}">
+<body class="{{ $bodyClass }}">
     <a class="skip-link" href="#main">Bỏ qua menu</a>
 
-    <x-header />
+    {{-- Truyền prop hideCatnav xuống header (mặc định false = hiển thị) --}}
+    <x-header :hide-catnav="$hideCatnav" />
 
     <main id="main">
         {{ $slot }}

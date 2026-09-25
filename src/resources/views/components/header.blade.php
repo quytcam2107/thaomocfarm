@@ -1,3 +1,6 @@
+@props([
+    'hideCatnav' => false,
+])
 <header class="site-header">
     <div class="topbar">
         <div class="container topbar__in">
@@ -48,13 +51,17 @@
             </a>
         </div>
     </div>
-    <nav class="catnav" aria-label="Danh mục sản phẩm">
-        <div class="container catnav__in no-scrollbar">
-            <a href="{{ url('/category/thao-moc') }}">🌿 Thảo mộc</a>
-            <a href="{{ url('/category/thit-gac-bep') }}">🍖 Thịt gác bếp</a>
-            <a href="{{ url('/category/gia-vi-tay-bac') }}"> Gia vị Tây Bắc</a>
-            <a href="{{ url('/category/mat-ong') }}"> Mật ong</a>
-            <a class="is-hot" href="{{ url('/deal-hot') }}">🔥 Deal hot</a>
-        </div>
-    </nav>
+
+    {{-- Catnav: mặc định hiển thị, ẩn khi hideCatnav = true --}}
+    @unless($hideCatnav)
+        <nav class="catnav" aria-label="Danh mục sản phẩm">
+            <div class="container catnav__in no-scrollbar">
+                <a href="{{ url('/category/thao-moc') }}">🌿 Thảo mộc</a>
+                <a href="{{ url('/category/thit-gac-bep') }}">🍖 Thịt gác bếp</a>
+                <a href="{{ url('/category/gia-vi-tay-bac') }}"> Gia vị Tây Bắc</a>
+                <a href="{{ url('/category/mat-ong') }}"> Mật ong</a>
+                <a class="is-hot" href="{{ url('/deal-hot') }}">🔥 Deal hot</a>
+            </div>
+        </nav>
+    @endunless
 </header>
