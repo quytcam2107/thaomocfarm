@@ -47,6 +47,16 @@ class CatalogService
                 'Đóng gói hút ẩm kín, có nhãn vùng trồng và hạn dùng rõ ràng.',
             ],
         ],
+        'tra-hoa-thao-moc' => [
+            'heading' => 'Trà hoa thảo mộc của Thảo Mộc Farm có gì đặc biệt?',
+            'paragraph' => 'Hoa cúc, hoa sâm, nụ tam thất… được thu hái thủ công vào sáng sớm khi sương chưa tan, giữ trọn hương thơm thanh khiết và dưỡng chất tự nhiên. Sự kết hợp giữa hoa tươi đồi núi cao và thảo mộc vùng cao mang đến sắc trà trong trẻo, vị ngọt hậu sâu, giúp thư giãn tinh thần và thanh lọc cơ thể mỗi ngày.',
+            'subheading' => 'Chọn trà hoa chuẩn',
+            'tips' => [
+                'Cánh hoa và nụ còn nguyên vẹn, màu sắc tươi sáng tự nhiên, không bị xỉn hay xơ dại.',
+                'Hương thơm thanh dịu dễ chịu khi mở túi, không có mùi hôi mốc hay hắc nồng.',
+                'Nước trà sau khi hãm trong trong, không đục, vị thanh ngọt tự nhiên không đắng gắt.',
+            ],
+        ],
         'thit-gac-bep' => [
             'heading' => 'Thịt gác bếp Tây Bắc có gì đặc biệt?',
             'paragraph' => 'Thịt trâu, thịt lợn bản sau khi tẩm ướp mắc khén, hạt dổi, ớt rừng sẽ được treo trên gác bếp, hun bằng khói củi suốt 48 giờ. Lớp khói tạo màng bảo vệ tự nhiên giúp thịt khô dần, đậm vị và bảo quản được lâu mà không cần chất bảo quản.',

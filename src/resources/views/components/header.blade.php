@@ -56,10 +56,10 @@
     @unless($hideCatnav)
         <nav class="catnav" aria-label="Danh mục sản phẩm">
             <div class="container catnav__in no-scrollbar">
-                <a href="{{ url('/thao-moc') }}">🌿 Thảo mộc</a>
-                <a href="{{ url('/thit-gac-bep') }}">🍖 Thịt gác bếp</a>
-                <a href="{{ url('/gia-vi-tay-bac') }}"> Gia vị Tây Bắc</a>
-                <a href="{{ url('/mat-ong') }}"> Mật ong</a>
+                <a href="{{ url('/thao-moc') }}">Thảo mộc & Dược liệu</a>
+                <a href="{{ url('/tra-hoa-thao-moc') }}">Trà hoa Thảo Mộc</a>
+                <a href="{{ url('/gia-vi-tay-bac') }}">Gia vị Tây Bắc</a>
+                <a href="{{ url('/thit-gac-bep') }}">Thịt gác bếp</a>
                 <a class="is-hot" href="{{ url('/deal-hot') }}">🔥 Deal hot</a>
             </div>
         </nav>
