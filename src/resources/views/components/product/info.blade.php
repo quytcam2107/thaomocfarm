@@ -49,7 +49,7 @@
     </div>
 
     <ul class="pd-policy">
-        <li>🚚 Freeship đơn từ 200K — giao 2h nội thành TP.HCM</li>
+        <li>🚚 Freeship đơn từ 200K — giao 2h nội thành Hà Nội</li>
         <li>🧊 Đóng gói hút chân không, kèm túi giữ lạnh khi giao xa</li>
         <li>🔄 Đổi trả trong 7 ngày nếu lỗi nhà sản xuất</li>
     </ul>

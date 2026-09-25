@@ -1,7 +1,7 @@
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Danh mục sản phẩm">
     <div class="drawer__overlay" data-drawer-close></div>
     <div class="drawer__panel">
-        <p class="drawer__head">Thảo Mộc Xanh
+        <p class="drawer__head">Thảo Mộc Farm
             <button class="drawer__close" data-drawer-close aria-label="Đóng danh mục">✕</button>
         </p>
         <nav class="drawer__nav" aria-label="Danh mục trong menu">

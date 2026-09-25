@@ -10,7 +10,7 @@
     "sku": "{{ $product->sku }}",
     "brand": {
         "@@type": "Brand",
-        "name": "Thảo Mộc Xanh"
+        "name": "Thảo Mộc Farm"
     },
     "aggregateRating": {
         "@@type": "AggregateRating",
@@ -25,7 +25,7 @@
         "availability": "{{ $product->stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
         "seller": {
             "@@type": "Organization",
-            "name": "Thảo Mộc Xanh"
+            "name": "Thảo Mộc Farm"
         }
     }
 }

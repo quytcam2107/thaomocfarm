@@ -50,7 +50,7 @@ LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
 4. **Sau khi thêm/đổi route** phải chạy `route:clear` (đã gặp lỗi "Route [web.cart.add] not defined").
 5. **Sau khi đổi dữ liệu hiển thị** phải bump cache nhóm: `php artisan thaomoc:bump-cache {home|catalog|review}`.
 6. **Quy ước đường dẫn ảnh** ĐANG TỒN TẠI: icon danh mục: `asset('assets/images/categories/' . $icon)`, fallback `asset('assets/images/category-default.svg')`. Ảnh flash sale: `asset('assets/images/' . $path)`, fallback `asset('images/product-default.svg')`. Gallery PDP: component tự `asset($path)`, fallback `'images/placeholder.svg'`. Card danh mục: `asset('storage/' . ltrim($path, '/'))`, fallback `asset('images/product-default.svg')`.
-7. **Chuỗi thương hiệu** trong blade hiện tại là **"Thảo Mộc Xanh"** (title, schema JSON-LD); tên dự án/prefix đơn hàng là **TMX / "Thảo Mộc Farm"**. KHÔNG tự đổi tên thương hiệu.
+7. **Chuỗi thương hiệu** trong blade hiện tại là **"Thảo Mộc Farm"** (title, schema JSON-LD); tên dự án/prefix đơn hàng là **TMX / "Thảo Mộc Farm"**. KHÔNG tự đổi tên thương hiệu.
 8. **Biến view** của block flash sale trên home tên là `$flashProducts` (không phải `$flashSale`).
 9. **PHP 8.1+ ném TypeError** khi `trim(null)` trong Blade `@if (!empty($x)) ... trim($x) ... @endif` – vì Blade compile cả khối `@if` trước khi check `!empty()`. **CHUẨN**: cast `(string)` trước `trim()` hoặc gán biến mặc định `$desc = (string) ($x ?? '');` rồi dùng `$desc`.
 10. **Route catch-all `/{slug}`** PHẢI đặt **cuối cùng** trong `routes/web.php`, sau mọi route có prefix (`/san-pham/*`, `/gio-hang/*`, `/tra-cuu-don`...). Phải ràng buộc `->where('slug', '[a-z0-9\-]+')` để không nuốt file tĩnh (`.ico`, `.xml`) hay URL có dấu `.`.
@@ -205,7 +205,7 @@ Component contracts (props) – TẤT CẢ là anonymous .blade.php với @props
   x-ui.breadcrumb(items: [{label,url}])
   x-ui.product-card(url,image,name,price,oldPrice,discount,rating,sold)
   x-ui.pagination(meta: {total,current_page,last_page,from,to,per_page})
-  x-product.schema(product) – JSON-LD, brand "Thảo Mộc Xanh"
+  x-product.schema(product) – JSON-LD, brand "Thảo Mộc Farm"
   x-product.gallery(images, alt) – #pdStageImg
   x-product.info(product, variants) – pills radio variant_id, stepper qty, add-cart, #buyNow
   x-product.tabs(description, reviews, ratingStats)
@@ -283,7 +283,7 @@ resources/views/
     │   ├── product-card.blade.php
     │   └── pagination.blade.php
     ├── product/
-    │   ├── schema.blade.php              // JSON-LD brand "Thảo Mộc Xanh"
+    │   ├── schema.blade.php              // JSON-LD brand "Thảo Mộc Farm"
     │   ├── gallery.blade.php             // #pdStageImg
     │   ├── info.blade.php
     │   ├── tabs.blade.php

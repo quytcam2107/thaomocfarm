@@ -1617,7 +1617,7 @@ h2,
 }
 
 .page-head {
-    padding: 6px 0 12px;
+    padding: 15px 0 12px;
 }
 
 .page-head h1 {
@@ -2508,9 +2508,6 @@ body.has-buybar .floatnav {
 }
 
 /* ============ ĐẶT HÀNG THÀNH CÔNG ============ */
-.success {
-    padding: 8px 0 32px;
-}
 
 /* ---------- HERO ---------- */
 .success__hero {

@@ -67,7 +67,7 @@ return [
     */
     'shipping' => [
         'default_fee' => env('SHIPPING_DEFAULT_FEE', 30000),
-        'free_threshold' => env('SHIPPING_FREE_THRESHOLD', 500000),
+        'free_threshold' => env('SHIPPING_FREE_THRESHOLD', 300000),
         'internal_carrier_name' => 'Giao hàng nội bộ Thảo Mộc Farm',
     ],
 

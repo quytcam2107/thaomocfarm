@@ -73,7 +73,10 @@
             @if(count($cartItems) > 0)
                 <aside class="summary" aria-label="Tóm tắt đơn hàng">
                     <h2>Tóm tắt đơn hàng</h2>
-                    
+                    <div class="coupon-input">
+                        <input id="couponCode" placeholder="Nhập mã giảm giá" aria-label="Mã giảm giá">
+                        <button class="btn btn--ghost" id="applyCoupon">Áp dụng</button>
+                    </div>
                     @if($subtotal < $freeShippingThreshold)
                         <p class="freeship-note">
                             🎁 Thêm <strong>{{ number_format($freeShippingThreshold - $subtotal) }}₫</strong> để được miễn phí vận chuyển
@@ -83,7 +86,7 @@
                             🎉 Đơn của bạn được FREESHIP!
                         </p>
                     @endif
-                    
+
                     <p class="sum-row">
                         <span>Tạm tính</span>
                         <span>{{ number_format($subtotal) }}₫</span>

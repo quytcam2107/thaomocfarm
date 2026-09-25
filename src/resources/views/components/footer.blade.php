@@ -1,7 +1,7 @@
 <footer class="footer">
     <div class="container footer__grid">
         <div>
-            <p class="footer__brand">🌿 Thảo Mộc Xanh</p>
+            <p class="footer__brand">🌿 Thảo Mộc Farm</p>
             <p class="footer__desc">Đặc sản Tây Bắc & trà hoa thảo mộc nguyên chất, thu mua trực tiếp từ vùng trồng Sơn
                 La, Điện Biên, Lào Cai.</p>
         </div>
@@ -21,7 +21,7 @@
         </nav>
         <div>
             <h4>Liên hệ</h4>
-            <p>📍 123 Đường Lá Xanh, Q. Phú Nhuận, TP.HCM</p>
+            <p>📍 789 Đường Quang Trung, Hà Đông, Hà Nội</p>
             <p>📞 <a href="tel:0362795897">0362 795 897</a></p>
             <p>✉️ <a href="mailto:thaomocfarm@gmail.com">thaomocfarm@gmail.com</a></p>
         </div>

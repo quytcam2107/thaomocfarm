@@ -1,5 +1,5 @@
 <x-layouts.app title="Thanh toán đơn hàng | Thảo Mộc Farm"
-    seoDescription="Thanh toán đơn hàng đặc sản Tây Bắc an toàn, bảo mật.">
+    seoDescription="Thanh toán đơn hàng đặc sản Tây Bắc an toàn, bảo mật." :hide-catnav="true">
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <ol>
@@ -9,7 +9,7 @@
             </ol>
         </nav>
         <div class="page-head">
-            <h1>Thông tin thanh toán</h1>
+            <h1 style="text-align: center;">Thông Tin Thanh Toán</h1>
         </div>
 
         @if(session('error'))
@@ -94,12 +94,12 @@
                     <legend>3. Phương thức vận chuyển</legend>
                     <label class="radio-card">
                         <input type="radio" name="shipping_method" value="fast" {{ old('shipping_method', $shipping_method) == 'fast' ? 'checked' : '' }}>
-                        <span><b>Giao nhanh 2h</b> (nội thành TP.HCM) — 30.000₫ · kèm túi giữ lạnh cho món gác
+                        <span><b>Giao nhanh 2h</b> (nội thành Hà Nội) — 30.000₫ · kèm túi giữ lạnh cho món gác
                             bếp</span>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="shipping_method" value="standard" {{ old('shipping_method', $shipping_method) == 'standard' ? 'checked' : '' }}>
-                        <span><b>Giao tiêu chuẩn</b> (2–4 ngày toàn quốc) — 20.000₫, miễn phí đơn từ
+                        <span><b>Giao tiêu chuẩn</b> (2–4 ngày toàn quốc) — 30.000₫, miễn phí đơn từ
                             {{ number_format($free_shipping_threshold) }}₫</span>
                     </label>
                     @error('shipping_method') <small class="error" style="color: #dc2626;">{{ $message }}</small>

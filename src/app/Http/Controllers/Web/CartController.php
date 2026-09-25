@@ -40,7 +40,7 @@ class CartController extends Controller
             'subtotal' => $subtotal,
             'shippingFee' => $shippingFee,
             'total' => $total,
-            'freeShippingThreshold' => config('thaomoc.shipping.free_threshold', 500000), // Khớp với config
+            'freeShippingThreshold' => config('thaomoc.shipping.free_threshold', 300000), // Khớp với config
         ]);
     }
 

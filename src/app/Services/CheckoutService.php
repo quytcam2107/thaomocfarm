@@ -67,7 +67,7 @@ class CheckoutService
             'discount_amount' => $discountAmount,
             'coupon_code' => $couponCode,
             'total' => $total,
-            'free_shipping_threshold' => config('thaomoc.shipping.free_threshold', 500000),
+            'free_shipping_threshold' => config('thaomoc.shipping.free_threshold', 300000),
         ];
     }
 
@@ -81,7 +81,7 @@ class CheckoutService
         }
 
         // standard
-        $threshold = config('thaomoc.shipping.free_threshold', 500000);
+        $threshold = config('thaomoc.shipping.free_threshold', 300000);
         if ($subtotal >= $threshold) {
             return 0;
         }
