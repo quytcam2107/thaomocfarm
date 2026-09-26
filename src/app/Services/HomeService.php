@@ -16,6 +16,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class HomeService
 {
+    public function __construct(
+        private readonly CouponService $couponService
+    ) {
+    }
+
     /** Số danh mục nổi bật tối đa hiển thị ở block trang chủ */
     private const FEATURED_LIMIT = 8;
 
@@ -27,6 +32,12 @@ class HomeService
 
     /** TTL cache block flash sale (giây) – ngắn hơn vì deal đổi thường xuyên */
     private const FLASH_TTL = 300;
+
+    /** Số mã giảm giá tối đa hiển thị ở block trang chủ */
+    private const COUPONS_LIMIT = 8;
+
+    /** TTL cache block mã giảm giá (10 phút) */
+    private const COUPONS_TTL = 600;
 
     /** Số sản phẩm bán chạy tối đa hiển thị */
     private const BEST_SELLERS_LIMIT = 4;
@@ -181,6 +192,21 @@ class HomeService
             'slots_left' => $pp->slotsLeft(),
             'sold_percent' => $pp->soldPercent(),
         ];
+    }
+
+    /**
+     * Block mã giảm giá trang chủ: lấy coupon active thật từ bảng coupons.
+     * - Delegate cho CouponService::getPublicCoupons() (mảng thuần, không object)
+     * - Cache nhóm "home" qua remember_group(); bump bằng thaomoc:bump-cache home
+     * - Trả [] khi không có mã => component tự ẩn cả section
+     *
+     * @return array<int, array{code: string, desc: string, minOrder: string, exp: string}>
+     */
+    public function homeCoupons(): array
+    {
+        return remember_group('home', 'coupons', self::COUPONS_TTL, function (): array {
+            return $this->couponService->getPublicCoupons(self::COUPONS_LIMIT);
+        });
     }
 
     /**

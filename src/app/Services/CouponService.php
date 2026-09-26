@@ -339,4 +339,60 @@ class CouponService
             'updated_at' => now(),
         ]);
     }
+    /**
+     * Danh sách mã giảm giá công khai cho block trang chủ (không ngữ cảnh giỏ).
+     * - Chỉ lấy mã status=active và nằm trong cửa sổ thời gian
+     * - Trả mảng thuần (string/int) — an toàn cho cache driver file (bẫy serialize)
+     *
+     * @return array<int, array{code: string, desc: string, minOrder: string, exp: string}>
+     */
+    public function getPublicCoupons(int $limit = 8): array
+    {
+        $now = now();
+
+        $coupons = Coupon::query()
+            ->where('status', 'active')
+            ->where(function (Builder $q) use ($now): void {
+                $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+            })
+            ->where(function (Builder $q) use ($now): void {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
+            })
+            ->orderBy('min_order_value')
+            ->orderBy('id')
+            ->limit($limit)
+            ->get(['id', 'code', 'type', 'value', 'min_order_value', 'max_discount', 'description', 'expires_at']);
+
+        $out = [];
+
+        foreach ($coupons as $coupon) {
+            $type = $this->typeValue($coupon);
+            $value = (int) $coupon->value;
+            $min = (int) $coupon->min_order_value;
+            $max = $coupon->max_discount !== null ? (int) $coupon->max_discount : null;
+
+            // Mô tả: ưu tiên description trong DB, thiếu thì tự sinh ngắn gọn
+            $dbDesc = trim((string) ($coupon->description ?? ''));
+
+            if ($dbDesc !== '') {
+                $desc = $dbDesc;
+            } else {
+                $desc = match ($type) {
+                    'fixed' => 'Giảm ' . format_vnd($value) . ' cho đơn hàng áp dụng.',
+                    'percent' => 'Giảm ' . $value . '% đơn hàng' . ($max !== null ? ', tối đa ' . format_vnd($max) : '') . '.',
+                    'shipping' => 'Miễn phí vận chuyển cho đơn hàng áp dụng.',
+                    default => 'Áp dụng cho đơn hàng đủ điều kiện.',
+                };
+            }
+
+            $out[] = [
+                'code' => strtoupper((string) $coupon->code),
+                'desc' => $desc,
+                'minOrder' => $min > 0 ? 'Đơn tối thiểu ' . format_vnd($min) : 'Không yêu cầu tối thiểu',
+                'exp' => $coupon->expires_at !== null ? 'HSD: ' . $coupon->expires_at->format('d/m/Y') : 'Không giới hạn',
+            ];
+        }
+
+        return $out;
+    }
 }
