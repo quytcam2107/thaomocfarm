@@ -39,7 +39,7 @@
             </p>
             <button class="pcard__add add-cart" type="button" data-product-id="{{ $productId }}"
                 data-variant-id="{{ $variantId }}" data-name="{{ $name }}"
-                aria-label="Thêm {{ $name }} vào giỏ">+</button>
+                aria-label="Thêm {{ $name }} vào giỏ"><img class="pcard__add-icon" src="{{ asset('assets/images/svg/cart-add.svg') }}" alt="Thêm giỏ hàng" width="20" height="20"></button>
         </div>
     </div>
 </article>

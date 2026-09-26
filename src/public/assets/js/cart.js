@@ -90,7 +90,7 @@
         isProcessing = true;
         const originalBtnText = buttonElement.innerHTML;
         buttonElement.disabled = true;
-        buttonElement.innerHTML = '<span class="inline-block animate-spin mr-2">⟳</span> Đang thêm...';
+        // buttonElement.innerHTML = '<span class="inline-block animate-spin mr-2">⟳</span> Đang thêm...';
 
         try {
             const response = await fetch('/gio-hang/them', {
@@ -175,7 +175,7 @@
             showToast('Không tìm thấy mã sản phẩm', 'error');
             return;
         }
-
+        
         if (isNaN(variantId)) {
             console.error('[Cart] Missing variant_id', button.dataset);
             showToast('Vui lòng chọn quy cách/phiên bản sản phẩm', 'error');
@@ -192,8 +192,7 @@
             }
             return;
         }
-        console.log('===========', button, productId, variantId, productName, qty);
-        
+            
         // 5. Gọi hàm thêm vào giỏ
         addToCart(button, productId, variantId, productName, qty);
     });

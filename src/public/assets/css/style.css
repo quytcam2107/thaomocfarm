@@ -897,7 +897,10 @@ h2,
     justify-content: space-between;
     gap: 8px;
 }
-
+.pcard__price {
+    min-width: 0; /* Cho phép text co lại hoặc xuống dòng nếu cần */
+    flex: 1;      /* Đẩy nút bấm sát về bên phải */
+}
 .pcard__price b {
     color: var(--clay);
     font-size: 15.5px;
@@ -912,18 +915,40 @@ h2,
 .pcard__add {
     width: 36px;
     height: 36px;
+    min-width: 36px;  /* Đảm bảo kích thước tối thiểu */
+    min-height: 36px;
+    flex-shrink: 0;   /* CHÍNH: Cấm Flexbox co hẹp nút này khi thiếu không gian */
     border-radius: 50%;
     background: var(--leaf);
     color: #fff;
-    font-size: 20px;
-    line-height: 1;
+    border: none;
     display: grid;
     place-items: center;
-    transition: transform .15s;
+    cursor: pointer;
+    transition: all .2s ease-in-out;
 }
 
+/* Fix cứng kích thước icon SVG bên trong */
+.pcard__add-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
+    transition: filter .2s ease, transform .2s ease;
+}
+
+.pcard__add:hover {
+    background: var(--leaf);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15), 0 0 12px var(--leaf);
+}
+
+.pcard__add:hover .pcard__add-icon {
+    filter: brightness(1.2) drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
+    transform: scale(1.1);
+}
 .pcard__add:active {
     transform: scale(.85);
+    box-shadow: none;
 }
 
 .product-grid {
