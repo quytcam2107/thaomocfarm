@@ -1,4 +1,420 @@
-/* ============ COUPON ============ */
+/* =====================================================================
+   COUPON TICKET + COUPON STRIP + TRẠNG THÁI MÃ ÁP DỤNG
+   - Card mã giảm giá kiểu vé (ticket)
+   - Block chứa danh sách mã
+   - Highlight mã đang áp dụng
+   ===================================================================== */
+
+/* ============ COUPON STRIP (Block chứa danh sách mã) ============ */
+.coupon-strip {
+    margin: 1.5rem 0 2rem;
+}
+
+.coupon-strip__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.coupon-strip__title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--leaf-deep);
+    margin: 0;
+}
+
+.coupon-strip__hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.coupon-strip__grid {
+    display: grid;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Mobile: 1 cột, scroll ngang nếu cần */
+@media (max-width: 639px) {
+    .coupon-strip__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablet: 2 cột */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .coupon-strip__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop: 4 cột */
+@media (min-width: 1024px) {
+    .coupon-strip__grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ============ COUPON TICKET (Card mã giảm giá) ============ */
+.cpn {
+    position: relative;
+    display: flex;
+    background: var(--card);
+    border: 1.5px dashed var(--clay);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    min-height: 120px;
+}
+
+.cpn:hover {
+    border-color: var(--leaf);
+    box-shadow: 0 4px 12px rgb(34 48 42 / 0.1);
+    transform: translateY(-2px);
+}
+
+/* Hai lỗ tròn giả ở giữa (ticket style) */
+.cpn::before,
+.cpn::after {
+    content: "";
+    position: absolute;
+    left: 108px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--paper);
+    z-index: 1;
+}
+
+.cpn::before {
+    top: -10px;
+}
+
+.cpn::after {
+    bottom: -10px;
+}
+
+/* Phần trái: Mã + điều kiện tối thiểu */
+.cpn__left {
+    width: 110px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-right: 1.5px dashed var(--clay);
+    color: var(--clay);
+    padding: 14px 8px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--card) 0%, #fef5f0 100%);
+}
+
+.cpn__left b {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    word-break: break-all;
+    line-height: 1.2;
+}
+
+.cpn__left small {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+/* Phần phải: Mô tả + footer */
+.cpn__body {
+    flex: 1;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.cpn__desc {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.55;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+}
+
+.cpn__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+}
+
+/* Nút không bao giờ được bẻ chữ giữa chừng (lỗi "Sao / chép") */
+.cpn__foot .btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.cpn__exp {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.cpn__btn-applied {
+    cursor: not-allowed !important;
+    opacity: 0.95;
+}
+
+/* ============ TRẠNG THÁI ĐANG ÁP DỤNG ============ */
+.cpn--applied {
+    border-color: var(--leaf);
+    background: linear-gradient(135deg, var(--leaf-soft) 0%, #f0f7f3 100%);
+    box-shadow: 0 0 0 3px rgb(46 125 79 / 0.15), 0 4px 12px rgb(46 125 79 / 0.2);
+}
+
+.cpn--applied .cpn__left {
+    background: linear-gradient(135deg, var(--leaf-soft) 0%, #e8f5ed 100%);
+    border-right-color: var(--leaf);
+    color: var(--leaf-deep);
+}
+
+.cpn--applied::before,
+.cpn--applied::after {
+    background: var(--leaf-soft);
+}
+
+/* Wrapper highlight (giữ lại để tương thích) */
+.cpn-wrap {
+    display: flex;
+    transition: transform 0.2s ease;
+}
+
+.cpn-wrap > .cpn {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+/* ============ COUPON INPUT (Ô nhập mã ở summary) ============ */
+.coupon-input {
+    display: flex;
+    gap: 8px;
+    margin: 4px 0 10px;
+}
+
+.coupon-input input {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 0 16px;
+    font-size: 13.5px;
+    text-transform: uppercase;
+    background: #fff;
+}
+
+.coupon-input input:focus {
+    outline: none;
+    border-color: var(--leaf);
+    box-shadow: 0 0 0 3px rgb(46 125 79 / 0.1);
+}
+
+/* ============ COUPON APPLIED (Chip mã đang áp ở summary) ============ */
+.coupon-applied {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: var(--leaf-soft);
+    border: 1px dashed var(--leaf);
+    color: var(--leaf-deep);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.coupon-applied__remove {
+    background: none;
+    border: 0;
+    color: var(--rose);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0;
+    font-weight: 600;
+}
+
+.coupon-applied__remove:hover {
+    color: #b91c1c;
+}
+
+/* ============ COUPON MESSAGE ============ */
+.coupon-msg {
+    font-size: 0.82rem;
+    margin: 0.4rem 0 0;
+    min-height: 1.1rem;
+}
+
+.coupon-msg--error {
+    color: #b91c1c;
+}
+
+.coupon-msg--ok {
+    color: #047857;
+}
+
+/* ============ DISCOUNT ROW ============ */
+.sum-row--discount span:last-child {
+    color: #047857;
+    font-weight: 700;
+}
+
+/* ============ COUPON TOAST ============ */
+.coupon-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: var(--leaf-deep);
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 60;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+}
+
+.coupon-toast--show {
+    opacity: 1;
+}
+
+/* ============ RESPONSIVE FINE-TUNING ============ */
+
+/* Mobile Small (< 480px) */
+@media (max-width: 479px) {
+    .cpn {
+        min-height: 110px;
+    }
+
+    .cpn__left {
+        width: 100px;
+        padding: 12px 6px;
+    }
+
+    .cpn__left b {
+        font-size: 14px;
+    }
+
+    .cpn__left small {
+        font-size: 10px;
+    }
+
+    .cpn::before,
+    .cpn::after {
+        left: 100px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .cpn__body {
+        padding: 12px 14px;
+    }
+
+    .cpn__desc {
+        font-size: 12px;
+    }
+}
+
+/* Mobile Large (480-639px) */
+@media (min-width: 480px) and (max-width: 639px) {
+    .cpn__left {
+        width: 115px;
+    }
+
+    .cpn::before,
+    .cpn::after {
+        left: 115px;
+    }
+}
+
+/* Tablet (768-1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .coupon-strip__title {
+        font-size: 1.35rem;
+    }
+}
+
+/* Tablet + Desktop (≥ 640px): vùng 2 cột & 4 cột, thân card hẹp
+   => xếp footer dọc: dòng HSD nằm trên, nút nằm dưới full-width.
+   Mobile < 640px giữ footer ngang hiện tại (đang đẹp). */
+@media (min-width: 640px) {
+    .cpn__foot {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .cpn__exp {
+        text-align: center;
+    }
+
+    .cpn__foot .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Desktop (≥ 1024px): 4 cột — thu gọn khoang trái để thân card rộng hơn */
+@media (min-width: 1024px) {
+    .coupon-strip {
+        margin: 2rem 0 2.5rem;
+    }
+
+    .coupon-strip__title {
+        font-size: 1.5rem;
+    }
+
+    .cpn {
+        min-height: 150px;
+    }
+
+    .cpn__left {
+        width: 100px;
+        padding: 12px 6px;
+    }
+
+    .cpn__left b {
+        font-size: 15px;
+    }
+
+    /* Căn lại 2 lỗ ticket khớp mép khoang trái 100px */
+    .cpn::before,
+    .cpn::after {
+        left: 92px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .cpn__body {
+        padding: 12px;
+    }
+}
+
+/* ============ LEGACY SUPPORT (giữ lại các class cũ nếu có dùng) ============ */
 .cpn-rail {
     display: flex;
     gap: 12px;
@@ -7,75 +423,10 @@
     padding-block: 6px;
 }
 
-.cpn {
-    position: relative;
+.cpn-rail .cpn {
     flex: 0 0 86vw;
     max-width: 360px;
     scroll-snap-align: start;
-    display: flex;
-    background: var(--card);
-    border: 1.5px dashed var(--clay);
-    border-radius: 14px;
-}
-
-.cpn::before,
-.cpn::after {
-    content: "";
-    position: absolute;
-    left: 92px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--paper);
-}
-
-.cpn::before {
-    top: -9px;
-}
-
-.cpn::after {
-    bottom: -9px;
-}
-
-.cpn__left {
-    width: 100px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    border-right: 1.5px dashed var(--clay);
-    color: var(--clay);
-    padding: 12px 6px;
-    text-align: center;
-}
-
-.cpn__left b {
-    font-size: 15px;
-}
-
-.cpn__left small {
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.cpn__body {
-    flex: 1;
-    padding: 12px 14px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.cpn__foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 10px;
-}
-
-.cpn__exp {
-    font-size: 11px;
 }
 
 @media (min-width: 768px) {
@@ -85,7 +436,7 @@
         overflow: visible;
     }
 
-    .cpn {
+    .cpn-rail .cpn {
         flex: none;
         max-width: none;
     }
@@ -97,34 +448,20 @@
     }
 }
 
-/* =====================================================================
-   COUPON — block ticket ma giam gia + trang thai ma dang ap
-   ===================================================================== */
-.coupon-strip { margin: 1.5rem 0; }
-.coupon-strip__head { display: flex; align-items: baseline; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
-.coupon-strip__title { font-size: 1.25rem; font-weight: 800; color: #1e4b39; margin: 0; }
-.coupon-strip__hint { font-size: .85rem; color: #6b7280; }
-.coupon-strip__grid {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(250px, 1fr);
-    gap: 1rem;
-    overflow-x: auto;
-    padding-bottom: .5rem;
-}
-@media (min-width: 1024px) {
-    .coupon-strip__grid { grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); overflow-x: visible; }
-}
-
+/* Legacy coupon-card classes (nếu có component khác dùng) */
 .coupon-card {
     display: flex;
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 1px 2px rgb(0 0 0 / .05);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
-.coupon-card--applied { outline: 2px solid #10b981; }
+
+.coupon-card--applied {
+    outline: 2px solid #10b981;
+}
+
 .coupon-card__thumb {
     flex: 0 0 72px;
     display: flex;
@@ -132,52 +469,121 @@
     justify-content: center;
     background: #f4506a;
 }
-.coupon-card__icon { width: 46px; height: auto; transform: rotate(-8deg); }
-.coupon-card__body { flex: 1; padding: .9rem 1rem; display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
-.coupon-card__title { font-weight: 800; color: #e11d48; font-size: .95rem; letter-spacing: .02em; margin: 0; }
-.coupon-card__desc { font-size: .82rem; color: #4b5563; line-height: 1.45; flex: 1; margin: 0; }
-.coupon-card__preview { font-size: .78rem; color: #047857; font-weight: 700; margin: 0; }
-.coupon-card__actions { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+
+.coupon-card__icon {
+    width: 46px;
+    height: auto;
+    transform: rotate(-8deg);
+}
+
+.coupon-card__body {
+    flex: 1;
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.coupon-card__title {
+    font-weight: 800;
+    color: #e11d48;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    margin: 0;
+}
+
+.coupon-card__desc {
+    font-size: 0.82rem;
+    color: #4b5563;
+    line-height: 1.45;
+    flex: 1;
+    margin: 0;
+}
+
+.coupon-card__preview {
+    font-size: 0.78rem;
+    color: #047857;
+    font-weight: 700;
+    margin: 0;
+}
+
+.coupon-card__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
 .coupon-card__copy {
-    background: #e11d48; color: #fff; border: 0; border-radius: 999px;
-    padding: .45rem 1.1rem; font-weight: 700; font-size: .82rem; cursor: pointer;
-}
-.coupon-card__copy:hover { background: #be123c; }
-.coupon-card__terms { background: none; border: 0; color: #2563eb; text-decoration: underline; font-size: .82rem; cursor: pointer; padding: 0; }
-.coupon-card__details { margin-top: .25rem; border-top: 1px dashed #d1d5db; padding-top: .5rem; font-size: .78rem; color: #374151; }
-.coupon-card__details ul { margin: 0; padding-left: 1rem; display: grid; gap: .2rem; }
-
-.coupon-applied {
-    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
-    background: #ecfdf5; border: 1px dashed #10b981; color: #065f46;
-    border-radius: 8px; padding: .5rem .75rem; font-size: .85rem; margin-top: .5rem;
-}
-.coupon-applied__remove { background: none; border: 0; color: #b91c1c; text-decoration: underline; cursor: pointer; font-size: .8rem; padding: 0; }
-
-.coupon-msg { font-size: .82rem; margin: .4rem 0 0; min-height: 1.1rem; }
-.coupon-msg--error { color: #b91c1c; }
-.coupon-msg--ok { color: #047857; }
-
-.sum-row--discount span:last-child { color: #047857; font-weight: 700; }
-
-.coupon-toast {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-    background: #1e4b39; color: #fff; padding: .6rem 1.2rem; border-radius: 999px;
-    font-size: .85rem; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 60;
-}
-.coupon-toast--show { opacity: 1; }
-
-/* ===== BỔ SUNG (không có trong style.css gốc) — wrapper highlight mã đang áp
-   dùng bởi resources/views/web/cart.blade.php (class .cpn-wrap) ===== */
-.cpn-wrap {
-    transition: transform .2s ease;
+    background: #e11d48;
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.45rem 1.1rem;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
 }
 
-.cpn-wrap:hover {
-    transform: translateY(-2px);
+.coupon-card__copy:hover {
+    background: #be123c;
 }
 
-.cpn-wrap--applied > .cpn {
-    outline: 2px solid var(--leaf);
-    box-shadow: 0 0 0 4px rgb(46 125 79 / .15);
+.coupon-card__terms {
+    background: none;
+    border: 0;
+    color: #2563eb;
+    text-decoration: underline;
+    font-size: 0.82rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+.coupon-card__details {
+    margin-top: 0.25rem;
+    border-top: 1px dashed #d1d5db;
+    padding-top: 0.5rem;
+    font-size: 0.78rem;
+    color: #374151;
+}
+
+.coupon-card__details ul {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.2rem;
+}
+
+/* =====================================================================
+   VỊ TRÍ BLOCK MÃ GIẢM GIÁ THEO MÀN HÌNH (strip nằm TRONG .cart-layout)
+   - Mobile  (< 768px) : danh sách SP -> mã giảm giá -> summary
+   - iPad    (>= 768px): giữ nguyên thứ tự DOM (strip trên cùng)
+   - Desktop (>=1024px): strip span đủ 2 cột, nằm hàng đầu như cũ
+   ===================================================================== */
+.cart-layout > .coupon-strip {
+    margin: 12px 0 4px;
+}
+
+/* Mobile: đảo thứ tự bằng order (grid item tôn trọng order) */
+@media (max-width: 767px) {
+    .cart-layout > .cart-main {
+        order: 1;
+    }
+
+    .cart-layout > .coupon-strip {
+        order: 2;
+    }
+
+    .cart-layout > .summary {
+        order: 3;
+    }
+}
+
+/* Desktop: strip chiếm trọn hàng đầu của grid 2 cột */
+@media (min-width: 1024px) {
+    .cart-layout > .coupon-strip {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
 }
