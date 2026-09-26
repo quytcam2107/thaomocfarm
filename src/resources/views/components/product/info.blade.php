@@ -44,8 +44,8 @@
             🛒 Thêm vào giỏ
         </button>
         <button class="btn btn--clay" id="buyNow" data-id="{{ $product->id }}">⚡ Mua ngay</button>
-        <button class="btn btn--ghost pcard__fav--lg" aria-label="Thêm vào yêu thích" aria-pressed="false"
-            data-product-id="{{ $product->id }}">♡ Yêu thích</button>
+        {{-- <button class="btn btn--ghost pcard__fav--lg" aria-label="Thêm vào yêu thích" aria-pressed="false"
+            data-product-id="{{ $product->id }}">♡ Yêu thích</button> --}}
     </div>
 
     <ul class="pd-policy">

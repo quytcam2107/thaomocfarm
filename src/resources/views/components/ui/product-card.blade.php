@@ -21,7 +21,7 @@
             <span class="pcard__flag pcard__flag--hot">-{{ $discount }}%</span>
         @endif
 
-        <button class="pcard__fav" aria-label="Thêm {{ $name }} vào yêu thích" aria-pressed="false">♡</button>
+        {{-- <button class="pcard__fav" aria-label="Thêm {{ $name }} vào yêu thích" aria-pressed="false">♡</button> --}}
     </div>
 
     <div class="pcard__body">
