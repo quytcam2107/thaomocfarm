@@ -1,4 +1,7 @@
 /* ============ DANH MỤC NỔI BẬT ============ */
+.collections{
+    margin-bottom: 20px;
+}
 .col-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -54,8 +57,9 @@
 .flash {
     background: var(--leaf-deep);
     color: #f2f7f3;
-    margin-top: 30px;
+    margin-top: 0; 
     padding-block: 22px;
+    scroll-margin-top: 200px;
 }
 
 .flash__head {
