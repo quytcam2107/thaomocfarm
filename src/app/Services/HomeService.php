@@ -21,16 +21,24 @@ class HomeService
 
     /** TTL cache của block danh mục nổi bật (10 phút) */
     private const FEATURED_TTL = 600;
+
     /** Số sản phẩm flash sale tối đa hiển thị ở block trang chủ */
     private const FLASH_LIMIT = 8;
 
     /** TTL cache block flash sale (giây) – ngắn hơn vì deal đổi thường xuyên */
     private const FLASH_TTL = 300;
+
     /** Số sản phẩm bán chạy tối đa hiển thị */
-    private const BEST_SELLERS_LIMIT = 8;
+    private const BEST_SELLERS_LIMIT = 4;
 
     /** TTL cache block bán chạy (10 phút) */
     private const BEST_SELLERS_TTL = 600;
+
+    /** Số sản phẩm Trà hoa thảo mộc tối đa hiển thị ở block trang chủ */
+    private const HERBAL_TEA_LIMIT = 8;
+
+    /** TTL cache block Trà hoa thảo mộc (10 phút) */
+    private const HERBAL_TEA_TTL = 600;
 
     /**
      * Danh sách danh mục nổi bật kèm số sản phẩm đang bán.
@@ -66,6 +74,7 @@ class HomeService
                 ->all();
         });
     }
+
     /**
      * Block flash sale "Giá siêu hời" đang chạy.
      * - Chọn promotion flash_sale active + trong khung giờ
@@ -156,7 +165,7 @@ class HomeService
         $imageUrl = $product->coverImage
             ? asset('assets/images/' . $product->coverImage->path)
             : asset('images/product-default.svg');
-        // dd($imageUrl);
+
         return [
             'id' => (int) $pp->id,
             'product_id' => (int) $product->id,
@@ -173,6 +182,7 @@ class HomeService
             'sold_percent' => $pp->soldPercent(),
         ];
     }
+
     /**
      * Khối "Bán chạy tuần này": top sản phẩm active sắp theo sold_count.
      * - 1 query chính + 1 eager load ảnh bìa (ofMany định danh bảng)
@@ -214,7 +224,7 @@ class HomeService
                     ? (int) $p->compare_price
                     : null;
                 $discount = $oldPrice !== null
-                    ? (int) round((($oldPrice - $price) / $oldPrice) * 100)
+                    ? (int) round((($oldPrice - $price) / max(1, $oldPrice)) * 100)
                     : 0;
 
                 return [
@@ -223,10 +233,79 @@ class HomeService
                     'variant_id' => (int) ($p->defaultVariant?->id ?? 0),
                     'name' => $p->name,
                     'url' => route('web.product.show', $p->slug),
-                    'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('assets/images/placeholder.svg')),
+                    'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('images/product-default.svg')),
                     'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
                     'sold_count' => (int) $p->sold_count,
-                    'price' => (int) $p->price_min, 
+                    'price' => (int) $p->price_min,
+                    'old_price' => $oldPrice,
+                    'discount_percent' => $discount,
+                ];
+            })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();
+        });
+    }
+
+    /**
+     * Khối "Trà hoa thảo mộc": sản phẩm thuộc danh mục Trà hoa thảo mộc.
+     * - Lọc theo category slug 'tra-hoa-thao-moc'
+     * - 1 query chính + eager load ảnh bìa và biến thể mặc định
+     * - Cache array thuần (không object)
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function herbalTea(): array
+    {
+        return remember_group('home', 'herbal_tea', self::HERBAL_TEA_TTL, function (): array {
+            $category = Category::query()->where('slug', 'tra-hoa-thao-moc')->first(['id']);
+
+            if ($category === null) {
+                return [];
+            }
+
+            $products = Product::query()
+                ->select(['id', 'slug', 'name', 'price_min', 'compare_price', 'sold_count', 'rating_avg'])
+                ->where('status', ProductStatus::ACTIVE->value)
+                ->where('category_id', $category->id)
+                ->with([
+                    'coverImage' => function (HasOne $query): void {
+                        $query->select([
+                            'product_images.id',
+                            'product_images.product_id',
+                            'product_images.path',
+                            'product_images.thumb_path',
+                        ]);
+                    },
+                    'defaultVariant' => function (Relation $query): void {
+                        $query->select([
+                            'product_variants.id',
+                            'product_variants.product_id',
+                            'product_variants.price',
+                            'product_variants.stock',
+                        ]);
+                    }
+                ])
+                ->orderByDesc('sold_count')
+                ->limit(self::HERBAL_TEA_LIMIT)
+                ->get();
+
+            return $products->map(static function (Product $p): array {
+                $price = (int) $p->price_min;
+                $oldPrice = $p->compare_price !== null && (int) $p->compare_price > $price
+                    ? (int) $p->compare_price
+                    : null;
+                $discount = $oldPrice !== null
+                    ? (int) round((($oldPrice - $price) / max(1, $oldPrice)) * 100)
+                    : 0;
+
+                return [
+                    'id' => (int) $p->id,
+                    'product_id' => (int) $p->id,
+                    'variant_id' => (int) ($p->defaultVariant?->id ?? 0),
+                    'name' => $p->name,
+                    'url' => route('web.product.show', $p->slug),
+                    'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('images/product-default.svg')),
+                    'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
+                    'sold_count' => (int) $p->sold_count,
+                    'price' => (int) $p->price_min,
                     'old_price' => $oldPrice,
                     'discount_percent' => $discount,
                 ];

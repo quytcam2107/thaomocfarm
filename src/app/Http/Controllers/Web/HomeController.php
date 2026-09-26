@@ -16,7 +16,7 @@ class HomeController extends Controller
     }
 
     /**
-     * Trang chủ: render các block featured, flash sale, best sellers.
+     * Trang chủ: render các block featured, flash sale, best sellers, trà hoa.
      * Controller mỏng – toàn bộ logic nằm trong HomeService.
      */
     public function index(): View
@@ -25,6 +25,7 @@ class HomeController extends Controller
             'featuredCategories' => $this->homeService->featuredCategories(),
             'flashProducts' => $this->homeService->flashSale(),
             'bestSellers' => $this->homeService->bestSellers(),
+            'herbalTeaProducts' => $this->homeService->herbalTea(),
         ]);
     }
 }
