@@ -96,9 +96,15 @@
     overflow: hidden;
     min-height: 2.8em;
 }
+
 .pcard__body .pcard__name a {
     color: var(--ink);
+    transition: color .2s ease-in-out;
+    /* Thêm transition để đổi màu mượt hơn */
 }
+
+/* Đổi màu chữ tên sản phẩm khi hover vào toàn bộ thẻ card hoặc trực tiếp vào chữ */
+.pcard:hover .pcard__name a,
 .pcard__name a:hover {
     color: var(--leaf);
 }
@@ -115,10 +121,14 @@
     justify-content: space-between;
     gap: 8px;
 }
+
 .pcard__price {
-    min-width: 0; /* Cho phép text co lại hoặc xuống dòng nếu cần */
-    flex: 1;      /* Đẩy nút bấm sát về bên phải */
+    min-width: 0;
+    /* Cho phép text co lại hoặc xuống dòng nếu cần */
+    flex: 1;
+    /* Đẩy nút bấm sát về bên phải */
 }
+
 .pcard__price b {
     color: var(--clay);
     font-size: 15.5px;
@@ -133,9 +143,11 @@
 .pcard__add {
     width: 36px;
     height: 36px;
-    min-width: 36px;  /* Đảm bảo kích thước tối thiểu */
+    min-width: 36px;
+    /* Đảm bảo kích thước tối thiểu */
     min-height: 36px;
-    flex-shrink: 0;   /* CHÍNH: Cấm Flexbox co hẹp nút này khi thiếu không gian */
+    flex-shrink: 0;
+    /* CHÍNH: Cấm Flexbox co hẹp nút này khi thiếu không gian */
     border-radius: 50%;
     background: var(--leaf);
     color: #fff;
@@ -155,15 +167,20 @@
     transition: filter .2s ease, transform .2s ease;
 }
 
+/* Kích hoạt hiệu ứng nút giỏ hàng khi hover vào toàn bộ thẻ card hoặc trực tiếp vào nút */
+.pcard:hover .pcard__add,
 .pcard__add:hover {
     background: var(--leaf);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.15), 0 0 12px var(--leaf);
 }
 
+/* Kích hoạt hiệu ứng icon giỏ hàng khi hover vào toàn bộ thẻ card hoặc trực tiếp vào nút */
+.pcard:hover .pcard__add-icon,
 .pcard__add:hover .pcard__add-icon {
     filter: brightness(1.2) drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
     transform: scale(1.1);
 }
+
 .pcard__add:active {
     transform: scale(.85);
     box-shadow: none;
