@@ -1,6 +1,7 @@
 ================================================================
 PROMPT CONTEXT DỰ ÁN "THẢO MỘC FARM"
 LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
+(cập nhật lần cuối: 26/09/2026)
 ================================================================
 
 ## 0. VAI TRÒ & NGUYÊN TẮC
@@ -20,6 +21,7 @@ LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
 - File/ảnh: disk `public` + `php artisan storage:link`, Nginx serve cùng server.
 - Tìm kiếm: MySQL **FULLTEXT** index, fallback **LIKE**. Không Meilisearch/Algolia.
 - Frontend: **Blade + Tailwind** build local bằng **Vite + Alpine.js/vanilla JS**. Components dùng CSS class tự đặt kiểu BEM, **chỉ dùng anonymous component** (file .blade.php trong `resources/views/components/`, khai báo `@props`), KHÔNG dùng class-based component.
+- **CSS**: tách thành 12 partial files trong `public/assets/css/partials/01-base.css` → `12-layout-extras.css`. File entry `public/assets/css/style.css` CHỈ chứa các dòng `@import url('partials/XX-name.css');`. KHÔNG dùng command build. Font import nằm TRONG `01-base.css` qua `@import url('../fonts.css');`.
 - Không Octane, không Docker.
 - Deploy: `git pull` + `composer install --no-dev` + `php artisan optimize` + `migrate --force`.
 
@@ -56,6 +58,10 @@ LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
 10. **Route catch-all `/{slug}`** PHẢI đặt **cuối cùng** trong `routes/web.php`, sau mọi route có prefix (`/san-pham/*`, `/gio-hang/*`, `/tra-cuu-don`...). Phải ràng buộc `->where('slug', '[a-z0-9\-]+')` để không nuốt file tĩnh (`.ico`, `.xml`) hay URL có dấu `.`.
 11. **Anonymous Blade Component** dùng `@props([...])`, KHÔNG dùng `$this`, KHÔNG truyền Closure vào `:prop`, KHÔNG lồng `<main>` trong view con vì `x-layouts.app` đã bọc `<main id="main">`. View con chỉ cần `<div class="container">`.
 12. **Truyền dữ liệu cho Blade component**: chỉ truyền scalar/array thuần, không truyền Closure/Paginator object; với `Paginator` dùng `$paginator->toArray()` hoặc tự map ra `['total', 'current_page', 'last_page', 'from', 'to', 'per_page']`.
+13. **JS `input.value = code` không fire event**: khi gán value bằng JS, trình duyệt KHÔNG tự fire `input`/`change`. **BẮT BUỘC** `input.dispatchEvent(new Event('input', { bubbles: true }));` sau khi gán để handler lắng nghe biết value đã đổi (đã áp dụng cho syncApplyButton ở giỏ hàng).
+14. **ALTER TABLE trực tiếp vs migration**: khi schema đã có dữ liệu và không muốn chạy `migrate` (sợ mất data), chạy SQL ALTER trực tiếp trên MySQL (ví dụ `ALTER TABLE orders ADD COLUMN coupon_code_snapshot VARCHAR(50) NULL AFTER coupon_id;`) rồi tạo file migration chỉ để đồng bộ schema cho sau này. Migration dùng `Schema::hasColumn()` check trước khi thêm/xóa để an toàn.
+15. **Component Blade tự ẩn khi không có dữ liệu**: wrap toàn bộ component trong `@if(is_array($data) && count($data) > 0)` thay vì render fallback cứng. View cha truyền `$data ?? null` — nếu DB không có bản ghi active thì section tự biến mất, không còn khoảng trống vô nghĩa (đã áp dụng cho `<x-sections.coupons>`).
+16. **Layout component có thể nhận prop để ẩn component con**: pattern `hideCatnav` / `hideFloatnav` truyền từ view vào `<x-layouts.app :hide-floatnav="true">`, layout truyền xuống component con `<x-floatnav :hide-floatnav="$hideFloatnav" />`, component con bọc nội dung trong `@if(!($hideFloatnav ?? false))`. Consistent với `<x-header>`.
 
 ## 4. SCHEMA DATABASE (InnoDB, utf8mb4_unicode_ci, mọi bảng có id + timestamps)
 users(id, name, email UQ, phone UQ null, password, role enum admin|staff|customer, email_verified_at null, remember_token)
@@ -74,7 +80,7 @@ banners(id, position home_hero|home_mid|category|product, title, subtitle, image
 carts(id, user_id UQ null, cart_token uuid UQ)
 cart_items(id, cart_id idx, product_id idx, product_variant_id idx NOT NULL, qty, UQ(cart_id,product_variant_id))
 wishlists(id, user_id idx, product_id idx, UQ(user_id,product_id))
-orders(id, order_number UQ, user_id null idx, customer_name, customer_phone, customer_email null, address_snapshot json, note, subtotal uint, discount_amount uint, coupon_id null idx, shipping_fee uint, total uint, payment_method cod|bank_transfer, payment_status pending|paid|refunded, status new|confirmed|packing|shipping|delivered|cancelled|returning, paid_at null, cancelled_at null; idx(customer_phone,created_at), idx(status,created_at), idx(user_id,created_at))
+orders(id, order_number UQ, user_id null idx, customer_name, customer_phone, customer_email null, address_snapshot json, note, subtotal uint, discount_amount uint, coupon_id null idx, coupon_code_snapshot VARCHAR(50) null (added via ALTER, lưu mã tại thời điểm đặt để audit), shipping_fee uint, total uint, payment_method cod|bank_transfer, payment_status pending|paid|refunded, status new|confirmed|packing|shipping|delivered|cancelled|returning, paid_at null, cancelled_at null; idx(customer_phone,created_at), idx(status,created_at), idx(user_id,created_at))
 order_items(id, order_id idx, product_id null idx, product_variant_id null idx, name_snapshot, sku_snapshot, image_snapshot null, price uint, qty, subtotal uint; idx(order_id), idx(product_id))
 order_status_histories(id, order_id idx, status, note, created_by null idx; idx(order_id,created_at))
 payments(id, order_id UQ, method, amount uint, status pending|success|failed, transaction_code null, payload json, paid_at null)
@@ -118,7 +124,14 @@ return [
         'send_otp' => env('RATE_LIMIT_SEND_OTP', 3),
     ],
     'cache' => [
-        'home' => ['featured_categories' => 600, 'flash_sale' => 300, 'best_sellers' => 600, 'banners' => 3600],
+        'home' => [
+            'featured_categories' => 600,
+            'flash_sale' => 300,
+            'coupons' => 600,
+            'best_sellers' => 600,
+            'herbal_tea' => 600,
+            'banners' => 3600
+        ],
         'catalog' => ['category_tree' => 3600, 'product_detail' => 300],
         'content' => ['posts' => 1800, 'testimonials' => 3600],
         'settings' => 3600,
@@ -142,6 +155,7 @@ return [
 - Đủ models theo schema; ĐÃ XÁC NHẬN fillable + relations của:
   Cart(fillable user_id, cart_token; user(), items())
   CartItem(fillable cart_id, product_id, product_variant_id, qty; cart(), product(), variant() = belongsTo ProductVariant khóa 'product_variant_id')
+  Order(fillable thêm 'coupon_code_snapshot'; casts address_snapshot => array)
 - Scopes: Product::active/featured/bestSeller/search; Promotion::currentlyRunning; Coupon::valid/displayable; Post::published.
 - ofMany: Product::coverImage(), Product::defaultVariant().
 - Method app-level: PromotionProduct::slotsLeft(), PromotionProduct::soldPercent().
@@ -153,150 +167,258 @@ RelatedProductDTO(string url, string image, string name, int price, ?int old_pri
 ReviewViewDTO(string customer, int rating, string content, string created_at)
 
 ### 8.3 Services
-app/Services/HomeService.php (constants + 3 method, cache nhóm 'home'):
-- FEATURED_LIMIT=8, FEATURED_TTL=600, FLASH_LIMIT=8, FLASH_TTL=300, BEST_SELLERS_LIMIT=8, BEST_SELLERS_TTL=600
+**app/Services/HomeService.php** (inject CouponService, constants + 5 method, cache nhóm 'home'):
+- FEATURED_LIMIT=8, FEATURED_TTL=600, FLASH_LIMIT=8, FLASH_TTL=300, COUPONS_LIMIT=8, COUPONS_TTL=600, BEST_SELLERS_LIMIT=4, BEST_SELLERS_TTL=600, HERBAL_TEA_LIMIT=8, HERBAL_TEA_TTL=600
 - featuredCategories(): remember_group('home','featured_categories',600) withCount + get. Trả array.
 - flashSale(): remember_group('home','flash_sale',300) -> ?array {promotion_id,promotion_name,ends_at(ISO8601),ends_at_unix,items[]}.
+- homeCoupons(): remember_group('home','coupons',600) -> delegate CouponService::getPublicCoupons(8). Trả array thuần {code, desc, minOrder, exp}. View tự ẩn section khi rỗng.
 - bestSellers(): remember_group('home','best_sellers',600) -> array thuần (KHÔNG object).
+- herbalTea(): remember_group('home','herbal_tea',600) -> lọc theo category slug 'tra-hoa-thao-moc'.
 
-app/Services/CatalogService.php (cache array thuần, hydrate DTO sau cache; constants CATEGORY_PER_PAGE=12, SORT_OPTIONS=[bestsell/newest/price_asc/price_desc], PRICE_RANGES=[0-100,100-250,250-]):
+**app/Services/CatalogService.php** (cache array thuần, hydrate DTO sau cache; constants CATEGORY_PER_PAGE=12, SORT_OPTIONS=[bestsell/newest/price_asc/price_desc], PRICE_RANGES=[0-100,100-250,250-]):
 - getProductDetail(string $slug): remember_group + hydrate DTO. Trả view: product(DTO), images, variants, breadcrumbs, relatedProducts(DTO[]), reviews(DTO[]), ratingStats.
 - getProductReviews(int $productId): remember_group rồi map DTO.
 - getCategoryShow(string $slug, array $rawFilters): ?array -> KHÔNG cache (tổ hợp lọc quá nhiều). Trả: category, breadcrumbs, breadcrumb_schema (BreadcrumbList JSON-LD), children (danh mục con + products_count), products (mảng thuần có id/url/image/name/price/oldPrice/discount/rating/sold), meta (total/per_page/current_page/last_page/from/to), filters, priceRanges, sortOptions. Dùng `with(['coverImage' => fn(Relation $r) => $r->select([...])])` định danh bảng đầy đủ.
 
-app/Services/CartService.php:
+**app/Services/CartService.php** (inject CouponService):
 - addToCart(int $productId, ?int $variantId, int $qty): kiểm tra tồn kho, UQ(cart_id,product_variant_id).
 - getOrCreateCart(): user đăng nhập ưu tiên user_id; guest dùng Cookie 'cart_token'.
-- calculateCartTotal(int $cartId): sum(variant.price * qty).
-- mergeGuestCart(): gộp cart khi login.
-- removeItem(), calculateShippingFee(), getCartDetails().
+- getCartSummary(int $cartId): tính đầy đủ subtotal/discounted_subtotal/discount/shipping_fee/total/total_qty/item_count/applied. Dùng CouponService::resolveAppliedCoupon() + calculateDiscount() phân biệt goodsDiscount vs shippingDiscount (type=shipping → free ship).
+- getCartDetails(int $cartId): eager load product+coverImage+variant (ofMany định danh bảng).
+- mergeGuestCart(), removeItem(), calculateShippingFee(), getCartItemCount(), updateCartItem().
+- Session key mã giảm giá: constant `CouponService::SESSION_KEY = 'cart_coupon_code'`.
 
-app/Services/CouponService.php:
-- applyCoupon(string $code, int $cartTotal, ?int $userId): validate + tính discount.
+**app/Services/CouponService.php**:
+- `SESSION_KEY = 'cart_coupon_code'` (constant public).
+- `resolveAppliedCoupon(int $cartId, ?int $userId)`: đọc session, validate hoạt động/hết hạn/usage limit, trả ?array{code,type,eligible,coupon} hoặc null.
+- `calculateDiscount(Coupon $coupon, int $eligible, int $existingDiscount)`: tính discount cho fixed/percent (với max_discount).
+- `applyToCart(string $code, int $cartId, ?int $userId)`: full validation + lưu session + trả {success, message, code}.
+- `removeAppliedCoupon()`: xóa session.
+- `getAvailableCoupons(int $cartId, ?int $userId)`: danh sách ticket cho giỏ (mỗi coupon có key 'applied' = bool).
+- `getPublicCoupons(int $limit = 8)`: coupon active + trong cửa sổ thời gian, trả mảng thuần {code, desc, minOrder, exp} an toàn cache file.
+- `recordUsage(int $couponId, ?int $userId, int $orderId, int $discountAmount)`: ghi coupon_usages sau khi đặt hàng.
+
+**app/Services/CheckoutService.php** (inject CartService + CouponService):
+- `getCheckoutData(int $cartId, string $shippingMethod = 'standard')`: logic tính tiền ĐỒNG BỘ với CartService::getCartSummary(). Dùng resolveAppliedCoupon() + calculateDiscount() + phân biệt goodsDiscount/shippingDiscount. Trả array{items, subtotal, discounted_subtotal, shipping_fee, shipping_method, discount, appliedCoupon, total, free_shipping_threshold}.
+- `calculateShippingFee(string $method, int $discountedSubtotal)`: fast=30k cố định, standard=free nếu >= threshold, còn lại 20k.
+- `processCheckout(int $cartId, array $validated)`: DB::transaction tạo Order + OrderItem + Shipment + StockMovement + coupon_usages. Conditional UPDATE trừ tồn kho. Ghi `coupon_code_snapshot`. Xóa cart_items + session coupon sau khi thành công.
+- `generateOrderNumber()`: `TMX-yyyyMMdd-xxxxx` unique.
 
 ### 8.4 Controllers (mỏng)
-App\Http\Controllers\Web\HomeController: inject HomeService; index().
+App\Http\Controllers\Web\HomeController: inject HomeService; index() truyền featuredCategories/flashProducts/coupons/bestSellers/herbalTeaProducts.
 App\Http\Controllers\Web\ProductController: show(CatalogService, $slug) + increment view_count.
 App\Http\Controllers\Web\CategoryController: show(CategoryShowRequest, CatalogService, $slug) -> abort_if null, 404.
-App\Http\Controllers\Web\CartController: add(AddToCartRequest, CartService).
+App\Http\Controllers\Web\CartController (inject CartService + CouponService):
+- index(): render cart với 12 biến (cartItems, totalQty, subtotal, discountedSubtotal, discount, appliedCoupon, shippingFee, total, availableCoupons, freeShippingThreshold).
+- add(AddToCartRequest), update(UpdateCartRequest, int $itemId), remove(int $itemId), count().
+- applyCoupon(ApplyCouponRequest): rate limit + CouponService::applyToCart + trả JSON summary.
+- removeCoupon(): CouponService::removeAppliedCoupon + trả JSON summary.
+App\Http\Controllers\Web\CheckoutController:
+- index(): CheckoutService::getCheckoutData, empty thì redirect về cart với flash error.
+- store(CheckoutRequest): processCheckout, redirect success + forget cookie cart_token nếu guest.
+- success(string $order_number): render checkout-success với Order.
+App\Http\Controllers\Web\FlashSaleController: stub.
+App\Http\Controllers\Web\OrderTrackingController: stub.
 
 ### 8.5 FormRequest đã có
 App\Http\Requests\AddToCartRequest: authorize true; rules product_id, variant_id, qty; messages tiếng Việt.
 App\Http\Requests\CategoryShowRequest: GET query validate (sort in [bestsell,newest,price_asc,price_desc], price array in [0-100,100-250,250-], rating int nullable in [3,4,5], cat array exists:categories,id, page int 1..10000). Messages tiếng Việt.
+App\Http\Requests\ApplyCouponRequest: rules code required|string|max:50; sanitize strtoupper trim.
+App\Http\Requests\UpdateCartRequest: rules qty required|integer|min:1|max:999.
+App\Http\Requests\CheckoutRequest: rules name/phone/province/district/address required, email nullable email, shipping_method in:fast,standard, payment_method in:cod, note nullable string.
 
 ### 8.6 routes/web.php HIỆN TẠI (thứ tự QUAN TRỌNG – catch-all luôn cuối)
 Route::get('/', [HomeController::class,'index'])->name('web.home');
-Route::get('/gia-sieu-hoi', [FlashSaleController::class,'index'])->name('web.flash-sale.index');
-Route::get('/tra-cuu-don', [OrderTrackingController::class,'index'])->name('web.order-tracking.index');
-Route::get('/san-pham/{slug}', [ProductController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.product.show');
-Route::post('/gio-hang/them', [CartController::class,'add'])->name('web.cart.add');
 Route::get('/danh-muc/{slug}', [CategoryController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.category.show');
+Route::get('/gio-hang', [CartController::class,'index'])->name('web.cart.index');
+Route::post('/gio-hang/them', [CartController::class,'add'])->name('web.cart.add');
+Route::post('/gio-hang/cap-nhat/{itemId}', [CartController::class,'update'])->name('web.cart.update');
+Route::delete('/gio-hang/xoa/{itemId}', [CartController::class,'remove'])->name('web.cart.remove');
+Route::get('/gio-hang/count', [CartController::class,'count'])->name('web.cart.count');
+Route::post('/gio-hang/ma-giam-gia/ap-dung', [CartController::class,'applyCoupon'])->name('web.cart.coupon.apply');
+Route::delete('/gio-hang/ma-giam-gia', [CartController::class,'removeCoupon'])->name('web.cart.coupon.remove');
+Route::get('/thanh-toan', [CheckoutController::class,'index'])->name('web.checkout.index');
+Route::post('/thanh-toan', [CheckoutController::class,'store'])->name('web.checkout.store');
+Route::get('/dat-hang-thanh-cong/{order_number}', [CheckoutController::class,'success'])->name('web.checkout.success');
+Route::get('/san-pham/{slug}', [ProductController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.product.show');
 Route::get('/{slug}', [CategoryController::class,'show'])->where('slug','[a-z0-9\-]+')->name('web.category.pretty'); // alias, CUỐI CÙNG
 
 ### 8.7 Views + Blade components + contract DOM/CSS
-- resources/views/web/home.blade.php: include flash-sale ($flashProducts) + best-sellers ($bestSellers) + featuredCategories.
-- resources/views/web/product.blade.php: dùng <x-layouts.app> + slots schema/extra.
-- resources/views/web/category.blade.php: dùng <x-layouts.app> + slots schema/extra; <div class="container"> (KHÔNG lồng <main>); @json($products) cho JS idByUrl map; fetch POST add-cart dùng meta[name="csrf-token"].
-- resources/views/web/flash-sale.blade.php (stub).
-- resources/views/web/order-tracking.blade.php (stub).
+resources/views/web/home.blade.php: include sections hero/usp/collections($featuredCategories)/flash-sale($flashProducts)/coupons($coupons)/best-sellers($bestSellers)/herbal-tea($herbalTeaProducts)/region/stats/testimonials($testimonials)/trust/tips/newsletter.
 
-Component contracts (props) – TẤT CẢ là anonymous .blade.php với @props:
-  x-layouts.app(title, seoDescription, ogType, ogImage, bodyClass; slots schema, extra; PHẢI có <meta name="csrf-token">)
-  x-ui.breadcrumb(items: [{label,url}])
-  x-ui.product-card(url,image,name,price,oldPrice,discount,rating,sold)
-  x-ui.pagination(meta: {total,current_page,last_page,from,to,per_page})
-  x-product.schema(product) – JSON-LD, brand "Thảo Mộc Farm"
-  x-product.gallery(images, alt) – #pdStageImg
-  x-product.info(product, variants) – pills radio variant_id, stepper qty, add-cart, #buyNow
-  x-product.tabs(description, reviews, ratingStats)
-  x-product.review-item(review)
-  x-product.related(products)
-  x-product.buybar(product) – mobile
-  x-category.toolbar(total, from, to, sortOptions, currentSort)
-  x-category.chips(chips: [{label, url}])
-  x-category.filters(action, clearUrl, children, filters, priceRanges)
-  x-category.filter-groups(children, filters, priceRanges) – dùng chung sidebar + drawer
-  x-category.filter-drawer(action, clearUrl, currentSort, children, filters, priceRanges)
-  x-category.seo-text(heading, description)
+resources/views/web/cart.blade.php (:hide-floatnav="true"):
+- breadcrumb + page-head.
+- .cart-layout grid chứa: .coupon-strip (block ticket coupon, mobile nằm dưới cart-main nhờ CSS order), .cart-main (cart-list hoặc empty), .summary (sidebar desktop sticky với coupon-input + couponMsg alert box + coupon-applied chip + freeship-note + sum-rows + nút thanh toán).
+- .cart-bar (mobile only, position:fixed bottom): tổng tiền + chip mã đang áp + nút 🎟️ + nút Thanh toán.
+- .cart-drawer (mobile only, slide from bottom): head + body chứa input mã + alert box + coupon-applied + coupon-list + summary + nút Thanh toán.
+- #couponToast cho thông báo copy mã.
+- JS inline: syncApplyButton (disable khi input rỗng hoặc = mã đang áp) + delegated click cho qty/remove/copy-btn + copyCouponCode (fill input + dispatchEvent 'input' + toast) + applyCouponCode (fetch + showAlert error/success/loading + delay 600ms rồi reload) + removeAppliedCoupon + drawer open/close + ESC close.
 
-- JS inline trong x-slot extra của product.blade.php: (1) thumb click; (2) variant radio; (3) stepper qty; (4) tabs; (5) .add-cart fetch POST.
-- JS inline trong x-slot extra của category.blade.php: (1) sort auto-submit filterForm; (2) chip remove data-href; (3) add-cart fetch POST từ card với idByUrl map.
-- JS có sẵn: resources/js/components/countdown.js + resources/js/app.js (xử lý drawer qua attribute data-drawer-open/close).
-- Palette UI: nền kem #f6f4ef; block flash #1e4b39; accent amber-400/500; chữ emerald-900; giá flash text-orange-600; badge giảm giá bg-rose-500.
-- Command: php artisan thaomoc:bump-cache {group}.
+resources/views/web/checkout.blade.php (:hide-catnav="true"): form 5 fieldsets (thông tin, địa chỉ, shipping_method, payment_method, note) + aside summary hiển thị $appliedCoupon['discount'] và $appliedCoupon['type'].
 
-## 9. DỮ LIỆU HIỆN CÓ TRONG DB (snapshot 23/09/2026)
+resources/views/web/checkout-success.blade.php: hero với ring pulse + s-card (order info + timeline) + s-card summary + success__support CTA. Responsive 5 breakpoints.
+
+resources/views/components/layouts/app.blade.php: @props(['title','seoDescription','ogType','ogImage','bodyClass','hideCatnav','hideFloatnav']). <x-header :hide-catnav="$hideCatnav" />, <main id="main">, <x-footer />, <x-floatnav :hide-floatnav="$hideFloatnav" />, <x-drawer />, toast #toast, load app.js + cart.js + @stack('scripts').
+
+resources/views/components/floatnav.blade.php: @props(['hideFloatnav' => false]) + @if(!($hideFloatnav ?? false)) wrap nav 3 link (Trang chủ / Mua sắm / Giỏ hàng) với is-active detection qua request()->is().
+
+resources/views/components/ui/coupon-card.blade.php (@props(['code','desc','minOrder','exp','applied' => false])): article .cpn với .cpn--applied modifier; phần trái .cpn__left hiển thị code + minOrder; phần phải .cpn__body chứa desc + footer (exp + button copy-btn); button đổi thành "✓ Đang áp dụng" + btn--leaf + disabled khi $applied.
+
+resources/views/components/sections/coupons.blade.php (@props(['coupons' => null])): wrap trong @if(is_array($coupons) && count($coupons) > 0); render loop <x-ui.coupon-card :code="$c['code']" ...> với key mảng; JS scoped .coupons .copy-btn copy vào clipboard + toast #toast + guard window.__tmHomeCouponCopyBound.
+
+Contract các section đã có: x-sections.hero, x-sections.usp, x-sections.collections, x-sections.flash-sale, x-sections.coupons, x-sections.best-sellers, x-sections.herbal-tea, x-sections.region, x-sections.stats, x-sections.testimonials, x-sections.trust, x-sections.tips, x-sections.newsletter.
+
+CSS partials structure (public/assets/css/partials/):
+- 01-base.css — reset, tokens, animations, buttons, @import '../fonts.css'
+- 02-header.css — topbar, header, search, catnav, checkout-steps + media 768
+- 03-hero.css — hero, usp strip, sec-title
+- 04-home.css — col-grid, flash, region, stats, voices, trust, tips, news
+- 05-product-card.css — pcard + product-grid
+- 06-category-page.css — breadcrumb, toolbar, filters, pagination, seo-text
+- 07-product-detail.css — pd-*, pills, qty, tabs, review, buybar
+- 08-cart.css — cart-layout, cart-item, summary, coupon-input, freeship-note
+- 09-checkout.css — co-layout, fs, field, radio-card, co-mini
+- 10-success.css — success__*, s-card, timeline + keyframes + responsive
+- 11-coupon.css — cpn ticket + coupon-strip + cpn--applied + coupon-applied + coupon-alert + cart-bar + cart-drawer (mobile only, desktop display:none) + responsive order cho coupon-strip trong .cart-layout (mobile: cart-main(1) → coupon-strip(2) → summary(3))
+- 12-layout-extras.css — footer, floatnav, drawer, toast, reduced-motion
+
+File entry public/assets/css/style.css CHỈ chứa 12 dòng @import url('partials/XX-name.css');.
+
+Alert box cho thông báo áp mã (.coupon-alert thay cho <p class="coupon-msg">): 3 state --error (đỏ) / --success (xanh) / --loading (xám + spin icon), animation couponAlertIn, icon emoji ⚠️/✓/⏳. Render bằng JS showAlert(el, message, type).
+
+JS contract:
+- cart.js: xử lý cart drawer, add-cart từ PDP, mini-cart badge.
+- app.js: xử lý drawer qua data-drawer-open/close, toast, reveal animation.
+- JS inline trong cart.blade.php (scoped): syncApplyButton, copyCouponCode, applyCouponCode, removeAppliedCoupon, qty +/-, remove item, drawer open/close, ESC close.
+- JS inline trong home.blade.php (scoped .coupons .copy-btn): copy coupon code trang chủ, guard chống bind kép.
+
+## 9. DỮ LIỆU HIỆN CÓ TRONG DB (snapshot 26/09/2026)
 categories: id 1..4 = Thảo mộc, Thịt gác bếp, Gia vị Tây Bắc, Mật ong; đều is_featured=1, status active.
-products: 8 bản ghi (Củ Tam Thất Bắc Khô Loại 1 Nguyên Củ Chuẩn - Phơi Khô Nguyên Chất 100%,Nụ Tam Thất Bắc Loại 1 Túi 500g Nguyên Chất [Giá Tốt],Thịt Trâu Gác Bếp Chuẩn Tây Bắc - Mắc Khén Hạt Dổi [Tặng Chấm Chéo],Táo Đỏ Sấy Khô Quả To Loại 1 - Hàng Chuẩn Dẻo Ngọt Nấu Chè Pha Trà,Giảo Cổ Lam Sạch Túi 500g,Mắc Khén Rang Thơm Túi 200g,Mật Ong Bạc Hà Mèo Vạc Chai 1 Lít,Lạp Xưởng Gác Bếp Túi 500g,).
-product_variants: mỗi product 1..8 có >= 1 dòng is_default=1.
-product_images: mỗi product 1..8 có 1 dòng is_cover=1.
+products: 8 bản ghi active với coverImage + defaultVariant.
+product_variants: mỗi product >= 1 dòng is_default=1.
 promotions: id=1, type flash_sale, status active.
 promotion_products: 4 dòng gắn promotion 1 với product 1..4.
-CÓ THỂ ĐÃ SEED (qua command thaomoc:seed-initial): Admin user, Coupons (SALE9K, TAYBAC20, FREESHIP, MOI10), 3 Testimonials, 4 Posts, Settings.
-CÒN TRỐNG: reviews, coupon_*, banners, carts, wishlists, orders + order_*, payments, shipments, stock_movements, newsletter_subscribers, stores, search_terms, addresses.
+coupons: 4 bản ghi đã seed (SALETO500K, SALE9K, SALE22K, SALETO300K), sắp theo min_order_value, active, expires_at trong tương lai.
+CÓ THỂ ĐÃ SEED: Admin user, 3 Testimonials, 4 Posts, Settings.
+CÒN TRỐNG (chờ user thực tế): reviews, coupon_products, coupon_categories, coupon_usages (chỉ ghi khi đặt hàng), banners, carts, wishlists, orders + order_items + order_status_histories, payments, shipments, stock_movements, newsletter_subscribers, stores, search_terms, addresses.
 
 ## 10. UI ĐÃ CHỐT
-ĐÃ XONG: Block Danh mục nổi bật; Block Giá siêu hời (flash sale + countdown); Block Bán chạy tuần này; TOÀN BỘ trang chi tiết sản phẩm (breadcrumb, gallery+thumb, meta, khung giá+% giảm, pills biến thể, qty +/-, add cart/mua ngay/yêu thích, chính sách, tabs, related, buybar mobile, schema JSON-LD); **TOÀN BỘ trang danh mục sản phẩm** (breadcrumb, page-head, toolbar sort+filter, chips bộ lọc đang áp dụng, sidebar filter desktop, drawer filter mobile, product-grid, pagination cửa sổ trượt, SEO text cuối trang).
-CÒN LẠI trang chủ: topbar thông báo; header logo + ô search có gợi ý + tài khoản + giỏ hàng (badge); pills danh mục; hero banner; dải cam kết USP; block "Mã giảm giá"; block câu chuyện vùng miền; testimonial; dải chứng nhận OCOP/VietGAP/ISO/TEST; blog; newsletter; footer.
-Trang khác: giỏ hàng; checkout COD + áp mã; tra cứu đơn; đăng nhập/đăng ký; wishlist; blog list + detail; trang cửa hàng; trang chính sách tĩnh.
-Admin tối thiểu: CRUD danh mục/sản phẩm/biến thể/ảnh; flash sale, coupon, banner; duyệt review; quản lý đơn + đổi trạng thái; thống kê; posts/testimonials/settings.
+ĐÃ XONG:
+- Block Danh mục nổi bật; Block Giá siêu hời (flash sale + countdown); Block Bán chạy tuần này; Block Trà hoa thảo mộc; Block Mã giảm giá (đọc thật từ DB, tự ẩn khi không có mã).
+- TOÀN BỘ trang chi tiết sản phẩm (breadcrumb, gallery+thumb, meta, khung giá+% giảm, pills biến thể, qty +/-, add cart/mua ngay/yêu thích, chính sách, tabs, related, buybar mobile, schema JSON-LD).
+- TOÀN BỘ trang danh mục sản phẩm (breadcrumb, page-head, toolbar sort+filter, chips bộ lọc đang áp dụng, sidebar filter desktop, drawer filter mobile, product-grid, pagination cửa sổ trượt, SEO text cuối trang).
+- TOÀN BỘ trang giỏ hàng (coupon strip responsive, sticky bottom bar mobile, drawer áp mã mobile, sidebar summary desktop sticky, alert box thông báo, sync nút Áp dụng, copy mã dispatchEvent, debounce qty).
+- TOÀN BỘ trang checkout COD (5 fieldsets + summary sidebar, đồng bộ logic tiền với giỏ hàng, phân biệt goodsDiscount/shippingDiscount, type=shipping → free ship, coupon_code_snapshot).
+- TOÀN BỘ trang đặt hàng thành công (hero ring pulse + s-card info + timeline + summary + support CTA, 5 breakpoints responsive).
 
-## 11. CẤU TRÚC FILE DỰ ÁN HIỆN TẠI (chỉ liệt kê phần đã có/đã làm)
+CÒN LẠI:
+- Trang chủ: topbar thông báo; pills danh mục; hero banner (đã có section); dải USP; block câu chuyện vùng miền (region); dải chứng nhận OCOP/VietGAP/ISO/TEST (trust); blog (tips); newsletter; footer.
+- Trang khác: tra cứu đơn (stub); đăng nhập/đăng ký/OTP; wishlist; blog list + detail; trang cửa hàng; trang chính sách tĩnh.
+- Admin tối thiểu: CRUD danh mục/sản phẩm/biến thể/ảnh; flash sale, coupon, banner; duyệt review; quản lý đơn + đổi trạng thái; thống kê; posts/testimonials/settings.
+
+## 11. CẤU TRÚC FILE DỰ ÁN HIỆN TẠI (phần đã có/đã làm)
 app/
-├── Enums/ (ProductStatus, OrderStatus, ...)
+├── Enums/ (ProductStatus, OrderStatus, OrderPaymentStatus, PaymentMethod, CouponType, PromotionType, PromotionStatus, ReviewStatus, BannerPosition, ShipmentCarrier, StockMovementType)
 ├── Http/
 │   ├── Controllers/
 │   │   ├── Controller.php
 │   │   └── Web/
-│   │       ├── HomeController.php         // index() inject HomeService
-│   │       ├── ProductController.php      // show(CatalogService, $slug)
-│   │       ├── CategoryController.php     // show(CategoryShowRequest, CatalogService, $slug)
-│   │       ├── CartController.php         // add(AddToCartRequest, CartService)
-│   │       ├── FlashSaleController.php    // index() stub
-│   │       └── OrderTrackingController.php // index() stub
+│   │       ├── HomeController.php           // index() inject HomeService, truyền coupons
+│   │       ├── ProductController.php        // show(CatalogService, $slug)
+│   │       ├── CategoryController.php       // show(CategoryShowRequest, CatalogService, $slug)
+│   │       ├── CartController.php           // index/add/update/remove/count/applyCoupon/removeCoupon
+│   │       ├── CheckoutController.php       // index/store/success
+│   │       ├── FlashSaleController.php      // stub
+│   │       └── OrderTrackingController.php  // stub
 │   └── Requests/
 │       ├── AddToCartRequest.php
-│       └── CategoryShowRequest.php
-├── Models/ (Category, Product, ProductVariant, ProductImage, ...)
+│       ├── UpdateCartRequest.php
+│       ├── ApplyCouponRequest.php
+│       ├── CategoryShowRequest.php
+│       └── CheckoutRequest.php
+├── Models/ (Category, Product, ProductVariant, ProductImage, Cart, CartItem, Coupon, CouponUsage, Order, OrderItem, Shipment, StockMovement, ...)
 ├── Services/
-│   ├── HomeService.php       // featuredCategories, flashSale, bestSellers
+│   ├── HomeService.php       // featuredCategories, flashSale, homeCoupons, bestSellers, herbalTea
 │   ├── CatalogService.php    // getProductDetail, getProductReviews, getCategoryShow
-│   ├── CartService.php       // addToCart, getOrCreateCart, mergeGuestCart, ...
-│   └── CouponService.php     // applyCoupon
+│   ├── CartService.php       // addToCart, getOrCreateCart, mergeGuestCart, getCartSummary, getCartDetails, calculateShippingFee, updateCartItem, removeItem, getCartItemCount
+│   ├── CouponService.php     // SESSION_KEY, resolveAppliedCoupon, calculateDiscount, applyToCart, removeAppliedCoupon, getAvailableCoupons, getPublicCoupons, recordUsage
+│   └── CheckoutService.php   // getCheckoutData, processCheckout, calculateShippingFee, generateOrderNumber
 ├── Support/helpers.php       // remember_group, bump_group_version, format_vnd, format_number_compact
 └── View/Components/ (KHÔNG dùng - dùng anonymous component thay thế)
 config/thaomoc.php
+public/assets/
+├── fonts.css
+├── js/
+│   ├── app.js
+│   └── cart.js
+└── css/
+    ├── style.css                          // ENTRY: chỉ chứa 12 dòng @import
+    └── partials/
+        ├── 01-base.css                    // reset, tokens, animations, buttons, @import '../fonts.css'
+        ├── 02-header.css                  // topbar, header, search, catnav, checkout-steps
+        ├── 03-hero.css                    // hero, usp strip, sec-title
+        ├── 04-home.css                    // col-grid, flash, region, stats, voices, trust, tips, news
+        ├── 05-product-card.css            // pcard + product-grid
+        ├── 06-category-page.css           // breadcrumb, toolbar, filters, pagination, seo-text
+        ├── 07-product-detail.css          // pd-*, pills, qty, tabs, review, buybar
+        ├── 08-cart.css                    // cart-layout, cart-item, summary, coupon-input, freeship-note
+        ├── 09-checkout.css                // co-layout, fs, field, radio-card, co-mini
+        ├── 10-success.css                 // success__*, s-card, timeline, responsive
+        ├── 11-coupon.css                  // cpn, coupon-strip, cart-bar, cart-drawer, coupon-alert, responsive order
+        └── 12-layout-extras.css           // footer, floatnav, drawer, toast, reduced-motion
 resources/views/
 ├── web/
 │   ├── home.blade.php
 │   ├── product.blade.php
 │   ├── category.blade.php
-│   ├── flash-sale.blade.php
-│   ├── order-tracking.blade.php
+│   ├── cart.blade.php                     // :hide-floatnav="true", sticky bar, drawer, alert box
+│   ├── checkout.blade.php                 // :hide-catnav="true", 5 fieldsets
+│   ├── checkout-success.blade.php         // hero + s-card + timeline + support
+│   ├── flash-sale.blade.php               // stub
+│   ├── order-tracking.blade.php           // stub
 │   └── partials/
 │       └── best-sellers.blade.php
 └── components/
     ├── layouts/
-    │   └── app.blade.php                 // có <main id="main"> + <meta csrf-token>
+    │   └── app.blade.php                  // @props + hideCatnav + hideFloatnav + <main id="main"> + csrf-token
+    ├── header.blade.php                   // @props(['hideCatnav' => false])
+    ├── floatnav.blade.php                 // @props(['hideFloatnav' => false]), tự ẩn
+    ├── footer.blade.php
+    ├── drawer.blade.php
     ├── ui/
     │   ├── breadcrumb.blade.php
     │   ├── product-card.blade.php
-    │   └── pagination.blade.php
+    │   ├── pagination.blade.php
+    │   └── coupon-card.blade.php          // @props(code,desc,minOrder,exp,applied), ticket style, trạng thái "Đang áp dụng"
     ├── product/
-    │   ├── schema.blade.php              // JSON-LD brand "Thảo Mộc Farm"
-    │   ├── gallery.blade.php             // #pdStageImg
+    │   ├── schema.blade.php               // JSON-LD brand "Thảo Mộc Farm"
+    │   ├── gallery.blade.php              // #pdStageImg
     │   ├── info.blade.php
     │   ├── tabs.blade.php
     │   ├── review-item.blade.php
     │   ├── related.blade.php
-    │   └── buybar.blade.php              // mobile
-    └── category/
-        ├── toolbar.blade.php             // sort select + filter-btn
-        ├── chips.blade.php               // chips bộ lọc đang áp dụng
-        ├── filters.blade.php             // sidebar desktop
-        ├── filter-groups.blade.php       // dùng chung sidebar + drawer
-        ├── filter-drawer.blade.php       // drawer mobile
-        └── seo-text.blade.php            // SEO text cuối trang
+    │   └── buybar.blade.php               // mobile
+    ├── category/
+    │   ├── toolbar.blade.php              // sort select + filter-btn
+    │   ├── chips.blade.php                // chips bộ lọc đang áp dụng
+    │   ├── filters.blade.php              // sidebar desktop
+    │   ├── filter-groups.blade.php        // dùng chung sidebar + drawer
+    │   ├── filter-drawer.blade.php        // drawer mobile
+    │   └── seo-text.blade.php             // SEO text cuối trang
+    └── sections/
+        ├── hero.blade.php
+        ├── usp.blade.php
+        ├── collections.blade.php          // :categories
+        ├── flash-sale.blade.php           // :products
+        ├── coupons.blade.php              // :coupons, tự ẩn khi rỗng, JS copy scoped .coupons .copy-btn
+        ├── best-sellers.blade.php         // :products
+        ├── herbal-tea.blade.php           // :products
+        ├── region.blade.php
+        ├── stats.blade.php
+        ├── testimonials.blade.php         // :reviews
+        ├── trust.blade.php
+        ├── tips.blade.php
+        └── newsletter.blade.php
 routes/web.php
 
 ## 12. CÁCH TRẢ LỜI
