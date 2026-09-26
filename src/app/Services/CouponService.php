@@ -324,4 +324,19 @@ class CouponService
         $discount = $this->calculateDiscount($coupon, $cartTotal, 0);
         return ['success' => true, 'message' => 'Áp dụng mã ' . $coupon->code . ' thành công.', 'discount' => $discount, 'code' => (string) $coupon->code];
     }
+    /**
+     * Ghi nhận lượt sử dụng coupon sau khi đặt hàng thành công.
+     * Dùng cho checkout transaction.
+     */
+    public function recordUsage(int $couponId, ?int $userId, int $orderId, int $discountAmount): void
+    {
+        \Illuminate\Support\Facades\DB::table('coupon_usages')->insert([
+            'coupon_id' => $couponId,
+            'user_id' => $userId,
+            'order_id' => $orderId,
+            'discount_amount' => $discountAmount,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
 }

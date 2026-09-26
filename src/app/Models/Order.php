@@ -30,6 +30,7 @@ class Order extends Model
         'subtotal',
         'discount_amount',
         'coupon_id',
+        'coupon_code_snapshot',
         'shipping_fee',
         'total',
         'payment_method',

@@ -1,5 +1,5 @@
 <x-layouts.app title="Thanh toán đơn hàng | Thảo Mộc Farm"
-    seoDescription="Thanh toán đơn hàng đặc sản Tây Bắc an toàn, bảo mật." :hide-catnav="true">
+    seoDescription="Thanh toán đơn hàng đặc sản Tây Bắc an toàn, bảo mật." :hide-catnav="true" :hide-floatnav="true">
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <ol>
@@ -138,17 +138,28 @@
                     @endforeach
                 </ul>
 
-                @if($coupon_code)
-                    <p class="sum-row">
-                        <span>Mã giảm giá ({{ $coupon_code }})</span>
-                        <span class="text-red-500">-{{ number_format($discount_amount) }}₫</span>
-                    </p>
+                @if($appliedCoupon)
+                    <div class="coupon-applied" style="margin-bottom: 12px;">
+                        <span>🎟️ Mã <strong>{{ $appliedCoupon['code'] }}</strong>
+                            @if($appliedCoupon['type'] === 'shipping')
+                                — Miễn phí vận chuyển
+                            @else
+                                −{{ number_format($appliedCoupon['discount']) }}₫
+                            @endif
+                        </span>
+                    </div>
                 @endif
 
                 <p class="sum-row">
                     <span>Tạm tính</span>
                     <span>{{ number_format($subtotal) }}₫</span>
                 </p>
+                @if($discount > 0 && $appliedCoupon && $appliedCoupon['type'] !== 'shipping')
+                    <p class="sum-row sum-row--discount">
+                        <span>Giảm giá ({{ $appliedCoupon['code'] }})</span>
+                        <span>−{{ number_format($discount) }}₫</span>
+                    </p>
+                @endif
                 <p class="sum-row">
                     <span>Phí vận chuyển</span>
                     <span>{{ $shipping_fee === 0 ? 'Miễn phí' : number_format($shipping_fee) . '₫' }}</span>

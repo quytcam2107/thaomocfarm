@@ -10,7 +10,6 @@ use App\Enums\PaymentMethod;
 use App\Enums\ShipmentCarrier;
 use App\Enums\StockMovementType;
 use App\Models\CartItem;
-use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
@@ -29,6 +28,11 @@ class CheckoutService
 
     /**
      * Lấy dữ liệu để hiển thị trang checkout.
+     * Logic tính tiền ĐỒNG BỘ với CartService::getCartSummary():
+     *  1) goodsDiscount (fixed/percent) trừ vào eligible subtotal
+     *  2) shippingFee tính theo method + threshold
+     *  3) type=shipping → shippingDiscount = shippingFee
+     *  4) total = discountedSubtotal + shippingFee - shippingDiscount
      */
     public function getCheckoutData(int $cartId, string $shippingMethod = 'standard'): array
     {
@@ -38,34 +42,57 @@ class CheckoutService
             return [];
         }
 
-        $subtotal = $cartDetails['subtotal'];
-        $shippingFee = $this->calculateShippingFee($shippingMethod, $subtotal);
+        $subtotal = (int) $cartDetails['subtotal'];
+        $userId = auth()->id();
 
-        $couponCode = session('applied_coupon_code');
-        $discountAmount = 0;
-        $couponId = null;
+        $goodsDiscount = 0;
+        $shippingDiscount = 0;
+        $appliedCoupon = null;
 
-        if ($couponCode) {
-            $couponData = $this->couponService->applyCoupon($couponCode, $subtotal, auth()->id());
-            if (is_array($couponData) && isset($couponData['discount_amount'])) {
-                $discountAmount = (int) $couponData['discount_amount'];
-                $couponId = $couponData['coupon_id'] ?? null;
-            } else {
-                session()->forget('applied_coupon_code');
+        // Resolve coupon từ session (đúng constant CouponService::SESSION_KEY)
+        $resolved = $this->couponService->resolveAppliedCoupon($cartId, $userId);
+
+        if ($resolved !== null) {
+            $coupon = $resolved['coupon'];
+            $type = $resolved['type'];
+
+            if ($type !== 'shipping') {
+                // Tính discount cho hàng hoá (fixed/percent)
+                $goodsDiscount = $this->couponService->calculateDiscount($coupon, $resolved['eligible'], 0);
             }
+
+            $appliedCoupon = [
+                'code' => $resolved['code'],
+                'type' => $type,
+                'eligible' => $resolved['eligible'],
+                'discount' => 0, // sẽ set sau
+            ];
         }
 
-        $total = $subtotal + $shippingFee - $discountAmount;
-        if ($total < 0)
-            $total = 0;
+        $discountedSubtotal = max(0, $subtotal - $goodsDiscount);
+        $shippingFee = $this->calculateShippingFee($shippingMethod, $discountedSubtotal);
+
+        // Nếu mã là type=shipping → free ship toàn bộ
+        if ($appliedCoupon !== null && $appliedCoupon['type'] === 'shipping') {
+            $shippingDiscount = $shippingFee;
+        }
+
+        $discount = $goodsDiscount + $shippingDiscount;
+
+        if ($appliedCoupon !== null) {
+            $appliedCoupon['discount'] = $discount;
+        }
+
+        $total = max(0, $discountedSubtotal + $shippingFee - $shippingDiscount);
 
         return [
             'items' => $cartDetails['items'],
             'subtotal' => $subtotal,
+            'discounted_subtotal' => $discountedSubtotal,
             'shipping_fee' => $shippingFee,
             'shipping_method' => $shippingMethod,
-            'discount_amount' => $discountAmount,
-            'coupon_code' => $couponCode,
+            'discount' => $discount,
+            'appliedCoupon' => $appliedCoupon,
             'total' => $total,
             'free_shipping_threshold' => config('thaomoc.shipping.free_threshold', 300000),
         ];
@@ -73,16 +100,20 @@ class CheckoutService
 
     /**
      * Tính phí vận chuyển dựa theo phương thức chọn từ UI.
+     * - fast: 30.000₫ cố định
+     * - standard: miễn phí nếu subtotal >= threshold, còn lại 20.000₫
+     *
+     * Lưu ý: nhận $discountedSubtotal (đã trừ discount hàng hoá) để khớp logic cart.
      */
-    public function calculateShippingFee(string $method, int $subtotal): int
+    public function calculateShippingFee(string $method, int $discountedSubtotal): int
     {
         if ($method === 'fast') {
             return 30000;
         }
 
         // standard
-        $threshold = config('thaomoc.shipping.free_threshold', 300000);
-        if ($subtotal >= $threshold) {
+        $threshold = (int) config('thaomoc.shipping.free_threshold', 300000);
+        if ($discountedSubtotal >= $threshold) {
             return 0;
         }
 
@@ -99,25 +130,38 @@ class CheckoutService
             throw new \Exception('Giỏ hàng đang trống.');
         }
 
-        $subtotal = $cartDetails['subtotal'];
+        $subtotal = (int) $cartDetails['subtotal'];
+        $userId = auth()->id();
         $shippingMethod = $validated['shipping_method'] ?? 'standard';
-        $shippingFee = $this->calculateShippingFee($shippingMethod, $subtotal);
 
-        $couponCode = session('applied_coupon_code');
-        $discountAmount = 0;
+        // Resolve coupon lần nữa (tránh race condition)
+        $goodsDiscount = 0;
+        $shippingDiscount = 0;
         $couponId = null;
+        $couponCode = null;
 
-        if ($couponCode) {
-            $couponData = $this->couponService->applyCoupon($couponCode, $subtotal, auth()->id());
-            if (is_array($couponData) && isset($couponData['discount_amount'])) {
-                $discountAmount = (int) $couponData['discount_amount'];
-                $couponId = $couponData['coupon_id'] ?? null;
+        $resolved = $this->couponService->resolveAppliedCoupon($cartId, $userId);
+
+        if ($resolved !== null) {
+            $coupon = $resolved['coupon'];
+            $couponId = $coupon->id;
+            $couponCode = $resolved['code'];
+            $type = $resolved['type'];
+
+            if ($type !== 'shipping') {
+                $goodsDiscount = $this->couponService->calculateDiscount($coupon, $resolved['eligible'], 0);
             }
         }
 
-        $total = $subtotal + $shippingFee - $discountAmount;
-        if ($total < 0)
-            $total = 0;
+        $discountedSubtotal = max(0, $subtotal - $goodsDiscount);
+        $shippingFee = $this->calculateShippingFee($shippingMethod, $discountedSubtotal);
+
+        if ($resolved !== null && $resolved['type'] === 'shipping') {
+            $shippingDiscount = $shippingFee;
+        }
+
+        $discountAmount = $goodsDiscount + $shippingDiscount;
+        $total = max(0, $discountedSubtotal + $shippingFee - $shippingDiscount);
 
         $addressSnapshot = [
             'name' => $validated['name'],
@@ -131,7 +175,7 @@ class CheckoutService
 
         $orderNumber = $this->generateOrderNumber();
 
-        return DB::transaction(function () use ($cartId, $cartDetails, $validated, $subtotal, $shippingFee, $discountAmount, $couponId, $total, $addressSnapshot, $orderNumber) {
+        return DB::transaction(function () use ($cartId, $cartDetails, $validated, $subtotal, $shippingFee, $discountAmount, $couponId, $couponCode, $total, $addressSnapshot, $orderNumber) {
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => auth()->id(),
@@ -142,6 +186,7 @@ class CheckoutService
                 'note' => $validated['note'] ?? null,
                 'subtotal' => $subtotal,
                 'discount_amount' => $discountAmount,
+                'coupon_code_snapshot' => $couponCode,
                 'coupon_id' => $couponId,
                 'shipping_fee' => $shippingFee,
                 'total' => $total,
@@ -157,7 +202,7 @@ class CheckoutService
                     throw new \Exception("Không tìm thấy biến thể sản phẩm {$item['product_name']}.");
                 }
 
-                // Conditional UPDATE nguyên tử: Chốt tồn kho
+                // Conditional UPDATE nguyên tử
                 $affected = ProductVariant::where('id', $variant->id)
                     ->where('stock', '>=', $item['qty'])
                     ->update(['stock' => DB::raw('stock - ' . (int) $item['qty'])]);
@@ -166,7 +211,6 @@ class CheckoutService
                     throw new \Exception("Sản phẩm {$item['product_name']} không đủ tồn kho hoặc đã cháy hàng.");
                 }
 
-                // Record stock movement
                 StockMovement::create([
                     'product_variant_id' => $variant->id,
                     'type' => StockMovementType::EXPORT->value,
@@ -190,7 +234,6 @@ class CheckoutService
                 ]);
             }
 
-            // Tạo Shipment
             Shipment::create([
                 'order_id' => $order->id,
                 'carrier' => ShipmentCarrier::INTERNAL->value,
@@ -198,14 +241,16 @@ class CheckoutService
                 'status' => 'pending',
             ]);
 
-            // Record coupon usage
-            if ($couponId) {
+            // Record coupon usage (gọi method nếu có trong CouponService)
+            if ($couponId && method_exists($this->couponService, 'recordUsage')) {
                 $this->couponService->recordUsage($couponId, auth()->id(), $order->id, $discountAmount);
             }
 
             // Clear cart
             CartItem::where('cart_id', $cartId)->delete();
-            session()->forget('applied_coupon_code');
+
+            // Xóa session coupon sau khi đặt hàng thành công
+            $this->couponService->removeAppliedCoupon();
 
             return $order;
         });

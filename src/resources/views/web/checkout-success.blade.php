@@ -1,4 +1,4 @@
-<x-layouts.app title="Đặt hàng thành công | Thảo Mộc Farm" seoDescription="Cảm ơn bạn đã đặt hàng tại Thảo Mộc Farm. Theo dõi đơn hàng và liên hệ hỗ trợ." :hide-catnav="true">
+<x-layouts.app title="Đặt hàng thành công | Thảo Mộc Farm" seoDescription="Cảm ơn bạn đã đặt hàng tại Thảo Mộc Farm. Theo dõi đơn hàng và liên hệ hỗ trợ." :hide-catnav="true" :hide-floatnav="true">
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <ol>
