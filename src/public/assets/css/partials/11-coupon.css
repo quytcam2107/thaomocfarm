@@ -872,3 +872,94 @@ body.has-cart-bar {
         height: 40px;
     }
 }
+
+/* =====================================================================
+   COUPON ALERT BOX — khung thông báo lỗi/thành công khi áp mã
+   Thay thế thẻ <p> cũ bằng alert box có icon + background + animation
+   ===================================================================== */
+.coupon-alert {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    line-height: 1.45;
+    border: 1.5px solid transparent;
+    animation: couponAlertIn 0.3s cubic-bezier(.4, 0, .2, 1);
+}
+
+.coupon-alert:not(:empty) {
+    display: flex;
+}
+
+.coupon-alert__icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+}
+
+.coupon-alert__icon--spin {
+    animation: couponSpin 1s linear infinite;
+}
+
+.coupon-alert__text {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ===== Lỗi (đỏ hồng) ===== */
+.coupon-alert--error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.coupon-alert--error .coupon-alert__icon {
+    color: #dc2626;
+}
+
+/* ===== Thành công (xanh lá) ===== */
+.coupon-alert--success {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.coupon-alert--success .coupon-alert__icon {
+    color: #059669;
+}
+
+/* ===== Đang tải (xám nhẹ) ===== */
+.coupon-alert--loading {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #374151;
+}
+
+/* ===== Animations ===== */
+@keyframes couponAlertIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes couponSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ===== Ẩn class cũ nếu còn sót ===== */
+.coupon-msg {
+    display: none !important;
+}
