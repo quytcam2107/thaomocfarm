@@ -1,4 +1,4 @@
-<x-layouts.app title="Giỏ hàng của bạn | Thảo Mộc Farm" seoDescription="Xem và thanh toán giỏ hàng đặc sản Tây Bắc">
+<x-layouts.app title="Giỏ hàng của bạn | Thảo Mộc Farm" seoDescription="Xem và thanh toán giỏ hàng đặc sản Tây Bắc" :hide-floatnav="true">
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <ol>
@@ -25,144 +25,265 @@
         @endif
 
         <div class="cart-layout">
-            {{-- ============ BLOCK MA GIAM GIA ============
-            ĐẶT TRONG .cart-layout để đảo vị trí bằng CSS order:
-            - Mobile (<768px): nằm DƯỚI danh sách sản phẩm, TRÊN summary - iPad trở lên (>=768px): nằm trên cùng như cũ
-                - Desktop (>=1024px): span đủ 2 cột nhờ grid-column: 1 / -1
-                --}}
-                @if(count($availableCoupons) > 0)
-                    <section class="coupon-strip" aria-label="Mã giảm giá đang phát hành">
-                        <div class="coupon-strip__head">
-                            <h2 class="coupon-strip__title">🎟️ Mã giảm giá</h2>
-                            <span class="coupon-strip__hint">Bấm "Sao chép" rồi dán vào ô mã ở khung Tóm tắt đơn hàng. Mã
-                                đang áp dụng sẽ được tô đậm.</span>
-                        </div>
-                        <div class="coupon-strip__grid">
-                            @foreach($availableCoupons as $coupon)
-                                <div class="cpn-wrap @if($coupon['applied']) cpn-wrap--applied @endif">
-                                    <x-ui.coupon-card :code="$coupon['code']" :desc="$coupon['desc']"
-                                        :min-order="$coupon['minOrder']" :exp="$coupon['exp']" :applied="$coupon['applied']" />
-                                </div>
-                            @endforeach
-                        </div>
-                    </section>
-                @endif
+            {{-- ============ BLOCK MA GIAM GIA ============ --}}
+            @if(count($availableCoupons) > 0)
+                <section class="coupon-strip" aria-label="Mã giảm giá đang phát hành">
+                    <div class="coupon-strip__head">
+                        <h2 class="coupon-strip__title">🎟️ Mã giảm giá</h2>
+                        <span class="coupon-strip__hint">Bấm "Sao chép" rồi dán vào ô mã ở khung Tóm tắt đơn hàng. Mã
+                            đang áp dụng sẽ được tô đậm.</span>
+                    </div>
+                    <div class="coupon-strip__grid">
+                        @foreach($availableCoupons as $coupon)
+                            <div class="cpn-wrap @if($coupon['applied']) cpn-wrap--applied @endif">
+                                <x-ui.coupon-card :code="$coupon['code']" :desc="$coupon['desc']"
+                                    :min-order="$coupon['minOrder']" :exp="$coupon['exp']" :applied="$coupon['applied']" />
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
 
-                <div class="cart-main">
-                    @if(count($cartItems) > 0)
-                        <div class="cart-list" id="cartList">
-                            @foreach($cartItems as $item)
-                                <article class="cart-item" data-item-id="{{ $item['id'] }}" data-price="{{ $item['price'] }}">
-                                    <span class="cart-item__media">
-                                        <a href="{{ $item['url'] }}">
-                                            <img src="{{ $item['image'] }}" alt="{{ $item['product_name'] }}" width="200"
-                                                height="200" loading="lazy"
-                                                onerror="this.src='{{ asset('assets/images/placeholder.svg') }}'">
-                                        </a>
-                                    </span>
-                                    <div class="cart-item__content">
-                                        <h2 class="cart-item__name">
-                                            <a href="{{ $item['url'] }}">{{ $item['product_name'] }}</a>
-                                        </h2>
-                                        @if($item['variant_label'])
-                                            <p class="cart-item__variant">Phân loại: {{ $item['variant_label'] }}</p>
-                                        @endif
-                                        @if($item['price'])
-                                            <p class="cart-item__price">Giá: {{ $item['price'] }}</p>
-                                        @endif
-                                        <div class="cart-item__row">
-                                            <div class="qty" data-qty>
-                                                <button type="button" data-step="-1" aria-label="Giảm số lượng" {{ $item['qty'] <= 1 ? 'disabled' : '' }}>−</button>
-                                                <input type="number" inputmode="numeric" min="1" max="{{ $item['stock'] }}"
-                                                    value="{{ $item['qty'] }}"
-                                                    aria-label="Số lượng {{ $item['product_name'] }}">
-                                                <button type="button" data-step="1" aria-label="Tăng số lượng" {{ $item['qty'] >= $item['stock'] ? 'disabled' : '' }}>+</button>
-                                            </div>
-                                            <span class="cart-item__total">{{ number_format($item['subtotal']) }}₫</span>
-                                            <button class="remove-btn" data-remove>Xoá</button>
+            <div class="cart-main">
+                @if(count($cartItems) > 0)
+                    <div class="cart-list" id="cartList">
+                        @foreach($cartItems as $item)
+                            <article class="cart-item" data-item-id="{{ $item['id'] }}" data-price="{{ $item['price'] }}">
+                                <span class="cart-item__media">
+                                    <a href="{{ $item['url'] }}">
+                                        <img src="{{ $item['image'] }}" alt="{{ $item['product_name'] }}" width="200"
+                                            height="200" loading="lazy"
+                                            onerror="this.src='{{ asset('assets/images/placeholder.svg') }}'">
+                                    </a>
+                                </span>
+                                <div class="cart-item__content">
+                                    <h2 class="cart-item__name">
+                                        <a href="{{ $item['url'] }}">{{ $item['product_name'] }}</a>
+                                    </h2>
+                                    @if($item['variant_label'])
+                                        <p class="cart-item__variant">Phân loại: {{ $item['variant_label'] }}</p>
+                                    @endif
+                                    @if($item['price'])
+                                        <p class="cart-item__price">Giá: {{ $item['price'] }}</p>
+                                    @endif
+                                    <div class="cart-item__row">
+                                        <div class="qty" data-qty>
+                                            <button type="button" data-step="-1" aria-label="Giảm số lượng" {{ $item['qty'] <= 1 ? 'disabled' : '' }}>−</button>
+                                            <input type="number" inputmode="numeric" min="1" max="{{ $item['stock'] }}"
+                                                value="{{ $item['qty'] }}"
+                                                aria-label="Số lượng {{ $item['product_name'] }}">
+                                            <button type="button" data-step="1" aria-label="Tăng số lượng" {{ $item['qty'] >= $item['stock'] ? 'disabled' : '' }}>+</button>
                                         </div>
-                                        @if($item['qty'] >= $item['stock'])
-                                            <small class="cart-item__stock-warning">Đã đạt số lượng tối đa trong kho</small>
-                                        @endif
+                                        <span class="cart-item__total">{{ number_format($item['subtotal']) }}₫</span>
+                                        <button class="remove-btn" data-remove>Xoá</button>
                                     </div>
-                                </article>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="empty" id="cartEmpty">
-                            <span style="font-size: 5rem;">🧺</span>
-                            <p>Giỏ hàng của bạn đang trống</p>
-                            <a class="btn btn--leaf" href="{{ route('web.home') }}">Mua sắm ngay</a>
+                                    @if($item['qty'] >= $item['stock'])
+                                        <small class="cart-item__stock-warning">Đã đạt số lượng tối đa trong kho</small>
+                                    @endif
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty" id="cartEmpty">
+                        <span style="font-size: 5rem;">🧺</span>
+                        <p>Giỏ hàng của bạn đang trống</p>
+                        <a class="btn btn--leaf" href="{{ route('web.home') }}">Mua sắm ngay</a>
+                    </div>
+                @endif
+            </div>
+
+            @if(count($cartItems) > 0)
+                <aside class="summary" aria-label="Tóm tắt đơn hàng">
+                    <h2>Tóm tắt đơn hàng</h2>
+                    <div class="coupon-input">
+                        <input id="couponCode" placeholder="Nhập mã giảm giá" aria-label="Mã giảm giá"
+                            value="{{ $appliedCoupon['code'] ?? '' }}">
+                        <button class="btn btn--ghost" id="applyCoupon" @if($appliedCoupon) disabled @endif>Áp
+                            dụng</button>
+                    </div>
+                    <p id="couponMsg" class="coupon-msg" role="status"></p>
+
+                    @if($appliedCoupon)
+                        <div class="coupon-applied">
+                            <span>🎟️ Mã <strong>{{ $appliedCoupon['code'] }}</strong>
+                                −{{ number_format($appliedCoupon['discount']) }}₫</span>
+                            <button type="button" class="coupon-applied__remove" id="removeCoupon">Gỡ mã</button>
                         </div>
                     @endif
-                </div>
 
-                @if(count($cartItems) > 0)
-                    <aside class="summary" aria-label="Tóm tắt đơn hàng">
-                        <h2>Tóm tắt đơn hàng</h2>
+                    @if($appliedCoupon && $appliedCoupon['type'] === 'shipping')
+                        <p class="freeship-note success">
+                            🎉 Mã {{ $appliedCoupon['code'] }} miễn phí vận chuyển cho đơn này!
+                        </p>
+                    @elseif($discountedSubtotal < $freeShippingThreshold)
+                        <p class="freeship-note">
+                            🎁 Thêm <strong>{{ number_format($freeShippingThreshold - $discountedSubtotal) }}₫</strong> để
+                            được miễn phí vận chuyển
+                        </p>
+                    @else
+                        <p class="freeship-note success">
+                            🎉 Đơn của bạn được FREESHIP!
+                        </p>
+                    @endif
+
+                    <p class="sum-row">
+                        <span>Tạm tính</span>
+                        <span>{{ number_format($subtotal) }}₫</span>
+                    </p>
+                    @if($discount > 0)
+                        <p class="sum-row sum-row--discount">
+                            <span>Giảm giá ({{ $appliedCoupon['code'] ?? 'mã' }})</span>
+                            <span>−{{ number_format($discount) }}₫</span>
+                        </p>
+                    @endif
+                    <p class="sum-row">
+                        <span>Phí vận chuyển</span>
+                        <span>{{ $shippingFee === 0 ? 'Miễn phí' : number_format($shippingFee) . '₫' }}</span>
+                    </p>
+                    <p class="sum-row total">
+                        <span>Tổng cộng</span>
+                        <span>{{ number_format($total) }}₫</span>
+                    </p>
+                    <a class="btn btn--clay btn--block" href="{{ route('web.checkout.index') }}">Thanh toán ngay</a>
+                    <p class="sum-row sum-row--center">
+                        <a class="remove-btn" href="{{ route('web.home') }}">← Tiếp tục mua sắm</a>
+                    </p>
+                </aside>
+            @endif
+        </div>
+    </div>
+
+    {{-- ============ STICKY BOTTOM BAR (mobile only) ============
+         Luôn hiện ở đáy màn hình khi giỏ có sản phẩm:
+         - Tổng tiền + tên mã đang áp (nếu có)
+         - Nút 🎟️ mở drawer
+         - Nút Thanh toán (CTA chính)
+         Desktop (>=768px) ẩn bằng CSS.
+    --}}
+    @if(count($cartItems) > 0)
+        <div class="cart-bar" id="cartBar" role="region" aria-label="Tóm tắt giỏ hàng">
+            <div class="cart-bar__left">
+                <div class="cart-bar__total">
+                    <span class="cart-bar__label">Tổng</span>
+                    <span class="cart-bar__amount">{{ number_format($total) }}₫</span>
+                </div>
+                @if($appliedCoupon)
+                    <span class="cart-bar__applied">🎟️ {{ $appliedCoupon['code'] }}</span>
+                @endif
+            </div>
+            <div class="cart-bar__right">
+                <button
+                    class="cart-bar__coupon"
+                    id="openCartDrawer"
+                    type="button"
+                    aria-label="Mở áp mã giảm giá"
+                    title="Áp mã & xem chi tiết"
+                >
+                    🎟️
+                </button>
+                <a class="btn btn--clay cart-bar__checkout" href="{{ route('web.checkout.index') }}">
+                    Thanh toán
+                </a>
+            </div>
+        </div>
+
+        {{-- ============ DRAWER ÁP MÃ (mobile only) ============
+             Slide từ dưới lên, chứa:
+             - Ô nhập mã + nút Áp dụng
+             - Chip mã đang áp (nếu có)
+             - Danh sách ticket coupon
+             - Tóm tắt chi tiết (tạm tính / giảm / ship / tổng)
+             - Nút Thanh toán
+             Desktop (>=768px) ẩn bằng CSS.
+        --}}
+        <div class="cart-drawer" id="cartDrawer" aria-hidden="true" aria-labelledby="cartDrawerTitle">
+            <div class="cart-drawer__overlay" data-close-drawer></div>
+            <div class="cart-drawer__panel" role="dialog" aria-modal="true">
+                <header class="cart-drawer__head">
+                    <h2 id="cartDrawerTitle">Áp mã & Tóm tắt</h2>
+                    <button class="cart-drawer__close" data-close-drawer type="button" aria-label="Đóng">✕</button>
+                </header>
+
+                <div class="cart-drawer__body">
+                    <section class="cart-drawer__section">
+                        <h3 class="cart-drawer__subtitle">Nhập mã giảm giá</h3>
                         <div class="coupon-input">
-                            <input id="couponCode" placeholder="Nhập mã giảm giá" aria-label="Mã giảm giá"
+                            <input id="drawerCouponCode" placeholder="VD: SALE9K" aria-label="Mã giảm giá"
                                 value="{{ $appliedCoupon['code'] ?? '' }}">
-                            <button class="btn btn--ghost" id="applyCoupon" @if($appliedCoupon) disabled @endif>Áp
-                                dụng</button>
+                            <button class="btn btn--ghost" id="drawerApplyCoupon"
+                                @if($appliedCoupon) disabled @endif>Áp dụng</button>
                         </div>
-                        <p id="couponMsg" class="coupon-msg" role="status"></p>
+                        <p id="drawerCouponMsg" class="coupon-msg" role="status"></p>
 
                         @if($appliedCoupon)
                             <div class="coupon-applied">
                                 <span>🎟️ Mã <strong>{{ $appliedCoupon['code'] }}</strong>
                                     −{{ number_format($appliedCoupon['discount']) }}₫</span>
-                                <button type="button" class="coupon-applied__remove" id="removeCoupon">Gỡ mã</button>
+                                <button type="button" class="coupon-applied__remove"
+                                    id="drawerRemoveCoupon">Gỡ</button>
                             </div>
                         @endif
+                    </section>
 
-                        @if($appliedCoupon && $appliedCoupon['type'] === 'shipping')
-                            <p class="freeship-note success">
-                                🎉 Mã {{ $appliedCoupon['code'] }} miễn phí vận chuyển cho đơn này!
-                            </p>
-                        @elseif($discountedSubtotal < $freeShippingThreshold)
-                            <p class="freeship-note">
-                                🎁 Thêm <strong>{{ number_format($freeShippingThreshold - $discountedSubtotal) }}₫</strong> để
-                                được miễn phí vận chuyển
-                            </p>
-                        @else
-                            <p class="freeship-note success">
-                                🎉 Đơn của bạn được FREESHIP!
-                            </p>
-                        @endif
+                    @if(count($availableCoupons) > 0)
+                        <section class="cart-drawer__section">
+                            <h3 class="cart-drawer__subtitle">🎟️ Mã đang có</h3>
+                            <div class="cart-drawer__coupon-list">
+                                @foreach($availableCoupons as $coupon)
+                                    <div class="cpn-wrap @if($coupon['applied']) cpn-wrap--applied @endif">
+                                        <x-ui.coupon-card :code="$coupon['code']" :desc="$coupon['desc']"
+                                            :min-order="$coupon['minOrder']" :exp="$coupon['exp']"
+                                            :applied="$coupon['applied']" />
+                                    </div>
+                                @endforeach
+                            </div>
+                        </section>
+                    @endif
 
-                        <p class="sum-row">
-                            <span>Tạm tính</span>
-                            <span>{{ number_format($subtotal) }}₫</span>
-                        </p>
-                        @if($discount > 0)
-                            <p class="sum-row sum-row--discount">
-                                <span>Giảm giá ({{ $appliedCoupon['code'] ?? 'mã' }})</span>
-                                <span>−{{ number_format($discount) }}₫</span>
+                    <section class="cart-drawer__section">
+                        <h3 class="cart-drawer__subtitle">Tóm tắt đơn hàng</h3>
+                        <div class="cart-drawer__summary">
+                            <p class="sum-row">
+                                <span>Tạm tính</span>
+                                <span>{{ number_format($subtotal) }}₫</span>
                             </p>
-                        @endif
-                        <p class="sum-row">
-                            <span>Phí vận chuyển</span>
-                            <span>{{ $shippingFee === 0 ? 'Miễn phí' : number_format($shippingFee) . '₫' }}</span>
-                        </p>
-                        <p class="sum-row total">
-                            <span>Tổng cộng</span>
-                            <span>{{ number_format($total) }}₫</span>
-                        </p>
-                        <a class="btn btn--clay btn--block" href="{{ route('web.checkout.index') }}">Thanh toán ngay</a>
-                        <p class="sum-row sum-row--center">
-                            <a class="remove-btn" href="{{ route('web.home') }}">← Tiếp tục mua sắm</a>
-                        </p>
-                    </aside>
-                @endif
+                            @if($discount > 0)
+                                <p class="sum-row sum-row--discount">
+                                    <span>Giảm giá ({{ $appliedCoupon['code'] ?? 'mã' }})</span>
+                                    <span>−{{ number_format($discount) }}₫</span>
+                                </p>
+                            @endif
+                            <p class="sum-row">
+                                <span>Phí vận chuyển</span>
+                                <span>{{ $shippingFee === 0 ? 'Miễn phí' : number_format($shippingFee) . '₫' }}</span>
+                            </p>
+                            <p class="sum-row total">
+                                <span>Tổng cộng</span>
+                                <span>{{ number_format($total) }}₫</span>
+                            </p>
+                        </div>
+                    </section>
+
+                    <a class="btn btn--clay btn--block cart-drawer__checkout"
+                        href="{{ route('web.checkout.index') }}">
+                        Thanh toán ngay — {{ number_format($total) }}₫
+                    </a>
+                </div>
+            </div>
         </div>
-    </div>
+    @endif
 
     <div id="couponToast" class="coupon-toast" role="status"></div>
 
     @push('scripts')
         <script>
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            // Thêm class body khi có sticky bar (chỉ có tác dụng trên mobile nhờ CSS)
+            if (document.getElementById('cartBar')) {
+                document.body.classList.add('has-cart-bar');
+            }
 
             document.addEventListener('click', function (e) {
                 const stepBtn = e.target.closest('[data-step]');
@@ -190,7 +311,7 @@
                     }
                 }
 
-                // ==== Nút "Sao chép" của ticket mã giảm giá ====
+                // ==== Nút "Sao chép" của ticket mã giảm giá (dùng chung cho cả strip desktop & drawer mobile) ====
                 const copyBtn = e.target.closest('.copy-btn');
                 if (copyBtn && !copyBtn.disabled) {
                     const code = (copyBtn.dataset.code || '').trim().toUpperCase();
@@ -255,7 +376,7 @@
                 }
             }
 
-            // ================= COUPON =================
+            // ================= COUPON (dùng chung cho desktop + drawer) =================
 
             let couponToastTimer = null;
 
@@ -268,6 +389,11 @@
                 couponToastTimer = setTimeout(() => toast.classList.remove('coupon-toast--show'), 2200);
             }
 
+            /**
+             * Điền mã vừa copy vào input đang active:
+             * - Drawer mở => điền vào #drawerCouponCode
+             * - Drawer đóng => điền vào #couponCode (desktop sidebar)
+             */
             async function copyCouponCode(code) {
                 try {
                     await navigator.clipboard.writeText(code);
@@ -281,7 +407,11 @@
                     try { document.execCommand('copy'); } catch (e2) { /* ignore */ }
                     document.body.removeChild(ta);
                 }
-                const input = document.getElementById('couponCode');
+                const drawer = document.getElementById('cartDrawer');
+                const inputId = (drawer && drawer.classList.contains('is-open'))
+                    ? 'drawerCouponCode'
+                    : 'couponCode';
+                const input = document.getElementById(inputId);
                 if (input && !input.disabled) {
                     input.value = code;
                     input.focus();
@@ -290,9 +420,13 @@
                 showCouponToast('Đã sao chép mã ' + code + ' — bấm "Áp dụng" để dùng');
             }
 
-            async function applyCouponCode() {
-                const input = document.getElementById('couponCode');
-                const msgEl = document.getElementById('couponMsg');
+            /**
+             * Áp mã: dùng chung cho cả desktop (#couponCode) và drawer (#drawerCouponCode).
+             * Tham số: inputId, msgId của vùng đang thao tác.
+             */
+            async function applyCouponCode(inputId, msgId) {
+                const input = document.getElementById(inputId);
+                const msgEl = document.getElementById(msgId);
                 if (!input || !msgEl) return;
 
                 const code = (input.value || '').trim().toUpperCase();
@@ -329,6 +463,9 @@
                 }
             }
 
+            /**
+             * Gỡ mã đang áp (chung cho desktop & drawer).
+             */
             async function removeAppliedCoupon() {
                 try {
                     const response = await fetch(`{{ route('web.cart.coupon.remove') }}`, {
@@ -350,15 +487,64 @@
                 }
             }
 
-            document.getElementById('applyCoupon')?.addEventListener('click', applyCouponCode);
+            // Bind desktop
+            document.getElementById('applyCoupon')?.addEventListener('click', () => applyCouponCode('couponCode', 'couponMsg'));
             document.getElementById('removeCoupon')?.addEventListener('click', removeAppliedCoupon);
             document.getElementById('couponCode')?.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    applyCouponCode();
+                    applyCouponCode('couponCode', 'couponMsg');
                 }
             });
 
+            // Bind drawer
+            document.getElementById('drawerApplyCoupon')?.addEventListener('click', () => applyCouponCode('drawerCouponCode', 'drawerCouponMsg'));
+            document.getElementById('drawerRemoveCoupon')?.addEventListener('click', removeAppliedCoupon);
+            document.getElementById('drawerCouponCode')?.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyCouponCode('drawerCouponCode', 'drawerCouponMsg');
+                }
+            });
+
+            // ================= CART DRAWER (mobile) =================
+            function openCartDrawer() {
+                const drawer = document.getElementById('cartDrawer');
+                if (!drawer) return;
+                drawer.classList.add('is-open');
+                drawer.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('is-locked');
+                // Focus vào input mã để khách gõ ngay
+                setTimeout(() => {
+                    document.getElementById('drawerCouponCode')?.focus();
+                }, 200);
+            }
+
+            function closeCartDrawer() {
+                const drawer = document.getElementById('cartDrawer');
+                if (!drawer) return;
+                drawer.classList.remove('is-open');
+                drawer.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('is-locked');
+            }
+
+            document.getElementById('openCartDrawer')?.addEventListener('click', openCartDrawer);
+
+            // Delegated close (nút X + backdrop)
+            document.getElementById('cartDrawer')?.addEventListener('click', function (e) {
+                if (e.target.closest('[data-close-drawer]')) {
+                    closeCartDrawer();
+                }
+            });
+
+            // ESC đóng drawer
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeCartDrawer();
+                }
+            });
+
+            // Qty +/- debounce effect
             document.querySelectorAll('[data-step]').forEach(btn => {
                 btn.addEventListener('click', function () {
                     this.disabled = true;

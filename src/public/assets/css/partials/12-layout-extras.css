@@ -75,7 +75,7 @@
     z-index: 45;
     width: min(94vw, 430px);
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 999px;

@@ -5,6 +5,7 @@
     'ogImage' => null,
     'bodyClass' => '',
     'hideCatnav' => false,
+    'hideFloatnav' => false,
 ])
 <!doctype html>
 <html lang="vi">
@@ -13,8 +14,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#2e7d4f">
-
-    {{-- CSRF token cho JS fetch (BẮT BUỘC để nút "Thêm vào giỏ" hoạt động) --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $title }}</title>
@@ -30,14 +29,10 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ $ogImage ?? asset('assets/images/og-cover.jpg') }}">
 
-    {{-- ===== PRELOAD FONT QUAN TRỌNG NHẤT (giảm LCP) ===== --}}
-    {{-- Lora 700 cho heading, Be Vietnam Pro 400 cho body text --}}
     <link rel="preload" href="{{ asset('fonts/lora-vietnamese-700-normal.woff2') }}" as="font" type="font/woff2"
         crossorigin>
     <link rel="preload" href="{{ asset('fonts/be-vietnam-pro-vietnamese-400-normal.woff2') }}" as="font"
         type="font/woff2" crossorigin>
-    {{-- ===== END PRELOAD ===== --}}
-
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
     {{ $schema ?? '' }}
@@ -47,7 +42,6 @@
 <body class="{{ $bodyClass }}">
     <a class="skip-link" href="#main">Bỏ qua menu</a>
 
-    {{-- Truyền prop hideCatnav xuống header (mặc định false = hiển thị) --}}
     <x-header :hide-catnav="$hideCatnav" />
 
     <main id="main">
@@ -55,7 +49,7 @@
     </main>
 
     <x-footer />
-    <x-floatnav />
+    <x-floatnav :hide-floatnav="$hideFloatnav" />
     <x-drawer />
 
     {{ $extra ?? '' }}
