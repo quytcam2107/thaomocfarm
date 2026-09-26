@@ -1,0 +1,194 @@
+/* ============ PRODUCT CARD ============ */
+.pcard {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform .2s, box-shadow .2s;
+}
+
+.pcard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgb(34 48 42 / .12);
+}
+
+.pcard__media {
+    position: relative;
+}
+
+.pcard__media>a {
+    display: block;
+    aspect-ratio: 1 / 1;
+    background: #f3efe4;
+    overflow: hidden;
+}
+
+.pcard__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+
+    transform-origin: center center;
+
+    transition: transform 2.5s linear;
+
+    will-change: transform;
+}
+
+.pcard:hover .pcard__img {
+    transform: scale(1.25);
+}
+
+.pcard__flag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--rose);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 8px;
+}
+
+.pcard__flag--hot {
+    animation: flagPulse 2s ease-in-out infinite;
+}
+
+.pcard__fav {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid var(--line);
+    font-size: 16px;
+    color: var(--muted);
+}
+
+.pcard__fav.is-on {
+    color: var(--rose);
+    border-color: var(--rose);
+}
+
+.pcard__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    flex: 1;
+}
+
+.pcard__name {
+    font-family: "Be Vietnam Pro", sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.8em;
+}
+.pcard__body .pcard__name a {
+    color: var(--ink);
+}
+.pcard__name a:hover {
+    color: var(--leaf);
+}
+
+.pcard__rate {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.pcard__buy {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.pcard__price {
+    min-width: 0; /* Cho phép text co lại hoặc xuống dòng nếu cần */
+    flex: 1;      /* Đẩy nút bấm sát về bên phải */
+}
+.pcard__price b {
+    color: var(--clay);
+    font-size: 15.5px;
+}
+
+.pcard__price s {
+    color: #a9a49a;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.pcard__add {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;  /* Đảm bảo kích thước tối thiểu */
+    min-height: 36px;
+    flex-shrink: 0;   /* CHÍNH: Cấm Flexbox co hẹp nút này khi thiếu không gian */
+    border-radius: 50%;
+    background: var(--leaf);
+    color: #fff;
+    border: none;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all .2s ease-in-out;
+}
+
+/* Fix cứng kích thước icon SVG bên trong */
+.pcard__add-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
+    transition: filter .2s ease, transform .2s ease;
+}
+
+.pcard__add:hover {
+    background: var(--leaf);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15), 0 0 12px var(--leaf);
+}
+
+.pcard__add:hover .pcard__add-icon {
+    filter: brightness(1.2) drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
+    transform: scale(1.1);
+}
+.pcard__add:active {
+    transform: scale(.85);
+    box-shadow: none;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .product-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .product-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

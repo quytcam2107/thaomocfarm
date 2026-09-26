@@ -1,0 +1,181 @@
+/* ============ HERO ============ */
+.hero {
+    background: linear-gradient(180deg, var(--leaf-soft), var(--paper) 70%);
+}
+
+.hero__in {
+    display: grid;
+    gap: 20px;
+    padding-block: 28px;
+}
+
+.hero__eyebrow {
+    display: inline-block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--clay);
+}
+
+.hero__in h1 {
+    font-size: clamp(26px, 5vw, 44px);
+    line-height: 1.15;
+    color: var(--leaf-deep);
+    margin-top: 12px;
+}
+
+.hero__in h1 em {
+    color: var(--clay);
+    font-style: italic;
+}
+
+.hero__desc {
+    margin-top: 10px;
+    font-size: 14.5px;
+    color: var(--muted);
+    max-width: 46ch;
+}
+
+.hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.hero__usp {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--leaf);
+    font-weight: 600;
+}
+
+.hero__usp {
+    list-style: none;
+    padding: 0;
+}
+
+.hero__usp li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Khoảng cách giữa icon và chữ */
+    margin-bottom: 8px;
+}
+
+.hero__usp li svg {
+    flex-shrink: 0;
+    color: #2e7d32;
+    /* Đổi màu icon dễ dàng tại đây */
+}
+
+.hero__art {
+    position: relative;
+    min-height: 250px;
+}
+
+.hero__blob {
+    position: absolute;
+    inset: -12px -8px 8px 12px;
+    border-radius: 28px;
+    background: var(--leaf-soft);
+}
+
+.hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    animation: heroIn .8s ease both;
+}
+
+.hero__badge {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--leaf);
+}
+
+@media (min-width: 1024px) {
+    .hero__in {
+        grid-template-columns: 1.05fr .95fr;
+        align-items: center;
+        padding-block: 48px;
+    }
+
+    .hero__art {
+        min-height: 400px;
+    }
+}
+
+/* ============ USP STRIP ============ */
+.usp {
+    background: var(--leaf-soft);
+    border-block: 1px dashed var(--line);
+}
+
+.usp__in {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding-block: 14px;
+}
+
+.usp li {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--leaf-deep);
+}
+
+.usp__ic {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--leaf);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+}
+
+@media (min-width: 900px) {
+    .usp__in {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ============ TIÊU ĐỀ SECTION ============ */
+.sec-title {
+    font-size: clamp(20px, 3vw, 28px);
+    color: var(--leaf-deep);
+    margin: 26px 0 14px;
+}
+
+.sec-title::after {
+    content: "";
+    display: block;
+    width: 64px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--gold);
+    margin-top: 8px;
+}

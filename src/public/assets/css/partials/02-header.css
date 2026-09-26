@@ -1,0 +1,254 @@
+/* ============ HEADER ============ */
+.site-header {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+}
+
+.topbar {
+    background: var(--leaf-deep);
+    color: #eaf3ee;
+    font-size: 12px;
+    display: none;
+}
+
+.topbar__in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 7px;
+}
+
+.topbar__nav {
+    display: flex;
+    gap: 14px;
+}
+
+.topbar__nav a:hover {
+    color: var(--gold);
+}
+
+.header__main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding-block: 10px;
+}
+
+.burger {
+    order: 1;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: var(--leaf);
+}
+
+.burger:hover {
+    background: var(--leaf-soft);
+}
+
+.brand {
+    order: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* margin-right: auto; */
+}
+
+.brand__logo {
+    font-size: 30px;
+}
+
+.brand__text {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--leaf);
+    line-height: 1.1;
+}
+
+.brand__text small {
+    display: block;
+    font-family: "Be Vietnam Pro", sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.header__acts {
+    order: 3;
+    display: flex;
+    gap: 10px;
+    margin: 0px auto 0;
+    /* top 8px, left/right auto → căn giữa */
+    width: fit-content;
+    /* Giới hạn width bằng nội dung */
+}
+
+.act {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 18px;
+}
+
+.act span {
+    font-size: 10.5px;
+    color: var(--muted);
+}
+
+.act:hover {
+    background: var(--leaf-soft);
+}
+
+.cart-count {
+    position: absolute;
+    top: 0;
+    right: 2px;
+    min-width: 18px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--clay);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+}
+
+.cart-count.bump {
+    animation: bump .3s;
+}
+
+.search {
+    order: 4;
+    flex: 1 1 100%;
+    display: flex;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    padding: 11px 18px;
+    background: transparent;
+}
+
+.search button {
+    width: 52px;
+    display: grid;
+    place-items: center;
+    background: var(--leaf);
+    color: #fff;
+    font-size: 17px;
+}
+
+.catnav {
+    border-top: 1px dashed var(--line);
+}
+
+.catnav__in {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding-block: 10px;
+}
+
+.catnav__in a {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.catnav__in a:hover {
+    border-color: var(--leaf);
+    color: var(--leaf);
+}
+
+.catnav__in a.is-active {
+    background: var(--leaf);
+    border-color: var(--leaf);
+    color: #fff;
+}
+
+.catnav__in a.is-hot {
+    background: #fdeee6;
+    border-color: var(--clay);
+    color: var(--clay);
+    font-weight: 600;
+}
+
+.checkout-steps {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.checkout-steps b {
+    color: var(--leaf);
+}
+
+@media (min-width: 768px) {
+    body {
+        padding-bottom: 0;
+    }
+
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+    }
+
+    .topbar {
+        display: block;
+    }
+
+    .burger {
+        display: none;
+    }
+
+    .search {
+        order: 3;
+        flex: 1 1 auto;
+        margin-inline: 8px;
+    }
+
+    .header__acts {
+        order: 4;
+        margin: 0;
+        width: auto;
+    }
+
+    .brand {
+        margin-right: 0;
+    }
+
+    .act {
+        flex-direction: row;
+        gap: 4px;
+        font-size: 20px;
+    }
+
+    .act span {
+        font-size: 13px;
+        color: var(--ink);
+    }
+}

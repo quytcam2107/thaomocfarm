@@ -1,0 +1,141 @@
+/* ============ CHECKOUT ============ */
+.co-layout {
+    display: grid;
+    gap: 18px;
+    align-items: start;
+    margin-top: 8px;
+}
+
+@media (min-width: 1024px) {
+    .co-layout {
+        grid-template-columns: 1fr 380px;
+    }
+}
+
+.fs {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.fs legend {
+    font-family: "Lora", serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--leaf);
+    padding: 0 6px;
+}
+
+.form-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.form-grid--2-full {
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+    .form-grid--2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.req {
+    color: var(--rose);
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    min-height: 44px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.field textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+.field input:user-invalid,
+.field select:user-invalid {
+    border-color: var(--rose);
+    background: #fff7f7;
+}
+
+.hint {
+    display: block;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 5px;
+}
+
+.radio-card {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    cursor: pointer;
+    background: #fff;
+}
+
+.radio-card+.radio-card {
+    margin-top: 8px;
+}
+
+.radio-card input {
+    accent-color: var(--leaf);
+    width: 17px;
+    height: 17px;
+    margin-top: 2px;
+}
+
+.radio-card:has(input:checked) {
+    border-color: var(--leaf);
+    background: var(--leaf-soft);
+}
+
+.co-mini {
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 8px;
+}
+
+.co-mini li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 6px 0;
+    color: #40514a;
+}
+
+.co-mini img {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #f3efe4;
+    flex-shrink: 0;
+}
+
+.co-mini b {
+    margin-left: auto;
+    color: var(--ink);
+}

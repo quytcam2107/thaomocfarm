@@ -1,0 +1,248 @@
+/* ============ TRANG DANH MỤC ============ */
+.breadcrumb {
+    padding: 12px 0 4px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.breadcrumb li+li::before {
+    content: "›";
+    margin-right: 6px;
+    color: #b3ac9e;
+}
+
+.breadcrumb a:hover {
+    color: var(--leaf);
+}
+
+.breadcrumb [aria-current="page"] {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.page-head {
+    padding: 15px 0 12px;
+}
+
+.page-head h1 {
+    font-size: clamp(19px, 3.4vw, 28px);
+    color: var(--leaf-deep);
+}
+
+.page-head p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.toolbar__count {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.toolbar__right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.sort-select {
+    height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    padding: 0 14px;
+    font-size: 13px;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: var(--leaf);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--leaf-soft);
+    border: 1px solid var(--leaf);
+    color: var(--leaf);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.chip button {
+    color: var(--rose);
+    font-weight: 800;
+}
+
+.cat-layout {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+
+.cat-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.filters {
+    display: none;
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 16px;
+}
+
+.filter-group+.filter-group {
+    margin-top: 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+}
+
+.filter-group h3 {
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--leaf);
+    margin-bottom: 8px;
+}
+
+.check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    padding: 5px 0;
+    cursor: pointer;
+}
+
+.check input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--leaf);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+@media (min-width: 1024px) {
+    .filter-btn {
+        display: none;
+    }
+
+    .filters {
+        display: block;
+    }
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 22px 0 8px;
+}
+
+.pagination a,
+.pagination span {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 10px;
+    display: grid;
+    place-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 13.5px;
+}
+
+.pagination .current {
+    background: var(--leaf);
+    border-color: var(--leaf);
+    color: #fff;
+    font-weight: 700;
+}
+
+.pagination .dots {
+    border: 0;
+    background: transparent;
+}
+
+@media (max-width: 479px) {
+    .pagination .hide-sm {
+        display: none;
+    }
+}
+
+.seo-text {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 18px;
+    margin: 18px 0 8px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #40514a;
+}
+
+.seo-text h2 {
+    font-size: 18px;
+    color: var(--leaf-deep);
+    margin-bottom: 8px;
+}
+
+.seo-text h3 {
+    font-size: 15px;
+    margin: 12px 0 6px;
+    color: var(--leaf-deep);
+}
+
+.seo-text ul,
+.list-dot {
+    padding-left: 18px;
+    list-style: disc;
+    margin: 6px 0;
+}
