@@ -3136,3 +3136,74 @@ body.has-buybar .floatnav {
         padding: 24px;
     }
 }
+
+
+/* =====================================================================
+   COUPON — block ticket ma giam gia + trang thai ma dang ap
+   ===================================================================== */
+.coupon-strip { margin: 1.5rem 0; }
+.coupon-strip__head { display: flex; align-items: baseline; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.coupon-strip__title { font-size: 1.25rem; font-weight: 800; color: #1e4b39; margin: 0; }
+.coupon-strip__hint { font-size: .85rem; color: #6b7280; }
+.coupon-strip__grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(250px, 1fr);
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: .5rem;
+}
+@media (min-width: 1024px) {
+    .coupon-strip__grid { grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); overflow-x: visible; }
+}
+
+.coupon-card {
+    display: flex;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgb(0 0 0 / .05);
+}
+.coupon-card--applied { outline: 2px solid #10b981; }
+.coupon-card__thumb {
+    flex: 0 0 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4506a;
+}
+.coupon-card__icon { width: 46px; height: auto; transform: rotate(-8deg); }
+.coupon-card__body { flex: 1; padding: .9rem 1rem; display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.coupon-card__title { font-weight: 800; color: #e11d48; font-size: .95rem; letter-spacing: .02em; margin: 0; }
+.coupon-card__desc { font-size: .82rem; color: #4b5563; line-height: 1.45; flex: 1; margin: 0; }
+.coupon-card__preview { font-size: .78rem; color: #047857; font-weight: 700; margin: 0; }
+.coupon-card__actions { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.coupon-card__copy {
+    background: #e11d48; color: #fff; border: 0; border-radius: 999px;
+    padding: .45rem 1.1rem; font-weight: 700; font-size: .82rem; cursor: pointer;
+}
+.coupon-card__copy:hover { background: #be123c; }
+.coupon-card__terms { background: none; border: 0; color: #2563eb; text-decoration: underline; font-size: .82rem; cursor: pointer; padding: 0; }
+.coupon-card__details { margin-top: .25rem; border-top: 1px dashed #d1d5db; padding-top: .5rem; font-size: .78rem; color: #374151; }
+.coupon-card__details ul { margin: 0; padding-left: 1rem; display: grid; gap: .2rem; }
+
+.coupon-applied {
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    background: #ecfdf5; border: 1px dashed #10b981; color: #065f46;
+    border-radius: 8px; padding: .5rem .75rem; font-size: .85rem; margin-top: .5rem;
+}
+.coupon-applied__remove { background: none; border: 0; color: #b91c1c; text-decoration: underline; cursor: pointer; font-size: .8rem; padding: 0; }
+
+.coupon-msg { font-size: .82rem; margin: .4rem 0 0; min-height: 1.1rem; }
+.coupon-msg--error { color: #b91c1c; }
+.coupon-msg--ok { color: #047857; }
+
+.sum-row--discount span:last-child { color: #047857; font-weight: 700; }
+
+.coupon-toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: #1e4b39; color: #fff; padding: .6rem 1.2rem; border-radius: 999px;
+    font-size: .85rem; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 60;
+}
+.coupon-toast--show { opacity: 1; }

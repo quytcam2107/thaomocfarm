@@ -22,6 +22,28 @@
             </div>
         @endif
 
+        {{-- ============ BLOCK MA GIAM GIA (dung component cpn co san) ============ --}}
+        @if(count($availableCoupons) > 0)
+            <section class="coupon-strip" aria-label="Mã giảm giá đang phát hành">
+                <div class="coupon-strip__head">
+                    <h2 class="coupon-strip__title">🎟️ Mã giảm giá</h2>
+                    <span class="coupon-strip__hint">Bấm “Sao chép” rồi dán vào ô bên phải. Mã đang áp dụng sẽ được viền xanh.</span>
+                </div>
+                <div class="coupon-strip__grid">
+                    @foreach($availableCoupons as $coupon)
+                        <div class="cpn-wrap @if($coupon['applied']) cpn-wrap--applied @endif">
+                            <x-ui.coupon-card
+                                :code="$coupon['code']"
+                                :desc="$coupon['desc']"
+                                :min-order="$coupon['minOrder']"
+                                :exp="$coupon['exp']"
+                            />
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
         <div class="cart-layout">
             <div>
                 @if(count($cartItems) > 0)
@@ -74,12 +96,26 @@
                 <aside class="summary" aria-label="Tóm tắt đơn hàng">
                     <h2>Tóm tắt đơn hàng</h2>
                     <div class="coupon-input">
-                        <input id="couponCode" placeholder="Nhập mã giảm giá" aria-label="Mã giảm giá">
-                        <button class="btn btn--ghost" id="applyCoupon">Áp dụng</button>
+                        <input id="couponCode" placeholder="Nhập mã giảm giá" aria-label="Mã giảm giá"
+                               value="{{ $appliedCoupon['code'] ?? '' }}">
+                        <button class="btn btn--ghost" id="applyCoupon" @if($appliedCoupon) disabled @endif>Áp dụng</button>
                     </div>
-                    @if($subtotal < $freeShippingThreshold)
+                    <p id="couponMsg" class="coupon-msg" role="status"></p>
+
+                    @if($appliedCoupon)
+                        <div class="coupon-applied">
+                            <span>🎟️ Mã <strong>{{ $appliedCoupon['code'] }}</strong> −{{ number_format($appliedCoupon['discount']) }}₫</span>
+                            <button type="button" class="coupon-applied__remove" id="removeCoupon">Gỡ mã</button>
+                        </div>
+                    @endif
+
+                    @if($appliedCoupon && $appliedCoupon['type'] === 'shipping')
+                        <p class="freeship-note success">
+                            🎉 Mã {{ $appliedCoupon['code'] }} miễn phí vận chuyển cho đơn này!
+                        </p>
+                    @elseif($discountedSubtotal < $freeShippingThreshold)
                         <p class="freeship-note">
-                            🎁 Thêm <strong>{{ number_format($freeShippingThreshold - $subtotal) }}₫</strong> để được miễn phí vận chuyển
+                            🎁 Thêm <strong>{{ number_format($freeShippingThreshold - $discountedSubtotal) }}₫</strong> để được miễn phí vận chuyển
                         </p>
                     @else
                         <p class="freeship-note success">
@@ -91,6 +127,12 @@
                         <span>Tạm tính</span>
                         <span>{{ number_format($subtotal) }}₫</span>
                     </p>
+                    @if($discount > 0)
+                        <p class="sum-row sum-row--discount">
+                            <span>Giảm giá ({{ $appliedCoupon['code'] ?? 'mã' }})</span>
+                            <span>−{{ number_format($discount) }}₫</span>
+                        </p>
+                    @endif
                     <p class="sum-row">
                         <span>Phí vận chuyển</span>
                         <span>{{ $shippingFee === 0 ? 'Miễn phí' : number_format($shippingFee) . '₫' }}</span>
@@ -108,6 +150,8 @@
         </div>
     </div>
 
+    <div id="couponToast" class="coupon-toast" role="status"></div>
+
     @push('scripts')
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -121,11 +165,11 @@
                 let currentValue = parseInt(input.value);
                 const min = parseInt(input.min);
                 const max = parseInt(input.max);
-                
+
                 let newValue = currentValue + step;
                 if (newValue < min) newValue = min;
                 if (newValue > max) newValue = max;
-                
+
                 input.value = newValue;
                 updateQty(input.closest('.cart-item').dataset.itemId, newValue);
             }
@@ -137,6 +181,14 @@
                     removeItem(itemId);
                 }
             }
+
+            // ==== Nút "Sao chép" của ticket mã giảm giá (data-code trên .copy-btn) ====
+            const copyBtn = e.target.closest('.copy-btn');
+            if (copyBtn) {
+                const code = (copyBtn.dataset.code || '').trim().toUpperCase();
+                if (!code) return;
+                copyCouponCode(code);
+            }
         });
 
         document.addEventListener('change', function(e) {
@@ -144,10 +196,8 @@
                 let value = parseInt(e.target.value);
                 const min = parseInt(e.target.min);
                 const max = parseInt(e.target.max);
-                
                 if (isNaN(value) || value < min) value = min;
                 if (value > max) value = max;
-                
                 e.target.value = value;
                 updateQty(e.target.closest('.cart-item').dataset.itemId, value);
             }
@@ -164,10 +214,8 @@
                     },
                     body: JSON.stringify({ qty: qty }),
                 });
-
                 const data = await response.json();
                 if (data.success) {
-                    // Reload trang để cập nhật tổng tiền và phí ship
                     location.reload();
                 } else {
                     alert(data.message || 'Có lỗi xảy ra khi cập nhật số lượng');
@@ -187,10 +235,8 @@
                         'Accept': 'application/json',
                     },
                 });
-
                 const data = await response.json();
                 if (data.success) {
-                    // Reload trang sau khi xóa
                     location.reload();
                 } else {
                     alert('Không thể xóa sản phẩm');
@@ -201,13 +247,114 @@
             }
         }
 
-        // Thêm hiệu ứng loading khi click nút +/-
+        // ================= COUPON =================
+
+        let couponToastTimer = null;
+
+        function showCouponToast(message) {
+            const toast = document.getElementById('couponToast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.add('coupon-toast--show');
+            if (couponToastTimer) clearTimeout(couponToastTimer);
+            couponToastTimer = setTimeout(() => toast.classList.remove('coupon-toast--show'), 2200);
+        }
+
+        async function copyCouponCode(code) {
+            try {
+                await navigator.clipboard.writeText(code);
+            } catch (err) {
+                const ta = document.createElement('textarea');
+                ta.value = code;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); } catch (e2) { /* ignore */ }
+                document.body.removeChild(ta);
+            }
+            const input = document.getElementById('couponCode');
+            if (input && !input.disabled) {
+                input.value = code;
+                input.focus();
+                input.select();
+            }
+            showCouponToast('Đã sao chép mã ' + code + ' — bấm “Áp dụng” để dùng');
+        }
+
+        async function applyCouponCode() {
+            const input = document.getElementById('couponCode');
+            const msgEl = document.getElementById('couponMsg');
+            if (!input || !msgEl) return;
+
+            const code = (input.value || '').trim().toUpperCase();
+            msgEl.textContent = '';
+            msgEl.className = 'coupon-msg';
+
+            if (!code) {
+                msgEl.textContent = 'Vui lòng nhập mã giảm giá.';
+                msgEl.classList.add('coupon-msg--error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`{{ route('web.cart.coupon.apply') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ code: code }),
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    location.reload();
+                } else {
+                    msgEl.textContent = data.message || 'Không thể áp dụng mã này.';
+                    msgEl.classList.add('coupon-msg--error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                msgEl.textContent = 'Có lỗi xảy ra khi kết nối đến server.';
+                msgEl.classList.add('coupon-msg--error');
+            }
+        }
+
+        async function removeAppliedCoupon() {
+            try {
+                const response = await fetch(`{{ route('web.cart.coupon.remove') }}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showCouponToast('Không thể gỡ mã, vui lòng thử lại');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showCouponToast('Có lỗi xảy ra khi kết nối đến server');
+            }
+        }
+
+        document.getElementById('applyCoupon')?.addEventListener('click', applyCouponCode);
+        document.getElementById('removeCoupon')?.addEventListener('click', removeAppliedCoupon);
+        document.getElementById('couponCode')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyCouponCode();
+            }
+        });
+
         document.querySelectorAll('[data-step]').forEach(btn => {
             btn.addEventListener('click', function() {
                 this.disabled = true;
-                setTimeout(() => {
-                    this.disabled = false;
-                }, 500);
+                setTimeout(() => { this.disabled = false; }, 500);
             });
         });
     </script>

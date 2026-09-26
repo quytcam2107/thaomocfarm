@@ -13,6 +13,11 @@ use Illuminate\Support\Str;
 
 class CartService
 {
+    public function __construct(
+        private readonly CouponService $couponService
+    ) {
+    }
+
     /**
      * Lấy hoặc tạo giỏ hàng
      */
@@ -220,12 +225,77 @@ class CartService
         $totalQty = $items->sum('qty');
         $subtotal = $items->sum('subtotal');
         $totalItems = $items->sum('qty');
-        
+
         return [
             'items' => $items,
             'subtotal' => $subtotal,
             'total_items' => $totalItems,
             'total_qty' => $totalQty,
+        ];
+    }
+
+    /**
+     * Tóm tắt tiền giỏ hàng CÓ tính mã giảm giá đang áp (session).
+     * Thứ tự tính:
+     *  1) subtotal hàng hoá
+     *  2) goodsDiscount (fixed/percent) trừ vào subtotal
+     *  3) shippingFee tính trên subtotal đã trừ goodsDiscount
+     *  4) mã type=shipping => shippingDiscount = toàn bộ shippingFee
+     *  5) total = (subtotal - goodsDiscount) + shippingFee - shippingDiscount
+     *
+     * @return array{subtotal: int, discounted_subtotal: int, discount: int, shipping_fee: int, total: int, total_qty: int, item_count: int, applied: array{code: string, type: string, discount: int, eligible: int}|null}
+     */
+    public function getCartSummary(int $cartId): array
+    {
+        $details = $this->getCartDetails($cartId);
+        $subtotal = (int) $details['subtotal'];
+        $userId = auth()->id();
+
+        $goodsDiscount = 0;
+        $shippingDiscount = 0;
+        $applied = null;
+
+        $resolved = $this->couponService->resolveAppliedCoupon($cartId, $userId);
+
+        if ($resolved !== null) {
+            $coupon = $resolved['coupon'];
+
+            if ($resolved['type'] !== 'shipping') {
+                $goodsDiscount = $this->couponService->calculateDiscount($coupon, $resolved['eligible'], 0);
+            }
+
+            $applied = [
+                'code' => $resolved['code'],
+                'type' => $resolved['type'],
+                'eligible' => $resolved['eligible'],
+                'discount' => 0,
+            ];
+        }
+
+        $discountedSubtotal = max(0, $subtotal - $goodsDiscount);
+        $shippingFee = $this->calculateShippingFee($discountedSubtotal);
+
+        if ($applied !== null && $applied['type'] === 'shipping') {
+            $shippingDiscount = $shippingFee;
+        }
+
+        $discount = $goodsDiscount + $shippingDiscount;
+
+        if ($applied !== null) {
+            $applied['discount'] = $discount;
+        }
+
+        $total = $discountedSubtotal + $shippingFee - $shippingDiscount;
+
+        return [
+            'subtotal' => $subtotal,
+            'discounted_subtotal' => $discountedSubtotal,
+            'discount' => $discount,
+            'shipping_fee' => $shippingFee,
+            'total' => $total,
+            'total_qty' => (int) $details['total_qty'],
+            'item_count' => (int) $details['total_items'],
+            'applied' => $applied,
         ];
     }
 

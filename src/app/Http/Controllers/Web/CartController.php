@@ -6,61 +6,60 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Requests\AddToCartRequest;
+use App\Requests\ApplyCouponRequest;
 use App\Requests\UpdateCartRequest;
 use App\Services\CartService;
+use App\Services\CouponService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 
 class CartController extends Controller
 {
     public function __construct(
-        private readonly CartService $cartService
+        private readonly CartService $cartService,
+        private readonly CouponService $couponService
     ) {
     }
 
     /**
-     * Hiển thị trang giỏ hàng.
-     *
-     * @param Request $request
-     * @return \Illuminate\View\View
+     * Hiển thị trang giỏ hàng kèm block mã giảm giá + mã đang áp.
+     * Truyền đúng 4 props (code, desc, minOrder, exp) cho component cpn.
      */
     public function index(Request $request)
     {
         $cart = $this->cartService->getOrCreateCart();
-        $cartDetails = $this->cartService->getCartDetails($cart->id);
+        $details = $this->cartService->getCartDetails($cart->id);
+        $summary = $this->cartService->getCartSummary($cart->id);
 
-        $subtotal = $cartDetails['subtotal'];
-        $shippingFee = $this->cartService->calculateShippingFee($subtotal);
-        $total = $subtotal + $shippingFee;
+        // Mỗi phần tử có đúng 4 key mà component cpn dùng + key 'applied' cho highlight.
+        $availableCoupons = $this->couponService->getAvailableCoupons($cart->id, Auth::id());
 
         return view('web.cart', [
-            'cartItems' => $cartDetails['items'],
-            'totalQty' => $cartDetails['total_qty'],
-            'subtotal' => $subtotal,
-            'shippingFee' => $shippingFee,
-            'total' => $total,
-            'freeShippingThreshold' => config('thaomoc.shipping.free_threshold', 300000), // Khớp với config
+            'cartItems' => $details['items'],
+            'totalQty' => $summary['total_qty'],
+            'subtotal' => $summary['subtotal'],
+            'discountedSubtotal' => $summary['discounted_subtotal'],
+            'discount' => $summary['discount'],
+            'appliedCoupon' => $summary['applied'],
+            'shippingFee' => $summary['shipping_fee'],
+            'total' => $summary['total'],
+            'availableCoupons' => $availableCoupons,
+            'freeShippingThreshold' => config('thaomoc.shipping.free_threshold', 300000),
         ]);
     }
 
-    /**
-     * Thêm sản phẩm vào giỏ hàng qua AJAX.
-     *
-     * @param AddToCartRequest $request
-     * @return JsonResponse
-     */
     public function add(AddToCartRequest $request): JsonResponse
     {
         $cart = $this->cartService->getOrCreateCart();
 
         try {
-            // SỬA LỖI: Ép kiểu rõ ràng sang int để khớp với strict type của CartService
             $this->cartService->addToCart(
                 $cart->id,
                 $request->integer('product_id'),
                 $request->integer('variant_id'),
-                $request->integer('qty', 1) // Mặc định là 1 nếu client gửi thiếu
+                $request->integer('qty', 1)
             );
 
             $response = response()->json([
@@ -69,27 +68,16 @@ class CartController extends Controller
                 'cartCount' => $this->cartService->getCartItemCount($cart->id),
             ]);
 
-            // Lưu cookie cho guest user
             if (!Auth::check() && $cart->cart_token) {
-                $response->withCookie(cookie('cart_token', $cart->cart_token, 43200)); // 30 ngày
+                $response->withCookie(cookie('cart_token', $cart->cart_token, 43200));
             }
 
             return $response;
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
     }
 
-    /**
-     * Cập nhật số lượng sản phẩm trong giỏ hàng.
-     *
-     * @param UpdateCartRequest $request
-     * @param int $itemId
-     * @return JsonResponse
-     */
     public function update(UpdateCartRequest $request, int $itemId): JsonResponse
     {
         $cart = $this->cartService->getOrCreateCart();
@@ -99,60 +87,79 @@ class CartController extends Controller
             if (!$updated) {
                 return response()->json(['success' => false, 'message' => 'Không tìm thấy sản phẩm trong giỏ'], 400);
             }
-
             return $this->getCartSummaryJson($cart->id);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
     }
 
-    /**
-     * Xóa sản phẩm khỏi giỏ hàng.
-     *
-     * @param int $itemId
-     * @return JsonResponse
-     */
     public function remove(int $itemId): JsonResponse
     {
         $cart = $this->cartService->getOrCreateCart();
         $this->cartService->removeItem($cart->id, $itemId);
-
         return $this->getCartSummaryJson($cart->id);
     }
 
-    /**
-     * Lấy tổng số lượng sản phẩm trong giỏ hàng (dùng cho JS cập nhật badge).
-     *
-     * @return JsonResponse
-     */
     public function count(): JsonResponse
     {
         $cart = $this->cartService->getOrCreateCart();
-
-        return response()->json([
-            'count' => $this->cartService->getCartItemCount($cart->id),
-        ]);
+        return response()->json(['count' => $this->cartService->getCartItemCount($cart->id)]);
     }
 
-    /**
-     * Trả về tóm tắt giỏ hàng dưới dạng JSON (subtotal, shipping, total, itemCount).
-     *
-     * @param int $cartId
-     * @return JsonResponse
-     */
-    private function getCartSummaryJson(int $cartId): JsonResponse
+    public function applyCoupon(ApplyCouponRequest $request): JsonResponse
     {
-        $cartDetails = $this->cartService->getCartDetails($cartId);
-        $subtotal = $cartDetails['subtotal'];
-        $shippingFee = $this->cartService->calculateShippingFee($subtotal);
-        $total = $subtotal + $shippingFee;
+        $limit = (int) config('thaomoc.rate_limits.apply_coupon', 10);
+        $key = 'apply_coupon|' . $request->ip() . '|' . (Auth::id() ?? 'guest');
+
+        if (RateLimiter::tooManyAttempts($key, $limit)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút.',
+            ], 429);
+        }
+
+        RateLimiter::hit($key, 60);
+
+        $cart = $this->cartService->getOrCreateCart();
+        $result = $this->couponService->applyToCart($request->string('code')->toString(), $cart->id, Auth::id());
+
+        if (!$result['success']) {
+            return response()->json($result, 422);
+        }
+
+        RateLimiter::clear($key);
+
+        $summary = $this->cartService->getCartSummary($cart->id);
 
         return response()->json([
             'success' => true,
-            'subtotal' => $subtotal,
-            'shippingFee' => $shippingFee,
-            'total' => $total,
-            'itemCount' => $cartDetails['total_items'] ?? 0,
+            'message' => $result['message'],
+            'code' => $result['code'],
+            'subtotal' => $summary['subtotal'],
+            'discount' => $summary['discount'],
+            'shippingFee' => $summary['shipping_fee'],
+            'total' => $summary['total'],
+        ]);
+    }
+
+    public function removeCoupon(): JsonResponse
+    {
+        $this->couponService->removeAppliedCoupon();
+        $cart = $this->cartService->getOrCreateCart();
+        return $this->getCartSummaryJson($cart->id);
+    }
+
+    private function getCartSummaryJson(int $cartId): JsonResponse
+    {
+        $summary = $this->cartService->getCartSummary($cartId);
+        return response()->json([
+            'success' => true,
+            'subtotal' => $summary['subtotal'],
+            'discount' => $summary['discount'],
+            'appliedCode' => $summary['applied']['code'] ?? null,
+            'shippingFee' => $summary['shipping_fee'],
+            'total' => $summary['total'],
+            'itemCount' => $summary['item_count'],
         ]);
     }
 }
