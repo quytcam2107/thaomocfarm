@@ -239,7 +239,7 @@
 }
 
 /* ============ REDUCED MOTION ============ */
-@media (prefers-reduced-motion: reduce) {
+/* @media (prefers-reduced-motion: reduce) {
     * {
         animation: none !important;
         transition: none !important;
@@ -250,4 +250,4 @@
         opacity: 1;
         transform: none;
     }
-}
+} */
