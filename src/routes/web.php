@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\CheckoutController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\ProductController;
+use App\Http\Controllers\Web\SearchController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,11 @@ Route::get('/', [HomeController::class, 'index'])->name('web.home');
 
 // 2. Tất cả sản phẩm (MỚI)
 Route::get('/tat-ca-san-pham', [ProductController::class, 'index'])->name('web.products.index');
+
+// 2b. Tim kiem — route có prefix cụ thể, đặt trước {slug}
+Route::get('/tim-kiem', [SearchController::class, 'index'])
+    ->middleware('throttle:search')
+    ->name('web.search');
 
 // 3. Danh mục — URL chuẩn /danh-muc/{slug}
 Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])

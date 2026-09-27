@@ -25,7 +25,7 @@ class CategoryShowRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sort' => ['sometimes', 'string', Rule::in(['bestsell', 'newest', 'price_asc', 'price_desc'])],
+            'sort' => ['sometimes', 'string', Rule::in(['bestsell', 'newest', 'price_asc', 'price_desc', 'relevance'])],
             'price' => ['sometimes', 'array'],
             'price.*' => ['string', Rule::in(['0-100', '100-250', '250-'])],
             'rating' => ['sometimes', 'nullable', 'integer', 'in:3,4,5'],

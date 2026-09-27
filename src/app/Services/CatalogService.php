@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use App\Enums\ProductStatus;
 use App\Models\Category;
+use App\Models\SearchTerm;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
@@ -24,6 +25,15 @@ class CatalogService
 
     /** Các lựa chọn sắp xếp hợp lệ ở trang danh mục. */
     public const SORT_OPTIONS = [
+        'bestsell' => 'Bán chạy nhất',
+        'newest' => 'Mới nhất',
+        'price_asc' => 'Giá thấp → cao',
+        'price_desc' => 'Giá cao → thấp',
+    ];
+
+    /** Các lựa chọn sắp xếp hợp lệ ở trang tìm kiếm (thêm liên quan/phổ biến). */
+    public const SEARCH_SORT_OPTIONS = [
+        'relevance' => 'Liên quan nhất',
         'bestsell' => 'Bán chạy nhất',
         'newest' => 'Mới nhất',
         'price_asc' => 'Giá thấp → cao',
@@ -603,6 +613,150 @@ class CatalogService
                     'Nói không với chất bảo quản, phẩm màu hay hóa chất độc hại.',
                     'Đóng gói hút chân không, bảo quản chuẩn, giao hàng tận nơi toàn quốc.',
                 ],
+            ],
+        ];
+    }
+
+    /**
+     * Lấy toàn bộ dữ liệu trang KẾT QUẢ TÌM KIẾM (/tim-kiem?q=...).
+     * Tìm theo name/slug/subtitle/description + tên danh mục, tái sử dụng
+     * bộ lọc giá/đánh giá/sắp xếp và cấu trúc array thuần giống getAllProducts.
+     */
+    public function search(string $keyword, array $rawFilters): array
+    {
+        $keyword = trim($keyword);
+        $sort = isset($rawFilters['sort']) && array_key_exists($rawFilters['sort'], self::SEARCH_SORT_OPTIONS)
+            ? (string) $rawFilters['sort']
+            : 'relevance';
+
+        $filters = $this->normalizeCategoryFilters(array_merge($rawFilters, ['sort' => $sort === 'relevance' ? 'bestsell' : $sort]));
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $keyword) . '%';
+
+        $query = Product::query()
+            ->where('status', ProductStatus::ACTIVE->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->where(function (Builder $q) use ($like): void {
+                $q->where('name', 'like', $like)
+                    ->orWhere('slug', 'like', $like)
+                    ->orWhere('subtitle', 'like', $like)
+                    ->orWhere('description', 'like', $like)
+                    ->orWhereHas('category', function (Builder $cq) use ($like): void {
+                        $cq->where('name', 'like', $like);
+                    });
+            })
+            ->with([
+                'coverImage' => function (Relation $r): void {
+                    $r->select([
+                        'product_images.id',
+                        'product_images.product_id',
+                        'product_images.path',
+                        'product_images.thumb_path',
+                    ]);
+                },
+                'category' => function (BelongsTo $r): void {
+                    $r->select(['id', 'name', 'slug']);
+                },
+            ])
+            ->select(['id', 'category_id', 'slug', 'name', 'price_min', 'compare_price', 'rating_avg', 'sold_count']);
+
+        if ($filters['prices'] !== []) {
+            $query->where(function (Builder $q) use ($filters): void {
+                foreach ($filters['prices'] as $key) {
+                    $range = collect(self::PRICE_RANGES)->firstWhere('key', $key);
+                    if ($range === null)
+                        continue;
+                    if ($range['max'] === null) {
+                        $q->orWhere('price_min', '>=', $range['min']);
+                    } else {
+                        $q->orWhereBetween('price_min', [$range['min'], $range['max']]);
+                    }
+                }
+            });
+        }
+
+        if ($filters['rating'] !== null) {
+            $query->where('rating_avg', '>=', $filters['rating']);
+        }
+
+        if ($filters['cats'] !== []) {
+            $query->whereIn('category_id', $filters['cats']);
+        }
+
+        $query = match ($filters['sort']) {
+            'newest' => $query->orderByDesc('published_at')->orderByDesc('id'),
+            'price_asc' => $query->orderBy('price_min')->orderByDesc('id'),
+            'price_desc' => $query->orderByDesc('price_min')->orderByDesc('id'),
+            default => $query->orderByDesc('sold_count')->orderByDesc('id'),
+        };
+
+        // Ưu tiên kết quả khớp tên sản phẩm trước (sắp xếp "Liên quan nhất")
+        if ($sort === 'relevance') {
+            $query->orderByRaw('CASE WHEN name LIKE ? THEN 0 ELSE 1 END', [$like]);
+        }
+
+        $paginator = $query->paginate(self::CATEGORY_PER_PAGE, ['*'], 'page', $filters['page']);
+
+        $products = $paginator->getCollection()
+            ->map(fn(Product $p): array => $this->toCategoryCard($p))
+            ->all();
+
+        // Gợi ý từ khoá phổ biến (bỏ qua đúng từ đang tìm)
+        $suggestions = SearchTerm::query()
+            ->where('term', '!=', mb_strtolower($keyword))
+            ->orderByDesc('hits')
+            ->limit(6)
+            ->pluck('term')
+            ->all();
+
+        $schemaCrumbs = [
+            ['label' => 'Trang chủ', 'url' => route('web.home')],
+            ['label' => 'Tìm kiếm', 'url' => route('web.search')],
+        ];
+
+        $breadcrumbs = $schemaCrumbs;
+        $breadcrumbs[count($breadcrumbs) - 1]['url'] = null;
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => array_values(array_map(
+                static fn(int $i, array $c): array => [
+                    '@type' => 'ListItem',
+                    'position' => $i + 1,
+                    'name' => $c['label'],
+                    'item' => $c['url'],
+                ],
+                array_keys($schemaCrumbs),
+                $schemaCrumbs
+            )),
+        ];
+
+        return [
+            'keyword' => $keyword,
+            'pageTitle' => 'Tìm kiếm: ' . $keyword,
+            'pageDescription' => 'Kết quả tìm kiếm "' . $keyword . '" — thảo mộc và đặc sản Tây Bắc chính gốc tại Mộc Xanh.',
+            'breadcrumbs' => $breadcrumbs,
+            'breadcrumb_schema' => $breadcrumbSchema,
+            'children' => [],
+            'products' => $products,
+            'suggestions' => $suggestions,
+            'meta' => [
+                'total' => (int) $paginator->total(),
+                'per_page' => (int) $paginator->perPage(),
+                'current_page' => (int) $paginator->currentPage(),
+                'last_page' => (int) $paginator->lastPage(),
+                'from' => (int) ($paginator->firstItem() ?? 0),
+                'to' => (int) ($paginator->lastItem() ?? 0),
+            ],
+            'filters' => $filters,
+            'priceRanges' => self::PRICE_RANGES,
+            'sortOptions' => self::SEARCH_SORT_OPTIONS,
+            'seoText' => [
+                'heading' => null,
+                'paragraph' => null,
+                'subheading' => null,
+                'tips' => [],
             ],
         ];
     }

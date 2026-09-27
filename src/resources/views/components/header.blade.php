@@ -24,7 +24,7 @@
                 width="50" height="50">
             <span class="brand__text">Mộc Xanh<small>Thảo mộc & Đặc sản Tây Bắc</small></span>
         </a>
-        <form class="search" role="search" action="{{ url('/tim-kiem') }}">
+        <form class="search" role="search" method="GET" action="{{ route('web.search') }}">
             <input type="search" name="q" placeholder="Tìm củ tam thất, trà hoa, táo đỏ..." value="{{ request('q') }}"
                 aria-label="Tìm sản phẩm">
             <button type="submit" aria-label="Tìm kiếm">🔍</button>
