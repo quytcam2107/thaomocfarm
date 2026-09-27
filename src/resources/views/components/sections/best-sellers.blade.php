@@ -1,6 +1,6 @@
 @props(['products' => null])
 <section class="container best reveal" aria-labelledby="bestTitle">
-    <h2 class="sec-title" id="bestTitle">Bán chạy tuần này</h2>
+    <h2 class="sec-title" id="bestTitle">Sản phẩm nổi bật - Bán chạy</h2>
     <div class="product-grid">
         @if($products && count($products))
             @foreach($products as $product)

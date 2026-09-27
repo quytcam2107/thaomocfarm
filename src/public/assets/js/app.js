@@ -90,8 +90,7 @@
         tick(); setInterval(tick, 1000);
     }
 
-
-    /* Gallery: đổi ảnh chính theo thumb (chỉ thay src — chuẩn Blade sau này) */
+    /* Gallery: đổi ảnh chính theo thumb */
     qa('.pd-thumbs button').forEach(btn => btn.addEventListener('click', () => {
         const img = q('#pdStageImg');
         if (img && btn.dataset.full) img.src = btn.dataset.full;
@@ -109,17 +108,11 @@
             if (panel) panel.hidden = !on;
         });
     }));
+
     const buyNow = q('#buyNow');
     if (buyNow) buyNow.addEventListener('click', () => toast('Demo: chuyển tới thanh toán'));
 
-    /* Danh mục */
-    const sort = q('#sort');
-    if (sort) sort.addEventListener('change', () => toast('Demo sắp xếp: ' + sort.value));
-    qa('.chip button').forEach(b => b.addEventListener('click', () => b.closest('.chip').remove()));
-    qa('.pagination a').forEach(a => a.addEventListener('click', e => { e.preventDefault(); toast('Demo phân trang'); }));
-    qa('.filter-actions .btn').forEach(b => b.addEventListener('click', () => toast('Demo: áp dụng bộ lọc')));
-
-    /* Form */
+    /* Form tìm kiếm (Tạm giữ preventDefault vì chưa có route search thật) */
     const search = q('.search');
     if (search) search.addEventListener('submit', e => {
         e.preventDefault();

@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 class CatalogService
 {
     public const CATEGORY_PER_PAGE = 12;
+
     /** Các lựa chọn sắp xếp hợp lệ ở trang danh mục. */
     public const SORT_OPTIONS = [
         'bestsell' => 'Bán chạy nhất',
@@ -35,6 +36,7 @@ class CatalogService
         ['key' => '100-250', 'min' => 100000, 'max' => 250000],
         ['key' => '250-', 'min' => 250000, 'max' => null],
     ];
+
     /** Nội dung SEO text cố định theo slug danh mục (h2, đoạn văn, h3, danh sách mẹo). */
     public const CATEGORY_SEO_TEXT = [
         'thao-moc' => [
@@ -88,6 +90,7 @@ class CatalogService
             ],
         ],
     ];
+
     /**
      * Lấy chi tiết sản phẩm theo slug.
      * Cache array thuần (không cache object) để tránh lỗi unserialize.
@@ -98,18 +101,15 @@ class CatalogService
         $cacheKey = "product_detail:{$slug}";
         $ttl = (int) config('thaomoc.cache.catalog.product_detail', 300);
 
-        // Cache chỉ chứa array thuần, không chứa object
         $cached = remember_group('catalog', $cacheKey, $ttl, function () use ($slug) {
             return $this->fetchProductDetailFromDB($slug);
         });
 
-        // Convert array -> DTO sau khi đọc từ cache
         return $this->hydrateProductDetail($cached);
     }
 
     /**
      * Lấy dữ liệu từ DB, trả về array thuần (không có object).
-     * Array này sẽ được cache an toàn.
      */
     private function fetchProductDetailFromDB(string $slug): array
     {
@@ -128,8 +128,7 @@ class CatalogService
             ])
             ->firstOrFail();
 
-        $defaultVariant = $product->variants->firstWhere('is_default', true)
-            ?? $product->variants->first();
+        $defaultVariant = $product->variants->firstWhere('is_default', true) ?? $product->variants->first();
 
         $currentPrice = $defaultVariant ? (int) $defaultVariant->price : (int) $product->price_min;
         $currentComparePrice = $defaultVariant && $defaultVariant->compare_price ? (int) $defaultVariant->compare_price : ($product->compare_price ? (int) $product->compare_price : null);
@@ -170,7 +169,6 @@ class CatalogService
         }
         $breadcrumbs[] = ['label' => $product->name, 'url' => null];
 
-        // Related products - array thuần
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')
@@ -202,6 +200,7 @@ class CatalogService
                 ];
             })
             ->all();
+
         return [
             'product_id' => $product->id,
             'product' => [
@@ -233,7 +232,6 @@ class CatalogService
 
     /**
      * Convert array đã cache sang DTO objects.
-     * Được gọi sau khi đọc từ cache, đảm bảo class đã được autoload.
      */
     private function hydrateProductDetail(array $cached): array
     {
@@ -271,7 +269,6 @@ class CatalogService
             sold_count: $r['sold_count'],
         ), $cached['relatedProducts']);
 
-        // Reviews - cache riêng, cũng array thuần
         $reviewData = $this->getProductReviews($cached['product_id']);
 
         return [
@@ -286,7 +283,7 @@ class CatalogService
     }
 
     /**
-     * Lấy reviews và rating stats. Cache array thuần, convert sang DTO sau.
+     * Lấy reviews và rating stats.
      */
     public function getProductReviews(int $productId): array
     {
@@ -297,7 +294,6 @@ class CatalogService
             return $this->fetchReviewsFromDB($productId);
         });
 
-        // Convert array -> DTO sau khi đọc từ cache
         $reviewDTOs = array_map(fn($r) => new ReviewViewDTO(
             customer: $r['customer'],
             rating: $r['rating'],
@@ -360,12 +356,7 @@ class CatalogService
     }
 
     /**
-     * Lấy toàn bộ dữ liệu trang danh mục: thông tin danh mục, breadcrumb, schema,
-     * danh mục con (filter), sản phẩm phân trang theo bộ lọc, meta phân trang.
-     * KHÔNG cache danh sách vì tổ hợp lọc/sắp xếp/trang quá đa dạng; truy vấn dùng index có sẵn.
-     *
-     * @param  array<string, mixed>  $rawFilters  Dữ liệu đã validate từ CategoryShowRequest
-     * @return array<string, mixed>|null  Null khi danh mục không tồn tại / đang ẩn
+     * Lấy toàn bộ dữ liệu trang danh mục sản phẩm.
      */
     public function getCategoryShow(string $slug, array $rawFilters): ?array
     {
@@ -419,9 +410,8 @@ class CatalogService
             $query->where(function (Builder $q) use ($filters): void {
                 foreach ($filters['prices'] as $key) {
                     $range = collect(self::PRICE_RANGES)->firstWhere('key', $key);
-                    if ($range === null) {
+                    if ($range === null)
                         continue;
-                    }
                     if ($range['max'] === null) {
                         $q->orWhere('price_min', '>=', $range['min']);
                     } else {
@@ -449,11 +439,7 @@ class CatalogService
             ->all();
 
         $parent = $category->parent_id !== null
-            ? Category::query()
-                ->where('id', $category->parent_id)
-                ->where('status', 'active')
-                ->select(['id', 'name', 'slug'])
-                ->first()
+            ? Category::query()->where('id', $category->parent_id)->where('status', 'active')->select(['id', 'name', 'slug'])->first()
             : null;
 
         $schemaCrumbs = [['label' => 'Trang chủ', 'url' => route('web.home')]];
@@ -512,10 +498,117 @@ class CatalogService
     }
 
     /**
+     * Lấy toàn bộ dữ liệu trang TẤT CẢ SẢN PHẨM.
+     * Tái sử dụng logic lọc, sắp xếp và cấu trúc array thuần giống getCategoryShow.
+     */
+    public function getAllProducts(array $rawFilters): array
+    {
+        $filters = $this->normalizeCategoryFilters($rawFilters);
+
+        $query = Product::query()
+            ->where('status', ProductStatus::ACTIVE->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->with([
+                'coverImage' => function (Relation $r): void {
+                    $r->select([
+                        'product_images.id',
+                        'product_images.product_id',
+                        'product_images.path',
+                        'product_images.thumb_path',
+                    ]);
+                }
+            ])
+            ->select(['id', 'category_id', 'slug', 'name', 'price_min', 'compare_price', 'rating_avg', 'sold_count']);
+
+        if ($filters['prices'] !== []) {
+            $query->where(function (Builder $q) use ($filters): void {
+                foreach ($filters['prices'] as $key) {
+                    $range = collect(self::PRICE_RANGES)->firstWhere('key', $key);
+                    if ($range === null)
+                        continue;
+                    if ($range['max'] === null) {
+                        $q->orWhere('price_min', '>=', $range['min']);
+                    } else {
+                        $q->orWhereBetween('price_min', [$range['min'], $range['max']]);
+                    }
+                }
+            });
+        }
+
+        if ($filters['rating'] !== null) {
+            $query->where('rating_avg', '>=', $filters['rating']);
+        }
+
+        $query = match ($filters['sort']) {
+            'newest' => $query->orderByDesc('published_at')->orderByDesc('id'),
+            'price_asc' => $query->orderBy('price_min')->orderByDesc('id'),
+            'price_desc' => $query->orderByDesc('price_min')->orderByDesc('id'),
+            default => $query->orderByDesc('sold_count')->orderByDesc('id'),
+        };
+
+        $paginator = $query->paginate(8, ['*'], 'page', $filters['page']);
+
+        $products = $paginator->getCollection()
+            ->map(fn(Product $p): array => $this->toCategoryCard($p))
+            ->all();
+
+        $schemaCrumbs = [
+            ['label' => 'Trang chủ', 'url' => route('web.home')],
+            ['label' => 'Tất cả sản phẩm', 'url' => route('web.products.index')],
+        ];
+
+        $breadcrumbs = $schemaCrumbs;
+        $breadcrumbs[count($breadcrumbs) - 1]['url'] = null;
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => array_values(array_map(
+                static fn(int $i, array $c): array => [
+                    '@type' => 'ListItem',
+                    'position' => $i + 1,
+                    'name' => $c['label'],
+                    'item' => $c['url'],
+                ],
+                array_keys($schemaCrumbs),
+                $schemaCrumbs
+            )),
+        ];
+
+        return [
+            'pageTitle' => 'Tất cả sản phẩm',
+            'pageDescription' => 'Khám phá toàn bộ đặc sản Tây Bắc chính gốc từ Thảo Mộc Farm: thịt gác bếp, thảo mộc, gia vị rừng, mật ong hoa bạc hà. Cam kết chất lượng, giao hàng toàn quốc.',
+            'breadcrumbs' => $breadcrumbs,
+            'breadcrumb_schema' => $breadcrumbSchema,
+            'children' => [], // Không có danh mục con ở trang này
+            'products' => $products,
+            'meta' => [
+                'total' => (int) $paginator->total(),
+                'per_page' => (int) $paginator->perPage(),
+                'current_page' => (int) $paginator->currentPage(),
+                'last_page' => (int) $paginator->lastPage(),
+                'from' => (int) ($paginator->firstItem() ?? 0),
+                'to' => (int) ($paginator->lastItem() ?? 0),
+            ],
+            'filters' => $filters,
+            'priceRanges' => self::PRICE_RANGES,
+            'sortOptions' => self::SORT_OPTIONS,
+            'seoText' => [
+                'heading' => 'Tinh hoa đặc sản Tây Bắc',
+                'paragraph' => 'Thảo Mộc Farm tự hào mang đến bộ sưu tập đầy đủ các đặc sản vùng cao Tây Bắc. Từ những miếng thịt trâu gác bếp thấm đẫm khói bếp, thảo mộc quý hiếm trên đỉnh Hoàng Liên Sơn, đến gia vị mắc khén hạt dổi thơm lừng và mật ong hoa bạc hà ngọt lành. Tất cả được tuyển chọn kỹ lưỡng, sơ chế thủ công và đóng gói cẩn thận để giữ trọn hương vị bản địa.',
+                'subheading' => 'Cam kết từ Thảo Mộc Farm',
+                'tips' => [
+                    'Nguồn gốc rõ ràng, thu hái và chế biến trực tiếp từ bà con vùng cao.',
+                    'Nói không với chất bảo quản, phẩm màu hay hóa chất độc hại.',
+                    'Đóng gói hút chân không, bảo quản chuẩn, giao hàng tận nơi toàn quốc.',
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Chuẩn hoá bộ lọc danh mục về dạng an toàn, đủ key mặc định.
-     *
-     * @param  array<string, mixed>  $raw
-     * @return array{sort: string, prices: array<int, string>, rating: int|null, cats: array<int, int>, page: int}
      */
     private function normalizeCategoryFilters(array $raw): array
     {
@@ -547,10 +640,9 @@ class CatalogService
             'page' => $page,
         ];
     }
+
     /**
-     * Lấy nội dung SEO text theo slug danh mục; slug lạ thì fallback về description.
-     *
-     * @return array{heading: string, paragraph: string|null, subheading: string|null, tips: array<int, string>}
+     * Lấy nội dung SEO text theo slug danh mục.
      */
     private function categorySeoText(Category $category): array
     {
@@ -569,9 +661,7 @@ class CatalogService
     }
 
     /**
-     * Chuyển 1 product (đã eager-load coverImage) thành array thuần đúng contract của x-ui.product-card.
-     *
-     * @return array{id: int, url: string, image: string, name: string, price: int, oldPrice: int|null, discount: int, rating: float, sold: int}
+     * Chuyển 1 product thành array thuần đúng contract của x-ui.product-card.
      */
     private function toCategoryCard(Product $p): array
     {
@@ -598,8 +688,6 @@ class CatalogService
 
     /**
      * URL ảnh cover của sản phẩm cho trang danh mục.
-     * Ưu tiên thumb_path, fallback ảnh gốc, cuối cùng là ảnh mặc định.
-     * Tuân thủ quy ước: `asset($path)` cho đường dẫn tương đối trên disk public.
      */
     private function categoryProductImageUrl(Product $p): string
     {
