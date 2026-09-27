@@ -1,4 +1,4 @@
-<x-layouts.app title="Giỏ hàng của bạn | Thảo Mộc Farm" seoDescription="Xem và thanh toán giỏ hàng đặc sản Tây Bắc"
+<x-layouts.app title="Giỏ hàng của bạn | Mộc Xanh" seoDescription="Xem và thanh toán giỏ hàng đặc sản Tây Bắc"
     :hide-floatnav="true">
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">

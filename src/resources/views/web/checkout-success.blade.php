@@ -1,4 +1,4 @@
-<x-layouts.app title="Đặt hàng thành công | Thảo Mộc Farm" seoDescription="Cảm ơn bạn đã đặt hàng tại Thảo Mộc Farm. Theo dõi đơn hàng và liên hệ hỗ trợ." :hide-catnav="true" :hide-floatnav="true">
+<x-layouts.app title="Đặt hàng thành công | Mộc Xanh" seoDescription="Cảm ơn bạn đã đặt hàng tại Mộc Xanh. Theo dõi đơn hàng và liên hệ hỗ trợ." :hide-catnav="true" :hide-floatnav="true">
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <ol>
@@ -19,7 +19,7 @@
                 </div>
                 <h1 class="success__title">Đặt hàng thành công!</h1>
                 <p class="success__lead">
-                    Cảm ơn bạn đã tin tưởng <strong>Thảo Mộc Farm</strong>.
+                    Cảm ơn bạn đã tin tưởng <strong>Mộc Xanh</strong>.
                     Đơn hàng <strong class="success__order-code">{{ $order->order_number }}</strong>
                     đã được ghi nhận và sẽ được xác nhận trong ít phút.
                 </p>
@@ -170,7 +170,7 @@
                     </div>
                     <div class="success__support">
                         <h3>Bạn cần hỗ trợ?</h3>
-                        <p>Đội ngũ Thảo Mộc Farm luôn sẵn sàng đồng hành cùng bạn.</p>
+                        <p>Đội ngũ Mộc Xanh luôn sẵn sàng đồng hành cùng bạn.</p>
                         <div class="success__support-cta">
                             <a class="success__support-link" href="tel:0362795897">
                                 <span aria-hidden="true">📞</span>

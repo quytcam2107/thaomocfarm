@@ -1,4 +1,4 @@
-<x-layouts.app title="Thanh toán đơn hàng | Thảo Mộc Farm"
+<x-layouts.app title="Thanh toán đơn hàng | Mộc Xanh"
     seoDescription="Thanh toán đơn hàng đặc sản Tây Bắc an toàn, bảo mật." :hide-catnav="true" :hide-floatnav="true">
     <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">

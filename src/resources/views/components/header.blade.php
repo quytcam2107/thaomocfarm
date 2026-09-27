@@ -20,9 +20,9 @@
             </svg>
         </button>
         <a class="brand" href="{{ url('/') }}">
-            <img class="brand__logo" src="{{ asset('assets/images/logo_thao_moc_farm.png') }}" alt="Logo Thảo mộc Farm"
+            <img class="brand__logo" src="{{ asset('assets/images/logo_thao_moc_farm.png') }}" alt="Logo Mộc Xanh"
                 width="50" height="50">
-            <span class="brand__text">Thảo Mộc Farm<small>Thảo mộc & Đặc sản Tây Bắc</small></span>
+            <span class="brand__text">Mộc Xanh<small>Thảo mộc & Đặc sản Tây Bắc</small></span>
         </a>
         <form class="search" role="search" action="{{ url('/tim-kiem') }}">
             <input type="search" name="q" placeholder="Tìm củ tam thất, trà hoa, táo đỏ..." value="{{ request('q') }}"

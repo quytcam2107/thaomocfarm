@@ -1,5 +1,5 @@
 @props([
-    'title' => 'Thảo Mộc Farm',
+    'title' => 'Mộc Xanh',
     'seoDescription' => 'Thảo mộc & đặc sản Tây Bắc',
     'ogType' => 'website',
     'ogImage' => null,

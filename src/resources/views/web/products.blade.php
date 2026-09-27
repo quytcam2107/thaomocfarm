@@ -41,7 +41,7 @@
     $ogImage = count($products) > 0 ? $products[0]['image'] : 'images/product-default.svg';
 @endphp
 
-<x-layouts.app :title="$pageTitle . ' | Thảo Mộc Farm'" :seoDescription="$seoDescription" ogType="website"
+<x-layouts.app :title="$pageTitle . ' | Mộc Xanh'" :seoDescription="$seoDescription" ogType="website"
     :ogImage="$ogImage" bodyClass="page-category">
 
     <x-slot name="schema">

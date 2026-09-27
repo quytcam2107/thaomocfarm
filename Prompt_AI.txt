@@ -1,11 +1,11 @@
 ================================================================
-PROMPT CONTEXT DỰ ÁN "THẢO MỘC FARM"
+PROMPT CONTEXT DỰ ÁN "MỘC XANH"
 LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
 (cập nhật lần cuối: 26/09/2026)
 ================================================================
 
 ## 0. VAI TRÒ & NGUYÊN TẮC
-- Bạn là kỹ sư Laravel senior tiếp quản dự án TMĐT "Thảo Mộc Farm" (đặc sản Tây Bắc).
+- Bạn là kỹ sư Laravel senior tiếp quản dự án TMĐT "Mộc Xanh" (đặc sản Tây Bắc).
 - ĐỌC TOÀN BỘ bối cảnh trước khi viết code.
 - KHÔNG đổi quyết định kiến trúc, KHÔNG hỏi lại những gì đã chốt.
 - KHÔNG viết code dạng "..." hay "// tương tự"; mọi file phải đầy đủ, chạy được ngay.
@@ -52,7 +52,7 @@ LARAVEL 13 / PHP 8.3 / 1 VPS DUY NHẤT
 4. **Sau khi thêm/đổi route** phải chạy `route:clear` (đã gặp lỗi "Route [web.cart.add] not defined").
 5. **Sau khi đổi dữ liệu hiển thị** phải bump cache nhóm: `php artisan thaomoc:bump-cache {home|catalog|review}`.
 6. **Quy ước đường dẫn ảnh** ĐANG TỒN TẠI: icon danh mục: `asset('assets/images/categories/' . $icon)`, fallback `asset('assets/images/category-default.svg')`. Ảnh flash sale: `asset('assets/images/' . $path)`, fallback `asset('images/product-default.svg')`. Gallery PDP: component tự `asset($path)`, fallback `'images/placeholder.svg'`. Card danh mục: `asset('storage/' . ltrim($path, '/'))`, fallback `asset('images/product-default.svg')`.
-7. **Chuỗi thương hiệu** trong blade hiện tại là **"Thảo Mộc Farm"** (title, schema JSON-LD); tên dự án/prefix đơn hàng là **TMX / "Thảo Mộc Farm"**. KHÔNG tự đổi tên thương hiệu.
+7. **Chuỗi thương hiệu** trong blade hiện tại là **"Mộc Xanh"** (title, schema JSON-LD); tên dự án/prefix đơn hàng là **TMX / "Mộc Xanh"**. KHÔNG tự đổi tên thương hiệu.
 8. **Biến view** của block flash sale trên home tên là `$flashProducts` (không phải `$flashSale`).
 9. **PHP 8.1+ ném TypeError** khi `trim(null)` trong Blade `@if (!empty($x)) ... trim($x) ... @endif` – vì Blade compile cả khối `@if` trước khi check `!empty()`. **CHUẨN**: cast `(string)` trước `trim()` hoặc gán biến mặc định `$desc = (string) ($x ?? '');` rồi dùng `$desc`.
 10. **Route catch-all `/{slug}`** PHẢI đặt **cuối cùng** trong `routes/web.php`, sau mọi route có prefix (`/san-pham/*`, `/gio-hang/*`, `/tra-cuu-don`...). Phải ràng buộc `->where('slug', '[a-z0-9\-]+')` để không nuốt file tĩnh (`.ico`, `.xml`) hay URL có dấu `.`.
@@ -139,7 +139,7 @@ return [
     'shipping' => [
         'default_fee' => env('SHIPPING_DEFAULT_FEE', 30000),
         'free_threshold' => env('SHIPPING_FREE_THRESHOLD', 500000),
-        'internal_carrier_name' => 'Giao hàng nội bộ Thảo Mộc Farm',
+        'internal_carrier_name' => 'Giao hàng nội bộ Mộc Xanh',
     ],
     'upload' => [
         'max_size_kb' => env('UPLOAD_MAX_SIZE_KB', 2048),
@@ -391,7 +391,7 @@ resources/views/
     │   ├── pagination.blade.php
     │   └── coupon-card.blade.php          // @props(code,desc,minOrder,exp,applied), ticket style, trạng thái "Đang áp dụng"
     ├── product/
-    │   ├── schema.blade.php               // JSON-LD brand "Thảo Mộc Farm"
+    │   ├── schema.blade.php               // JSON-LD brand "Mộc Xanh"
     │   ├── gallery.blade.php              // #pdStageImg
     │   ├── info.blade.php
     │   ├── tabs.blade.php

@@ -1,4 +1,4 @@
-<x-layouts.app :title="$product->name . ' - ' . number_format($product->price) . '₫ | Thảo Mộc Farm'"
+<x-layouts.app :title="$product->name . ' - ' . number_format($product->price) . '₫ | Mộc Xanh'"
     :seoDescription="$product->meta_description" ogType="product" :ogImage="asset($product->image)"
     bodyClass="has-buybar">
 

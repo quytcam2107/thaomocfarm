@@ -1,7 +1,7 @@
 <footer class="footer">
     <div class="container footer__grid">
         <div>
-            <p class="footer__brand">🌿 Thảo Mộc Farm</p>
+            <p class="footer__brand">🌿 Mộc Xanh</p>
             <p class="footer__desc">Đặc sản Tây Bắc & trà hoa thảo mộc nguyên chất, thu mua trực tiếp từ vùng trồng Sơn
                 La, Điện Biên, Lào Cai.</p>
         </div>
@@ -26,6 +26,5 @@
             <p>✉️ <a href="mailto:thaomocfarm@gmail.com">thaomocfarm@gmail.com</a></p>
         </div>
     </div>
-    <p class="footer__bottom container">© <span id="year">{{ date('Y') }}</span> Thảo Mộc Farm · Bản quyền thuộc về Thảo
-        Mộc Farm</p>
+    <p class="footer__bottom container">© <span id="year">{{ date('Y') }}</span> Mộc Xanh · Bản quyền thuộc về Mộc Xanh</p>
 </footer>
