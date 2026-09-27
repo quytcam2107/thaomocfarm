@@ -32,9 +32,9 @@
         </p>
         <div class="pcard__buy">
             <p class="pcard__price">
-                <b>{{ is_int($price) ? number_format($price) : $price }}₫</b>
+                <b>{{ is_int($price) ? number_format($price) : $price }}</b>
                 @if($oldPrice)
-                    <s>{{ is_int($oldPrice) ? number_format($oldPrice) : $oldPrice }}₫</s>
+                    <s>{{ is_int($oldPrice) ? number_format($oldPrice) : $oldPrice }}</s>
                 @endif
             </p>
             <button class="pcard__add add-cart" type="button" data-product-id="{{ $productId }}"

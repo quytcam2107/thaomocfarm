@@ -263,8 +263,9 @@ class HomeService
                     'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('images/product-default.svg')),
                     'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
                     'sold_count' => (int) $p->sold_count,
-                    'price' => (int) $p->price_min,
-                    'old_price' => $oldPrice,
+                    'flash_price' => format_vnd((int) $p->flash_price),
+                    'price' => format_vnd((int) $p->price_min),
+                    'old_price' => format_vnd((int)$oldPrice),
                     'discount_percent' => $discount,
                 ];
             })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();
@@ -332,8 +333,8 @@ class HomeService
                     'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('images/product-default.svg')),
                     'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
                     'sold_count' => (int) $p->sold_count,
-                    'price' => (int) $p->price_min,
-                    'old_price' => $oldPrice,
+                    'price' => format_vnd((int) $p->price_min),
+                    'old_price' => format_vnd($oldPrice),
                     'discount_percent' => $discount,
                 ];
             })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();
