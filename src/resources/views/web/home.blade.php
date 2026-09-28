@@ -1,4 +1,4 @@
-<x-layouts.app title="Mộc Xanh — Thảo mộc nguyên chất & Đặc sản Tây Bắc">
+<x-layouts.app title="Mộc Xanh — Thảo mộc nguyên chất & Đặc sản Tây Bắc" :show-back-to-top="true">
     <x-sections.hero />
     <x-sections.usp />
     <x-sections.collections :categories="$featuredCategories ?? null" />

@@ -72,6 +72,29 @@
         lock(false);
     });
 
+    /* ===== Back-to-top (chỉ hiện ở trang có render #backToTop — trang home) =====
+       - Ẩn/hiện theo ngưỡng cuộn 400px, dùng class CSS (không inline style).
+       - Bấm -> cuộn lên đầu trang; tôn trọng prefers-reduced-motion. */
+    const backToTop = q('#backToTop');
+    if (backToTop) {
+        let bttTicking = false;
+        const bttUpdate = () => {
+            const show = window.scrollY > 400;
+            backToTop.classList.toggle('is-visible', show);
+            backToTop.setAttribute('aria-hidden', String(!show));
+            bttTicking = false;
+        };
+        window.addEventListener('scroll', () => {
+            if (bttTicking) return;          // throttle bằng rAF — rẻ khi cuộn nhanh
+            bttTicking = true;
+            requestAnimationFrame(bttUpdate);
+        }, { passive: true });
+        bttUpdate();                          // đồng bộ trạng thái ngay khi tải trang (restore scroll)
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+        });
+    }
+
     /* Clone bộ lọc sang drawer mobile */
     const fg = q('#filterGroups'), fd = q('#filterDrawerBody');
     if (fg && fd) fd.innerHTML = fg.innerHTML;
@@ -126,91 +149,8 @@
     const suggestBox = q('#searchSuggest');
     const spotlightEl = q('#spotlightOverlay');
 
-    /* =====================================================================
-   SEARCH (header):
-   - Typing placeholder (Luôn bật)
-   - Spotlight, Gợi ý AJAX, Điều hướng phím
-   ===================================================================== */
     if (searchForm && searchInput && suggestBox) {
-
-        /* ====== TYPING PLACEHOLDER (GÕ & XÓA TỪNG CHỮ) ====== */
-        const phrases = [
-            'Tìm củ tam thất, trà hoa, táo đỏ...',
-            'Bạn cần tìm thảo mộc hay quà biếu...',
-        ];
-
-        let phraseIdx = 0;
-        let charIdx = 0;
-        let typingTimer;
-        let isTyping = false;
-        let isDeleting = false; // Biến theo dõi trạng thái đang xóa chữ
-
-        const type = () => {
-            if (!isTyping) return;
-            const currentPhrase = phrases[phraseIdx];
-
-            if (!isDeleting) {
-                // --- GIAI ĐOẠN GÕ (Type In) ---
-                if (charIdx < currentPhrase.length) {
-                    searchInput.setAttribute('placeholder', currentPhrase.substring(0, charIdx + 1));
-                    charIdx++;
-                    typingTimer = setTimeout(type, 40); // Tốc độ gõ
-                } else {
-                    // Gõ xong -> Nghỉ 2.5s rồi bắt đầu XÓA
-                    typingTimer = setTimeout(() => {
-                        isDeleting = true;
-                        type();
-                    }, 2000);
-                }
-            } else {
-                // --- GIAI ĐOẠN XÓA (Type Out / Reverse) ---
-                if (charIdx > 0) {
-                    searchInput.setAttribute('placeholder', currentPhrase.substring(0, charIdx - 1));
-                    charIdx--;
-                    typingTimer = setTimeout(type, 20); // Tốc độ xóa (thường nhanh gấp đôi gõ cho mượt)
-                } else {
-                    // Xóa sạch -> Nghỉ 0.5s rồi sang câu tiếp theo
-                    isDeleting = false;
-                    phraseIdx = (phraseIdx + 1) % phrases.length;
-                    typingTimer = setTimeout(type, 500);
-                }
-            }
-        };
-
-        const startTyping = () => {
-            if (isTyping) return;
-            isTyping = true;
-            isDeleting = false;
-            type();
-        };
-
-        const stopTyping = () => {
-            isTyping = false;
-            isDeleting = false;
-            clearTimeout(typingTimer);
-            charIdx = 0;
-            // Khi focus vào ô search -> Dừng hiệu ứng, hiện ngay câu hoàn chỉnh
-            searchInput.setAttribute('placeholder', phrases[phraseIdx]);
-        };
-
-        // Bắt sự kiện Focus / Blur cho Typing
-        searchInput.addEventListener('focus', stopTyping);
-        searchInput.addEventListener('blur', () => {
-            // Nếu blur ra ngoài mà chưa gõ gì -> Đổi sang câu mới và gõ lại từ đầu
-            if (!searchInput.value.trim()) {
-                phraseIdx = (phraseIdx + 1) % phrases.length;
-                charIdx = 0;
-                isDeleting = false;
-                startTyping();
-            }
-        });
-
-        // Khởi chạy lúc tải trang
-        startTyping();
-        /* ====================================================== */
-
-
-        const SUGGEST_URL = searchForm.action + '/goi-y';
+        const SUGGEST_URL = searchForm.action + '/goi-y'; // /tim-kiem -> /tim-kiem/goi-y
         const esc = s => String(s).replace(/[&<>"']/g, c => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         })[c]);
@@ -220,14 +160,19 @@
         let activeIdx = -1;
 
         /* ---- Spotlight overlay ---- */
-        const spotlightOn = () => document.body.classList.add('is-spotlight');
-        const spotlightOff = () => document.body.classList.remove('is-spotlight');
+        const spotlightOn = () => {
+            document.body.classList.add('is-spotlight');
+        };
+        const spotlightOff = () => {
+            document.body.classList.remove('is-spotlight');
+        };
 
         function closeSuggest() {
             suggestBox.hidden = true;
             suggestBox.innerHTML = '';
             searchInput.setAttribute('aria-expanded', 'false');
             activeIdx = -1;
+            // KHÔNG đụng tới spotlight ở đây — giữ overlay ổn định khi user gõ/xoá
         }
 
         function renderSuggest(data) {
@@ -261,7 +206,7 @@
                 const data = await res.json();
                 if (reqId !== lastReqId) return;
                 renderSuggest(data);
-            } catch (e) { /* im lặng */ }
+            } catch (e) { /* im lặng — không chặn người dùng */ }
         }
 
         searchInput.addEventListener('input', () => {
@@ -274,6 +219,7 @@
         searchInput.addEventListener('focus', spotlightOn);
         searchInput.addEventListener('blur', spotlightOff);
 
+        /* Điều hướng bàn phím ↑ ↓ Enter Esc trong dropdown */
         searchInput.addEventListener('keydown', e => {
             if (suggestBox.hidden) return;
             const items = qa('.search__suggest-item', suggestBox);
@@ -301,6 +247,7 @@
             items[activeIdx].scrollIntoView({ block: 'nearest' });
         });
 
+        /* Click ra ngoài form search -> đóng gợi ý + tắt spotlight */
         document.addEventListener('click', e => {
             if (!searchForm.contains(e.target)) {
                 closeSuggest();
@@ -308,11 +255,14 @@
             }
         });
 
+        /* Submit (nút 🔍 hoặc Enter không chọn item) -> chủ động tắt overlay
+           để trang mới không bị loá khi trình duyệt restore scroll/position */
         searchForm.addEventListener('submit', () => {
             closeSuggest();
             spotlightOff();
         });
 
+        /* An toàn: Esc luôn tắt spotlight kể cả khi đang focus input */
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape' && document.body.classList.contains('is-spotlight')) {
                 closeSuggest();

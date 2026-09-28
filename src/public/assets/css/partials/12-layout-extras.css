@@ -281,3 +281,47 @@
         transform: none;
     }
 } */
+
+/* ============ BACK-TO-TOP (nút lên đầu trang — chỉ render ở trang home) ============ */
+.back-to-top {
+    position: fixed;
+    right: 14px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    /* tránh đè floatnav (z 45, cao ~70px) */
+    z-index: 44;
+    /* dưới floatnav/drawer/toast để không che gì */
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--leaf);
+    color: #fff;
+    box-shadow: 0 6px 18px rgb(34 48 42 / .22);
+    opacity: 0;
+    /* mặc định ẩn — app.js thêm .is-visible */
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity .25s ease, transform .25s ease, visibility .25s;
+    pointer-events: none;
+}
+
+.back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+}
+
+.back-to-top:active {
+    transform: scale(.94);
+}
+
+@media (min-width: 768px) {
+
+    /* floatnav ẩn trên desktop -> hạ nút xuống sát mép dưới */
+    .back-to-top {
+        bottom: 24px;
+        right: 24px;
+    }
+}

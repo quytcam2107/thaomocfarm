@@ -6,6 +6,7 @@
     'bodyClass' => '',
     'hideCatnav' => false,
     'hideFloatnav' => false,
+    'showBackToTop' => false,
 ])
 <!doctype html>
 <html lang="vi">
@@ -51,6 +52,11 @@
     <x-footer />
     <x-floatnav :hide-floatnav="$hideFloatnav" />
     <x-drawer />
+
+    {{-- Nút "lên đầu trang": chỉ render ở các màn được bật flag (trang home) --}}
+    @if($showBackToTop)
+        <x-back-to-top />
+    @endif
 
     {{ $extra ?? '' }}
 
