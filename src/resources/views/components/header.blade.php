@@ -2,6 +2,9 @@
     'hideCatnav' => false,
 ])
 <header class="site-header">
+    {{-- Lớp phủ làm mờ toàn trang khi focus ô tìm kiếm --}}
+    <div class="spotlight" id="spotlightOverlay" aria-hidden="true"></div>
+
     <div class="topbar">
         <div class="container topbar__in">
             <p>🚚 Miễn phí vận chuyển cho đơn từ 300K 🚀 Giao nhanh 2h nội thành</p>
@@ -24,18 +27,18 @@
                 width="50" height="50">
             <span class="brand__text">Mộc Xanh<small>Thảo mộc & Đặc sản Tây Bắc</small></span>
         </a>
-
-        {{-- Form Search --}}
+        {{-- Form Search: gõ >=2 ký tự -> gợi ý AJAX; Enter/nút -> trang /tim-kiem --}}
         <form class="search" id="searchForm" role="search" action="{{ route('web.search.index') }}" autocomplete="off">
             <input type="search" name="q" id="searchInput" placeholder="Tìm củ tam thất, trà hoa, táo đỏ..."
-                value="{{ request('q') }}" aria-label="Tìm sản phẩm" autocomplete="off">
+                value="{{ request('q') }}" aria-label="Tìm sản phẩm" autocomplete="off" aria-expanded="false"
+                aria-controls="searchSuggest" role="combobox">
             <button type="submit" aria-label="Tìm kiếm">🔍</button>
 
-            {{-- Dropdown gợi ý --}}
-            <div class="search__suggest" id="searchSuggest" role="listbox" aria-label="Gợi ý sản phẩm" hidden></div>
+            {{-- Dropdown gợi ý nhanh --}}
+            <div class="search__suggest" id="searchSuggest" hidden></div>
         </form>
-
         <div class="header__acts">
+            {{-- Icon Đăng nhập / Tài khoản --}}
             @auth
                 <a class="act" href="{{ url('/account') }}" aria-label="Tài khoản">
                     <img src="{{ asset('assets/images/svg/icon-user.svg') }}" alt="" width="20" height="20">
@@ -48,6 +51,7 @@
                 </a>
             @endauth
 
+            {{-- Icon Giỏ hàng --}}
             <a class="act" href="{{ url('/gio-hang') }}" aria-label="Giỏ hàng">
                 <img src="{{ asset('assets/images/svg/icon-cart.svg') }}" alt="" width="20" height="20">
                 <span>Giỏ hàng</span>
@@ -56,6 +60,7 @@
         </div>
     </div>
 
+    {{-- Catnav: mặc định hiển thị, ẩn khi hideCatnav = true --}}
     @unless($hideCatnav)
         <nav class="catnav" aria-label="Danh mục sản phẩm">
             <div class="container catnav__in no-scrollbar">

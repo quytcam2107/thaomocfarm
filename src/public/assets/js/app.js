@@ -19,7 +19,7 @@
         if (a) e.preventDefault();
     });
 
-    /* ===== Reveal khi cuộn ===== */
+    /* ===== Reveal khi cuộn (IntersectionObserver, tự unobserve → rẻ) ===== */
     const revealEls = qa('.reveal');
     if ('IntersectionObserver' in window && revealEls.length && !reduceMotion) {
         const io = new IntersectionObserver(entries => entries.forEach(en => {
@@ -113,14 +113,21 @@
     if (buyNow) buyNow.addEventListener('click', () => toast('Demo: chuyển tới thanh toán'));
 
     /* =====================================================================
-       SEARCH: submit thường → trang /tim-kiem; gõ ≥2 ký tự → gợi ý AJAX
+       SEARCH (header):
+       - Gõ >= 2 ký tự -> debounce 300ms -> AJAX /tim-kiem/goi-y -> dropdown gợi ý
+       - Bấm nút tìm kiếm / Enter (không chọn item) -> submit thường sang /tim-kiem
+       - Khi focus input: bật "spotlight" — overlay mờ toàn trang,
+         chỉ ô search + dropdown gợi ý nổi sáng phía trên overlay
+       - TẮT spotlight CHỈ khi: click ra ngoài form search / Esc / blur input
+         (KHÔNG tắt trong closeSuggest để tránh nháy khi đang gõ)
        ===================================================================== */
     const searchForm = q('#searchForm');
     const searchInput = q('#searchInput');
     const suggestBox = q('#searchSuggest');
+    const spotlightEl = q('#spotlightOverlay');
 
     if (searchForm && searchInput && suggestBox) {
-        const SUGGEST_URL = searchForm.action + '/goi-y';
+        const SUGGEST_URL = searchForm.action + '/goi-y'; // /tim-kiem -> /tim-kiem/goi-y
         const esc = s => String(s).replace(/[&<>"']/g, c => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         })[c]);
@@ -129,30 +136,40 @@
         let lastReqId = 0;
         let activeIdx = -1;
 
+        /* ---- Spotlight overlay ---- */
+        const spotlightOn = () => {
+            document.body.classList.add('is-spotlight');
+        };
+        const spotlightOff = () => {
+            document.body.classList.remove('is-spotlight');
+        };
+
         function closeSuggest() {
             suggestBox.hidden = true;
             suggestBox.innerHTML = '';
+            searchInput.setAttribute('aria-expanded', 'false');
             activeIdx = -1;
+            // KHÔNG đụng tới spotlight ở đây — giữ overlay ổn định khi user gõ/xoá
         }
 
         function renderSuggest(data) {
             if (!data.items || data.items.length === 0) {
                 suggestBox.innerHTML = '<div class="search__suggest-empty">Không tìm thấy sản phẩm phù hợp.</div>';
-                suggestBox.hidden = false;
-                return;
+            } else {
+                const rows = data.items.map(it => `
+                    <a class="search__suggest-item" href="${esc(it.url)}">
+                        <img src="${esc(it.image)}" alt="" width="40" height="40" loading="lazy">
+                        <span class="search__suggest-info">
+                            <b class="search__suggest-name">${esc(it.name)}</b>
+                            <span class="search__suggest-price">${esc(it.price)}${it.oldPrice ? ' <s>' + esc(it.oldPrice) + '</s>' : ''}</span>
+                        </span>
+                        ${it.discount ? `<span class="search__suggest-sale">-${it.discount}%</span>` : ''}
+                    </a>`).join('');
+                const more = `<a class="search__suggest-more" href="${esc(data.more_url)}">Xem tất cả ${Number(data.total) || 0} kết quả →</a>`;
+                suggestBox.innerHTML = rows + more;
             }
-            const rows = data.items.map((it, i) => `
-                <a class="search__suggest-item" role="option" href="${esc(it.url)}" data-idx="${i}">
-                    <img src="${esc(it.image)}" alt="" width="40" height="40" loading="lazy">
-                    <span class="search__suggest-info">
-                        <b class="search__suggest-name">${esc(it.name)}</b>
-                        <span class="search__suggest-price">${esc(it.price)}${it.oldPrice ? ' <s>' + esc(it.oldPrice) + '</s>' : ''}</span>
-                    </span>
-                    ${it.discount ? `<span class="search__suggest-sale">-${it.discount}%</span>` : ''}
-                </a>`).join('');
-            const more = `<a class="search__suggest-more" href="${esc(data.more_url)}">Xem tất cả ${data.total} kết quả →</a>`;
-            suggestBox.innerHTML = rows + more;
             suggestBox.hidden = false;
+            searchInput.setAttribute('aria-expanded', 'true');
             activeIdx = -1;
         }
 
@@ -166,7 +183,7 @@
                 const data = await res.json();
                 if (reqId !== lastReqId) return;
                 renderSuggest(data);
-            } catch (e) { /* im lặng */ }
+            } catch (e) { /* im lặng — không chặn người dùng */ }
         }
 
         searchInput.addEventListener('input', () => {
@@ -176,12 +193,10 @@
             debounceTimer = setTimeout(() => fetchSuggest(term), 300);
         });
 
-        searchInput.addEventListener('focus', () => {
-            const term = searchInput.value.trim();
-            if (term.length >= 2 && suggestBox.innerHTML !== '') suggestBox.hidden = false;
-        });
+        searchInput.addEventListener('focus', spotlightOn);
+        searchInput.addEventListener('blur', spotlightOff);
 
-        /* Điều hướng bàn phím ↑ ↓ Enter trong dropdown */
+        /* Điều hướng bàn phím ↑ ↓ Enter Esc trong dropdown */
         searchInput.addEventListener('keydown', e => {
             if (suggestBox.hidden) return;
             const items = qa('.search__suggest-item', suggestBox);
@@ -199,6 +214,8 @@
                 return;
             } else if (e.key === 'Escape') {
                 closeSuggest();
+                spotlightOff();
+                searchInput.blur();
                 return;
             } else {
                 return;
@@ -207,9 +224,28 @@
             items[activeIdx].scrollIntoView({ block: 'nearest' });
         });
 
-        /* Click ra ngoài → đóng dropdown */
+        /* Click ra ngoài form search -> đóng gợi ý + tắt spotlight */
         document.addEventListener('click', e => {
-            if (!searchForm.contains(e.target)) closeSuggest();
+            if (!searchForm.contains(e.target)) {
+                closeSuggest();
+                spotlightOff();
+            }
+        });
+
+        /* Submit (nút 🔍 hoặc Enter không chọn item) -> chủ động tắt overlay
+           để trang mới không bị loá khi trình duyệt restore scroll/position */
+        searchForm.addEventListener('submit', () => {
+            closeSuggest();
+            spotlightOff();
+        });
+
+        /* An toàn: Esc luôn tắt spotlight kể cả khi đang focus input */
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && document.body.classList.contains('is-spotlight')) {
+                closeSuggest();
+                spotlightOff();
+                searchInput.blur();
+            }
         });
     }
 })();
