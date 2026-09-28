@@ -9,7 +9,7 @@
     // (desktop) lẫn badge floatnav (mobile — vì header__acts bị ẩn trên mobile).
     // Hàm query động để luôn lấy được danh sách mới nhất tại thời điểm cập nhật.
     function getCartBadges() {
-        return Array.from(document.querySelectorAll('.js-cart-count'));
+        return Array.from(document.querySelectorAll('.js-cart-count, .cart-count'));
     }
 
     // Biến để tránh spam click và quản lý timeout của toast
