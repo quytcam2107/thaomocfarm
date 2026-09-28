@@ -157,10 +157,28 @@
 
                             if (res.ok) {
                                 btn.innerHTML = '✓';
-                                const badge = document.getElementById('cartBadge');
-                                if (badge) {
-                                    badge.textContent = (parseInt(badge.textContent) || 0) + 1;
+
+                                // ✅ Đồng bộ badge floatnav (mobile) + header__acts (desktop)
+                                let newCount = null;
+                                try {
+                                    const data = await res.clone().json();
+                                    if (typeof data.cartCount === 'number') newCount = data.cartCount;
+                                } catch (e) { /* ignore parse error */ }
+
+                                if (newCount === null) {
+                                    const first = document.querySelector('.js-cart-count');
+                                    newCount = (parseInt(first?.textContent, 10) || 0) + 1;
                                 }
+
+                                if (typeof window.updateCartCount === 'function') {
+                                    window.updateCartCount(newCount);
+                                } else {
+                                    document.querySelectorAll('.js-cart-count').forEach(badge => {
+                                        badge.textContent = newCount;
+                                        badge.hidden = newCount === 0;
+                                    });
+                                }
+
                                 setTimeout(() => {
                                     btn.innerHTML = original;
                                     btn.disabled = false;

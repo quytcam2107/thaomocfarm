@@ -84,6 +84,8 @@
 }
 
 .floatnav a {
+    position: relative;
+    /* neo badge .cart-count của Giỏ hàng */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -102,6 +104,34 @@
     color: var(--leaf);
     font-weight: 700;
     background: var(--leaf-soft);
+}
+
+/* Badge giỏ hàng trên floatnav — hoạt động y như badge ở header__acts */
+.floatnav .cart-count {
+    position: absolute;
+    top: 2px;
+    right: calc(50% - 34px);
+    min-width: 18px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--clay);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+}
+
+.floatnav .cart-count[hidden] {
+    display: none;
+}
+
+/* Animation pulse khi số lượng thay đổi (cart.js gán inline) */
+@keyframes badge-pulse {
+    40% {
+        transform: scale(1.3);
+    }
 }
 
 @media (min-width: 768px) {

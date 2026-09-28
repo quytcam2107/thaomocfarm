@@ -11,6 +11,9 @@
         </a> --}}
         <a href="{{ url('/gio-hang') }}" class="{{ request()->is('cart*') ? 'is-active' : '' }}">
             <span aria-hidden="true">🛒</span>Giỏ hàng
+            {{-- Badge số lượng giỏ hàng: cart.js cập nhật tất cả phần tử .cart-count
+            (mobile ẩn header__acts nên badge floatnav hoạt động thay thế) --}}
+            <b class="cart-count js-cart-count" hidden>0</b>
         </a>
     </nav>
 @endif
