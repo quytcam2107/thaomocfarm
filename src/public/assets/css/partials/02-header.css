@@ -128,15 +128,15 @@
 .cart-count.bump {
     animation: bump .3s;
 }
-
 .search {
     order: 4;
     flex: 1 1 100%;
     display: flex;
+    position: relative; /* neo dropdown gợi ý */
     background: #fff;
     border: 1.5px solid var(--line);
     border-radius: 999px;
-    overflow: hidden;
+    overflow: visible; /* cho phép dropdown tràn ra ngoài pill */
 }
 
 .search input {
@@ -155,6 +155,114 @@
     background: var(--leaf);
     color: #fff;
     font-size: 17px;
+    border-radius: 0 999px 999px 0;
+}
+
+/* ===== Search suggest dropdown ===== */
+.search__suggest {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(31, 41, 35, .14);
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 6px;
+}
+
+.search__suggest[hidden] {
+    display: none;
+}
+
+.search__suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    color: var(--ink);
+}
+
+.search__suggest-item:hover,
+.search__suggest-item.is-active {
+    background: var(--leaf-soft);
+}
+
+.search__suggest-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+}
+
+.search__suggest-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.search__suggest-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.search__suggest-price {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--clay);
+}
+
+.search__suggest-price s {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 11.5px;
+    margin-left: 4px;
+}
+
+.search__suggest-sale {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--clay);
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+
+.search__suggest-empty {
+    padding: 14px 12px;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.search__suggest-more {
+    display: block;
+    margin-top: 4px;
+    padding: 9px 12px;
+    border-top: 1px dashed var(--line);
+    border-radius: 0 0 12px 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--leaf);
+    text-align: center;
+}
+
+.search__suggest-more:hover {
+    background: var(--leaf-soft);
 }
 
 .catnav {

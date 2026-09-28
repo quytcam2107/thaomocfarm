@@ -24,13 +24,18 @@
                 width="50" height="50">
             <span class="brand__text">Mộc Xanh<small>Thảo mộc & Đặc sản Tây Bắc</small></span>
         </a>
-        <form class="search" role="search" action="{{ url('/tim-kiem') }}">
-            <input type="search" name="q" placeholder="Tìm củ tam thất, trà hoa, táo đỏ..." value="{{ request('q') }}"
-                aria-label="Tìm sản phẩm">
+
+        {{-- Form Search --}}
+        <form class="search" id="searchForm" role="search" action="{{ route('web.search.index') }}" autocomplete="off">
+            <input type="search" name="q" id="searchInput" placeholder="Tìm củ tam thất, trà hoa, táo đỏ..."
+                value="{{ request('q') }}" aria-label="Tìm sản phẩm" autocomplete="off">
             <button type="submit" aria-label="Tìm kiếm">🔍</button>
+
+            {{-- Dropdown gợi ý --}}
+            <div class="search__suggest" id="searchSuggest" role="listbox" aria-label="Gợi ý sản phẩm" hidden></div>
         </form>
+
         <div class="header__acts">
-            {{-- Icon Đăng nhập / Tài khoản --}}
             @auth
                 <a class="act" href="{{ url('/account') }}" aria-label="Tài khoản">
                     <img src="{{ asset('assets/images/svg/icon-user.svg') }}" alt="" width="20" height="20">
@@ -43,7 +48,6 @@
                 </a>
             @endauth
 
-            {{-- Icon Giỏ hàng --}}
             <a class="act" href="{{ url('/gio-hang') }}" aria-label="Giỏ hàng">
                 <img src="{{ asset('assets/images/svg/icon-cart.svg') }}" alt="" width="20" height="20">
                 <span>Giỏ hàng</span>
@@ -52,7 +56,6 @@
         </div>
     </div>
 
-    {{-- Catnav: mặc định hiển thị, ẩn khi hideCatnav = true --}}
     @unless($hideCatnav)
         <nav class="catnav" aria-label="Danh mục sản phẩm">
             <div class="container catnav__in no-scrollbar">

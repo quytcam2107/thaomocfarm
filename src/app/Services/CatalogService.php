@@ -703,4 +703,122 @@ class CatalogService
             ? asset('assets/images/' . $path)
             : null;
     }
+    /**
+     * Tìm kiếm sản phẩm theo từ khoá
+     */
+    public function searchProducts(string $keyword, array $rawFilters = [], ?int $limit = null): array
+    {
+        $keyword = trim($keyword);
+        $filters = $this->normalizeCategoryFilters($rawFilters);
+
+        $query = Product::query()
+            ->where('status', ProductStatus::ACTIVE->value)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->search($keyword)
+            ->with([
+                'coverImage' => function (Relation $r): void {
+                    $r->select([
+                        'product_images.id',
+                        'product_images.product_id',
+                        'product_images.path',
+                        'product_images.thumb_path',
+                    ]);
+                }
+            ])
+            ->select(['id', 'category_id', 'slug', 'name', 'price_min', 'compare_price', 'rating_avg', 'sold_count']);
+
+        if ($filters['prices'] !== []) {
+            $query->where(function (Builder $q) use ($filters): void {
+                foreach ($filters['prices'] as $key) {
+                    $range = collect(self::PRICE_RANGES)->firstWhere('key', $key);
+                    if ($range === null)
+                        continue;
+                    if ($range['max'] === null) {
+                        $q->orWhere('price_min', '>=', $range['min']);
+                    } else {
+                        $q->orWhereBetween('price_min', [$range['min'], $range['max']]);
+                    }
+                }
+            });
+        }
+
+        if ($filters['rating'] !== null) {
+            $query->where('rating_avg', '>=', $filters['rating']);
+        }
+
+        $query = match ($filters['sort']) {
+            'newest' => $query->orderByDesc('published_at')->orderByDesc('id'),
+            'price_asc' => $query->orderBy('price_min')->orderByDesc('id'),
+            'price_desc' => $query->orderByDesc('price_min')->orderByDesc('id'),
+            default => $query->orderByDesc('sold_count')->orderByDesc('id'),
+        };
+
+        if ($limit !== null && $limit > 0) {
+            $products = $query->limit($limit)->get()
+                ->map(fn(Product $p): array => $this->toCategoryCard($p))
+                ->all();
+
+            return [
+                'products' => $products,
+                'meta' => ['total' => count($products)],
+            ];
+        }
+
+        $paginator = $query->paginate(8, ['*'], 'page', $filters['page']);
+
+        $products = $paginator->getCollection()
+            ->map(fn(Product $p): array => $this->toCategoryCard($p))
+            ->all();
+
+        $schemaCrumbs = [
+            ['label' => 'Trang chủ', 'url' => route('web.home')],
+            ['label' => 'Tìm kiếm: ' . $keyword, 'url' => route('web.search.index', ['q' => $keyword])],
+        ];
+
+        $breadcrumbs = $schemaCrumbs;
+        $breadcrumbs[count($breadcrumbs) - 1]['url'] = null;
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => array_values(array_map(
+                static fn(int $i, array $c): array => [
+                    '@type' => 'ListItem',
+                    'position' => $i + 1,
+                    'name' => $c['label'],
+                    'item' => $c['url'],
+                ],
+                array_keys($schemaCrumbs),
+                $schemaCrumbs
+            )),
+        ];
+
+        return [
+            'pageTitle' => 'Tìm kiếm: ' . $keyword,
+            'pageDescription' => 'Kết quả tìm kiếm "' . $keyword . '" — thảo mộc & đặc sản Tây Bắc chính gốc tại Mộc Xanh.',
+            'keyword' => $keyword,
+            'breadcrumbs' => $breadcrumbs,
+            'breadcrumb_schema' => $breadcrumbSchema,
+            'children' => [],
+            'products' => $products,
+            'meta' => [
+                'total' => (int) $paginator->total(),
+                'per_page' => (int) $paginator->perPage(),
+                'current_page' => (int) $paginator->currentPage(),
+                'last_page' => (int) $paginator->lastPage(),
+                'from' => (int) ($paginator->firstItem() ?? 0),
+                'to' => (int) ($paginator->lastItem() ?? 0),
+            ],
+            'filters' => $filters,
+            'priceRanges' => self::PRICE_RANGES,
+            'sortOptions' => self::SORT_OPTIONS,
+            'seoText' => [
+                'heading' => 'Bạn vừa tìm "' . $keyword . '"',
+                'paragraph' => 'Danh sách sản phẩm khớp với từ khoá bạn tìm. Bạn có thể dùng bộ lọc giá, đánh giá hoặc đổi cách sắp xếp để nhanh chóng tìm được sản phẩm phù hợp.',
+                'subheading' => null,
+                'tips' => [],
+            ],
+        ];
+    }
 }

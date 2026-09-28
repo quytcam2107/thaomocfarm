@@ -19,7 +19,7 @@
         if (a) e.preventDefault();
     });
 
-    /* ===== Reveal khi cuộn (IntersectionObserver, tự unobserve → rẻ) ===== */
+    /* ===== Reveal khi cuộn ===== */
     const revealEls = qa('.reveal');
     if ('IntersectionObserver' in window && revealEls.length && !reduceMotion) {
         const io = new IntersectionObserver(entries => entries.forEach(en => {
@@ -112,11 +112,104 @@
     const buyNow = q('#buyNow');
     if (buyNow) buyNow.addEventListener('click', () => toast('Demo: chuyển tới thanh toán'));
 
-    /* Form tìm kiếm (Tạm giữ preventDefault vì chưa có route search thật) */
-    const search = q('.search');
-    if (search) search.addEventListener('submit', e => {
-        e.preventDefault();
-        const v = search.querySelector('input').value.trim();
-        toast(v ? 'Demo tìm kiếm: "' + v + '"' : 'Nhập từ khoá cần tìm nhé!');
-    });
+    /* =====================================================================
+       SEARCH: submit thường → trang /tim-kiem; gõ ≥2 ký tự → gợi ý AJAX
+       ===================================================================== */
+    const searchForm = q('#searchForm');
+    const searchInput = q('#searchInput');
+    const suggestBox = q('#searchSuggest');
+
+    if (searchForm && searchInput && suggestBox) {
+        const SUGGEST_URL = searchForm.action + '/goi-y';
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[c]);
+
+        let debounceTimer = null;
+        let lastReqId = 0;
+        let activeIdx = -1;
+
+        function closeSuggest() {
+            suggestBox.hidden = true;
+            suggestBox.innerHTML = '';
+            activeIdx = -1;
+        }
+
+        function renderSuggest(data) {
+            if (!data.items || data.items.length === 0) {
+                suggestBox.innerHTML = '<div class="search__suggest-empty">Không tìm thấy sản phẩm phù hợp.</div>';
+                suggestBox.hidden = false;
+                return;
+            }
+            const rows = data.items.map((it, i) => `
+                <a class="search__suggest-item" role="option" href="${esc(it.url)}" data-idx="${i}">
+                    <img src="${esc(it.image)}" alt="" width="40" height="40" loading="lazy">
+                    <span class="search__suggest-info">
+                        <b class="search__suggest-name">${esc(it.name)}</b>
+                        <span class="search__suggest-price">${esc(it.price)}${it.oldPrice ? ' <s>' + esc(it.oldPrice) + '</s>' : ''}</span>
+                    </span>
+                    ${it.discount ? `<span class="search__suggest-sale">-${it.discount}%</span>` : ''}
+                </a>`).join('');
+            const more = `<a class="search__suggest-more" href="${esc(data.more_url)}">Xem tất cả ${data.total} kết quả →</a>`;
+            suggestBox.innerHTML = rows + more;
+            suggestBox.hidden = false;
+            activeIdx = -1;
+        }
+
+        async function fetchSuggest(term) {
+            const reqId = ++lastReqId;
+            try {
+                const res = await fetch(`${SUGGEST_URL}?q=${encodeURIComponent(term)}`, {
+                    headers: { 'Accept': 'application/json' },
+                });
+                if (!res.ok || reqId !== lastReqId) return;
+                const data = await res.json();
+                if (reqId !== lastReqId) return;
+                renderSuggest(data);
+            } catch (e) { /* im lặng */ }
+        }
+
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const term = searchInput.value.trim();
+            if (term.length < 2) { closeSuggest(); return; }
+            debounceTimer = setTimeout(() => fetchSuggest(term), 300);
+        });
+
+        searchInput.addEventListener('focus', () => {
+            const term = searchInput.value.trim();
+            if (term.length >= 2 && suggestBox.innerHTML !== '') suggestBox.hidden = false;
+        });
+
+        /* Điều hướng bàn phím ↑ ↓ Enter trong dropdown */
+        searchInput.addEventListener('keydown', e => {
+            if (suggestBox.hidden) return;
+            const items = qa('.search__suggest-item', suggestBox);
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIdx = (activeIdx + 1) % items.length;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIdx = activeIdx <= 0 ? items.length - 1 : activeIdx - 1;
+            } else if (e.key === 'Enter' && activeIdx >= 0) {
+                e.preventDefault();
+                window.location.assign(items[activeIdx].href);
+                return;
+            } else if (e.key === 'Escape') {
+                closeSuggest();
+                return;
+            } else {
+                return;
+            }
+            items.forEach((el, i) => el.classList.toggle('is-active', i === activeIdx));
+            items[activeIdx].scrollIntoView({ block: 'nearest' });
+        });
+
+        /* Click ra ngoài → đóng dropdown */
+        document.addEventListener('click', e => {
+            if (!searchForm.contains(e.target)) closeSuggest();
+        });
+    }
 })();

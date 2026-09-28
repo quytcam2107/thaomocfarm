@@ -5,6 +5,7 @@
     'children' => [],
     'filters' => [],
     'priceRanges' => [],
+    'keyword' => null,
 ])
 
 <div class="drawer" id="filterDrawer" role="dialog" aria-modal="true" aria-label="Bộ lọc sản phẩm">
@@ -15,6 +16,9 @@
         </p>
         <div class="drawer__filter">
             <form id="filterFormMobile" method="GET" action="{{ $action }}">
+                @if ($keyword !== null && $keyword !== '')
+                    <input type="hidden" name="q" value="{{ $keyword }}">
+                @endif
                 <input type="hidden" name="sort" value="{{ $currentSort }}">
                 <div id="filterDrawerBody">
                     <x-category.filter-groups :children="$children" :filters="$filters" :priceRanges="$priceRanges" />
