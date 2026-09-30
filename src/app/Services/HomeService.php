@@ -27,12 +27,6 @@ class HomeService
     /** TTL cache của block danh mục nổi bật (10 phút) */
     private const FEATURED_TTL = 600;
 
-    /** Số sản phẩm flash sale tối đa hiển thị ở block trang chủ */
-    private const FLASH_LIMIT = 8;
-
-    /** TTL cache block flash sale (giây) – ngắn hơn vì deal đổi thường xuyên */
-    private const FLASH_TTL = 300;
-
     /** Số mã giảm giá tối đa hiển thị ở block trang chủ */
     private const COUPONS_LIMIT = 8;
 
@@ -86,6 +80,24 @@ class HomeService
         });
     }
 
+    /** Số sản phẩm flash sale tối đa hiển thị ở block trang chủ */
+    private const FLASH_LIMIT = 8;
+
+    /** TTL cache block flash sale (giây) – ngắn hơn vì deal đổi thường xuyên */
+    private const FLASH_TTL = 300;
+
+    /** Ngưỡng % đã bán của deal -> hiện text cảnh báo "Sắp cháy hàng" */
+    private const FLASH_URGENT_PERCENT = 70;
+
+    /** Số slot còn lại -> hiện text cảnh báo "Sắp cháy hàng" (deal gần hết) */
+    private const FLASH_URGENT_SLOTS = 10;
+
+    /** Ngưỡng % giảm giá -> text kích thích "Giảm giá sâu" khi deal chưa sắp cháy hàng */
+    private const FLASH_DEEP_DISCOUNT_PERCENT = 30;
+
+    /** Ngưỡng lượt bán của deal -> text kích thích "Bán chạy" khi deal chưa sắp cháy hàng */
+    private const FLASH_HOT_SOLD_COUNT = 100;
+
     /**
      * Block flash sale "Giá siêu hời" đang chạy.
      * - Chọn promotion flash_sale active + trong khung giờ
@@ -93,7 +105,7 @@ class HomeService
      * - Cột select của relation ofMany phải định danh tên bảng (tránh lỗi 1052)
      * - Trả về null nếu không có deal => view tự ẩn block
      *
-     * @return array{promotion_id: int, promotion_name: string, ends_at: string, ends_at_unix: int, items: array<int, array<string, mixed>>}|null
+     * @return array{promotion_id: int, promotion_name: string, ends_at: string, ends_at_unix: int, sold_today: int, urgent_count: int, items: array<int, array<string, mixed>>}|null
      */
     public function flashSale(): ?array
     {
@@ -137,7 +149,7 @@ class HomeService
                             ]);
                     },
                 ])
-                ->orderBy('sort_order')
+                ->orderBy('sort_order') // giữ đúng thứ tự sort_order admin cấu hình trong DB
                 ->orderBy('id')
                 ->limit(self::FLASH_LIMIT)
                 ->get(['id', 'product_id', 'product_variant_id', 'flash_price', 'discount_percent', 'qty_total', 'qty_sold', 'sort_order'])
@@ -150,14 +162,50 @@ class HomeService
             if ($items === []) {
                 return null;
             }
+
+            // Tổng hợp nhanh cho header section: lượt bán hôm nay + số deal sắp cháy
+            $soldToday = array_sum(array_column($items, 'qty_sold'));
+            $urgentCount = count(array_filter($items, static fn(array $i): bool => $i['is_urgent']));
+
             return [
                 'promotion_id' => (int) $promotion->id,
                 'promotion_name' => $promotion->name,
                 'ends_at' => $promotion->end_at->toIso8601String(),
                 'ends_at_unix' => $promotion->end_at->getTimestamp(),
+                'sold_today' => $soldToday,
+                'urgent_count' => $urgentCount,
                 'items' => $items,
             ];
         });
+    }
+
+    /**
+     * Chọn text "kích thích mua hàng" gắn trên đầu card deal.
+     * - Ưu tiên cảnh báo khan hiếm khi deal đạt ngưỡng đã bán / còn ít slot
+     * - Chưa đạt ngưỡng thì fallback theo % giảm sâu -> bán chạy -> deal hot,
+     *   đảm bảo card nào cũng có 1 dòng hook thay vì để trống
+     *
+     * @return array{text: string, tone: string} tone: hot|deep|sell|new dùng cho class màu badge
+     */
+    private function flashHookText(int $discount, int $soldPercent, int $slotsLeft, int $qtySold): array
+    {
+        // 1) Sắp cháy hàng: đã bán >= ngưỡng % hoặc còn rất ít slot
+        if ($soldPercent >= self::FLASH_URGENT_PERCENT || ($slotsLeft > 0 && $slotsLeft <= self::FLASH_URGENT_SLOTS)) {
+            return ['text' => 'Sắp cháy hàng 🔥', 'tone' => 'hot'];
+        }
+
+        // 2) Giảm giá sâu: % giảm >= ngưỡng
+        if ($discount >= self::FLASH_DEEP_DISCOUNT_PERCENT) {
+            return ['text' => 'Giảm giá sâu -' . $discount . '%', 'tone' => 'deep'];
+        }
+
+        // 3) Bán chạy: lượt bán của deal >= ngưỡng
+        if ($qtySold >= self::FLASH_HOT_SOLD_COUNT) {
+            return ['text' => 'Bán chạy ⚡', 'tone' => 'sell'];
+        }
+
+        // 4) Dự phòng: luôn có text, không bao giờ trả rỗng
+        return ['text' => 'Deal hot hôm nay', 'tone' => 'new'];
     }
 
     /**
@@ -177,6 +225,15 @@ class HomeService
             ? asset('assets/images/' . $product->coverImage->path)
             : asset('images/product-default.svg');
 
+        $discount = max(0, min(99, $discount));
+        $slotsLeft = $pp->slotsLeft();
+        $soldPercent = $pp->soldPercent();
+        $qtySold = (int) $pp->qty_sold;
+
+        // Text hook trên đầu card + tone màu (badge luôn có, không phụ thuộc điều kiện urgent)
+        $hook = $this->flashHookText($discount, $soldPercent, $slotsLeft, $qtySold);
+        $isUrgent = $hook['tone'] === 'hot';
+
         return [
             'id' => (int) $pp->id,
             'product_id' => (int) $product->id,
@@ -190,8 +247,17 @@ class HomeService
             'discount_percent' => $discount,
             'flash_price_formatted' => format_vnd((int) $pp->flash_price),
             'original_price_formatted' => format_vnd((int) $product->price_min),
-            'slots_left' => $pp->slotsLeft(),
-            'sold_percent' => $pp->soldPercent(),
+            'slots_left' => $slotsLeft,
+            'sold_percent' => $soldPercent,
+
+            // --- Mắt xích UI flash sale percent (text ví dụ + thanh tiến độ) ---
+            'qty_sold' => $qtySold,                                              // lượt bán của deal
+            'qty_total' => (int) $pp->qty_total,                                 // tổng slot
+            'sold_text_today' => 'Đã bán ' . number_format($qtySold, 0, ',', '.') . ' sản phẩm hôm nay',
+            'urgent_text' => $hook['text'],                                      // badge đầu card, luôn có text
+            'urgent_tone' => $hook['tone'],                                      // hot|deep|sell|new -> chọn màu badge
+            'progress_text' => $soldPercent . '% đã bán',                         // label nhỏ dưới thanh tiến độ
+            'is_urgent' => $isUrgent,
         ];
     }
 
@@ -265,7 +331,7 @@ class HomeService
                     'sold_count' => (int) $p->sold_count,
                     'flash_price' => format_vnd((int) $p->flash_price),
                     'price' => format_vnd((int) $p->price_min),
-                    'old_price' => format_vnd((int)$oldPrice),
+                    'old_price' => format_vnd((int) $oldPrice),
                     'discount_percent' => $discount,
                 ];
             })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();

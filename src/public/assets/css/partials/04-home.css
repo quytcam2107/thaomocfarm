@@ -1,7 +1,8 @@
 /* ============ DANH MỤC NỔI BẬT ============ */
-.collections{
+.collections {
     margin-bottom: 20px;
 }
+
 .col-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -57,7 +58,7 @@
 .flash {
     background: var(--leaf-deep);
     color: #f2f7f3;
-    margin-top: 0; 
+    margin-top: 0;
     padding-block: 22px;
     scroll-margin-top: 200px;
 }
@@ -97,6 +98,121 @@
     font-size: 13px;
     color: var(--gold);
     font-weight: 600;
+}
+
+/* ---- Dải social proof flash sale (mới) ---- */
+.flash__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.flash__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgb(255 255 255 / .12);
+    border: 1px solid rgb(255 255 255 / .18);
+    color: #f2f7f3;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+}
+
+.flash__chip--hot {
+    background: var(--rose);
+    border-color: var(--rose);
+    color: #fff;
+}
+
+/* ---- Badge hook "Sắp cháy hàng / Giảm giá sâu..." trên đầu deal (mới) ---- */
+.flash__urgent {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    max-width: calc(100% - 16px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--clay);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgb(34 48 42 / .18);
+}
+
+/* Tone hot: nhấp nháy nhẹ để tạo khẩn cấp (keyframes riêng, giữ transform canh giữa) */
+.flash__urgent.is-hot {
+    background: var(--rose);
+    animation: flashUrgentPulse 1.6s ease-in-out infinite;
+}
+
+/* Keyframes riêng vì badge đã dùng transform canh giữa -> không giẫm lên translateX */
+@keyframes flashUrgentPulse {
+    50% {
+        transform: translateX(-50%) scale(1.07);
+    }
+}
+
+/* Tone deep: giảm giá sâu -> gradient đỏ cam */
+.flash__urgent.is-deep {
+    background: linear-gradient(90deg, var(--clay), var(--rose));
+}
+
+/* Tone sell: bán chạy -> nền vàng chữ đậm */
+.flash__urgent.is-sell {
+    background: var(--gold);
+    color: var(--leaf-deep);
+}
+
+/* Tone new: dự phòng -> kính mờ trên nền ảnh */
+.flash__urgent.is-new {
+    background: rgb(255 255 255 / .92);
+    color: var(--clay);
+}
+
+/* ---- Thanh tiến độ % đã bán trong card flash (mới) ---- */
+.flash__prog {
+    height: 6px;
+    border-radius: 999px;
+    background: #efe7d8;
+    overflow: hidden;
+}
+
+.flash__prog-bar {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--gold), var(--clay));
+    transition: width .6s ease;
+}
+
+.flash__prog-bar.is-hot {
+    background: linear-gradient(90deg, var(--clay), var(--rose));
+}
+
+.flash__prog-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.flash__prog-meta b {
+    color: var(--clay);
+    font-weight: 700;
+}
+
+.flash__sold {
+    font-size: 11.5px;
+    color: var(--muted);
 }
 
 .flash__rail {
