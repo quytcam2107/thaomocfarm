@@ -21,11 +21,17 @@ class CheckoutController extends Controller
 
     /**
      * Hiển thị trang thanh toán.
+     * Giữ lại phương thức vận chuyển đã chọn khi form bị validate fail (old input).
      */
     public function index(Request $request)
     {
         $cart = $this->cartService->getOrCreateCart();
-        $data = $this->checkoutService->getCheckoutData($cart->id);
+
+        // Ưu tiên old('shipping_method') để radio vẫn chọn đúng sau khi back()->withInput()
+        $data = $this->checkoutService->getCheckoutData(
+            $cart->id,
+            (string) $request->old('shipping_method', 'standard')
+        );
 
         if (empty($data)) {
             return redirect()->route('web.cart.index')->with('error', 'Giỏ hàng đang trống, vui lòng thêm sản phẩm.');

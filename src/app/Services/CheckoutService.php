@@ -27,16 +27,32 @@ class CheckoutService
     }
 
     /**
+     * Danh sách phương thức vận chuyển hợp lệ (khớp rule `in:fast,standard`
+     * của CheckoutRequest và value của radio trong checkout.blade.php).
+     */
+    public const SHIPPING_METHODS = ['fast', 'standard'];
+
+    /**
      * Lấy dữ liệu để hiển thị trang checkout.
-     * Logic tính tiền ĐỒNG BỘ với CartService::getCartSummary():
+     * Logic tính tiền ĐỒNG BỘ với CartService::getCartSummary() + dùng chung
+     * công thức phí ship theo phương thức của CartService:
      *  1) goodsDiscount (fixed/percent) trừ vào eligible subtotal
      *  2) shippingFee tính theo method + threshold
      *  3) type=shipping → shippingDiscount = shippingFee
      *  4) total = discountedSubtotal + shippingFee - shippingDiscount
+     *
+     * Trả [] khi giỏ trống để controller redirect về trang giỏ hàng.
      */
     public function getCheckoutData(int $cartId, string $shippingMethod = 'standard'): array
     {
+        // Chuẩn hoá method trước khi tính tiền (tránh value lạ từ old input)
+        $shippingMethod = $this->normalizeShippingMethod($shippingMethod);
+
         $cartDetails = $this->cartService->getCartDetails($cartId);
+
+        if ($cartDetails['items']->isEmpty()) {
+            return [];
+        }
 
         $subtotal = (int) $cartDetails['subtotal'];
         $goodsDiscount = 0;
@@ -46,7 +62,7 @@ class CheckoutService
         $resolved = $this->couponService->resolveAppliedCoupon($cartId, auth()->id());
 
         if ($resolved !== null) {
-            $applied = ['code' => $resolved['code'], 'type' => $resolved['type']];
+            $applied = ['code' => $resolved['code'], 'type' => $resolved['type'], 'discount' => 0];
 
             if ($resolved['type'] !== 'shipping') {
                 $goodsDiscount = $this->couponService->calculateDiscount($resolved['coupon'], $resolved['eligible'], 0);
@@ -62,35 +78,45 @@ class CheckoutService
 
         $total = max(0, $discountedSubtotal + $shippingFee - $shippingDiscount);
 
+        // discount hiển thị = giảm hàng hoá + phần miễn ship (đồng bộ getCartSummary)
+        if ($applied !== null) {
+            $applied['discount'] = $goodsDiscount + $shippingDiscount;
+        }
+
         return [
             'items' => $cartDetails['items'],
             'subtotal' => $subtotal,
-            'discount' => $goodsDiscount,
+            'discount' => $goodsDiscount + $shippingDiscount,
             'discounted_subtotal' => $discountedSubtotal,
             'shipping_fee' => $shippingFee,
             'shipping_discount' => $shippingDiscount,
             'total' => $total,
             'total_qty' => (int) $cartDetails['total_qty'],
-            'applied' => $applied,
+            'appliedCoupon' => $applied,
+            // biến mà view checkout.blade.php đang dùng
+            'shipping_method' => $shippingMethod,
+            'free_shipping_threshold' => (int) config('thaomoc.shipping.free_threshold', 300000),
         ];
     }
 
     /**
-     * Phí ship theo phương thức vận chuyển.
-     * - standard: miễn phí nếu subtotal >= threshold, còn lại 20.000₫
-     * - express: luôn thu phí express
+     * Phí ship theo phương thức vận chuyển — delegate sang CartService
+     * để trang giỏ hàng / trang thanh toán / lúc chốt đơn luôn cùng con số.
      */
     public function calculateShippingFee(string $method, int $subtotal): int
     {
-        if ($method === 'express') {
-            return (int) config('thaomoc.shipping.express_fee', 30000);
-        }
+        return $this->cartService->calculateShippingFeeForMethod(
+            $this->normalizeShippingMethod($method),
+            $subtotal
+        );
+    }
 
-        if ($subtotal >= (int) config('thaomoc.shipping.free_threshold', 200000)) {
-            return 0;
-        }
-
-        return 20000;
+    /**
+     * Phương thức vận chuyển hợp lệ, mặc định standard.
+     */
+    public function normalizeShippingMethod(string $method): string
+    {
+        return in_array($method, self::SHIPPING_METHODS, true) ? $method : 'standard';
     }
 
     /**
@@ -105,7 +131,8 @@ class CheckoutService
 
         $subtotal = (int) $cartDetails['subtotal'];
         $userId = auth()->id();
-        $shippingMethod = $validated['shipping_method'] ?? 'standard';
+        // Chuẩn hoá method theo whitelist fast|standard (khớp CheckoutRequest + radio view)
+        $shippingMethod = $this->normalizeShippingMethod((string) ($validated['shipping_method'] ?? 'standard'));
 
         // Resolve coupon lần nữa (tránh race condition)
         $goodsDiscount = 0;

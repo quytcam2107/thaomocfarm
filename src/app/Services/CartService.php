@@ -330,14 +330,32 @@ class CartService
     /**
      * Tính phí vận chuyển
      */
+    /**
+     * Tính phí vận chuyển (mặc định: giao tiêu chuẩn)
+     */
     public function calculateShippingFee(int $subtotal): int
     {
-        $freeThreshold = config('thaomoc.shipping.free_threshold', 300000);
+        return $this->calculateShippingFeeForMethod('standard', $subtotal);
+    }
+    /**
+     * Phí ship theo PHƯƠNG THỨC vận chuyển — nguồn sự thật duy nhất cho
+     * cả trang giỏ hàng, trang thanh toán và lúc chốt đơn.
+     * - standard: miễn phí khi subtotal >= free_threshold, ngược lại default_fee
+     * - fast    : luôn thu fast_fee (không áp ngưỡng miễn phí)
+     */
+    public function calculateShippingFeeForMethod(string $method, int $subtotal): int
+    {
+        // Giao nhanh: phụ phí cố định, không tính ngưỡng freeship
+        if ($method === 'fast') {
+            return (int) config('thaomoc.shipping.fast_fee', 30000);
+        }
+
+        $freeThreshold = (int) config('thaomoc.shipping.free_threshold', 300000);
 
         if ($subtotal >= $freeThreshold) {
             return 0;
         }
 
-        return config('thaomoc.shipping.default_fee', 30000);
+        return (int) config('thaomoc.shipping.default_fee', 30000);
     }
 }

@@ -92,14 +92,19 @@
 
                 <fieldset class="fs">
                     <legend>3. Phương thức vận chuyển</legend>
+                    {{-- Radio khớp đúng whitelist in:fast,standard của CheckoutRequest; checked lấy từ $shipping_method
+                    --}}
                     <label class="radio-card">
                         <input type="radio" name="shipping_method" value="fast" {{ old('shipping_method', $shipping_method) == 'fast' ? 'checked' : '' }}>
-                        <span><b>Giao nhanh 2h</b> (nội thành Hà Nội) — 30.000₫ · kèm túi giữ lạnh cho món gác
+                        <span><b>Giao nhanh 2h</b> (nội thành Hà Nội) —
+                            {{ number_format((int) config('thaomoc.shipping.fast_fee', 30000)) }}₫ · kèm túi giữ lạnh
+                            cho món gác
                             bếp</span>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="shipping_method" value="standard" {{ old('shipping_method', $shipping_method) == 'standard' ? 'checked' : '' }}>
-                        <span><b>Giao tiêu chuẩn</b> (2–4 ngày toàn quốc) — 30.000₫, miễn phí đơn từ
+                        <span><b>Giao tiêu chuẩn</b> (2–4 ngày toàn quốc) —
+                            {{ number_format((int) config('thaomoc.shipping.default_fee', 30000)) }}₫, miễn phí đơn từ
                             {{ number_format($free_shipping_threshold) }}₫</span>
                     </label>
                     @error('shipping_method') <small class="error" style="color: #dc2626;">{{ $message }}</small>
