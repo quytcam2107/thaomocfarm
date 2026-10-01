@@ -1,5 +1,6 @@
 # Bối cảnh
 Dự án Laravel "Thảo Mộc Farm" (Blade + CSS/JS tĩnh trong `public/assets`, mobile-first, source code nằm trong thư mục `src/`).
+Quy trình làm việc: Mỗi lần nhận code từ AI, tôi sẽ copy và chạy thử/kiểm tra cẩn thận ở môi trường local trước khi commit và đẩy lên Git. Do đó, code trả về cần đảm bảo độ chính xác cao, đầy đủ, không thiếu hụt để có thể thực thi ngay.
 
 Tài liệu ngữ cảnh đã có sẵn trong repo — **BẮT BUỘC đọc TRƯỚC khi làm bất cứ việc gì**:
 - `PROJECT_CONTEXT/README.md` → rule làm việc chi tiết + quy ước kỹ thuật cốt lõi.
@@ -15,11 +16,14 @@ Tài liệu ngữ cảnh đã có sẵn trong repo — **BẮT BUỘC đọc TR�
 Nếu tài liệu và code/database thực tế khác nhau → **thực tế thắng**, và phải báo lại điểm chênh lệch.
 
 # Quy tắc thực hiện (tóm tắt — áp dụng đầy đủ theo README.md)
-1. **Đọc trước khi sửa**: đọc toàn bộ file liên quan; không giả định nội dung chưa thấy. Tên cột/kiểu/dữ liệu thật lấy từ `ai-database/tables/` và `ai-database/data/`, không đoán.
+1. **Rà soát & Đọc trước khi sửa**:
+   - Tải và rà soát code mới nhất từ nhánh `main`.
+   - Kiểm tra kỹ toàn bộ file code và cấu trúc database liên quan trước khi triển khai để tránh sửa nhầm, sót logic hoặc phá vỡ cấu trúc hiện tại.
+   - Tên cột/kiểu/dữ liệu thật lấy trực tiếp từ `ai-database/tables/` và `ai-database/data/`, không tự đoán.
 2. **Bám sát thực tế**: dùng đúng tên route/cột/class/selector THẬT. Giữ tương thích ngược các contract JS (`#cartBadge`, `.add-cart`, `#toast`, `meta[name="csrf-token"]`, `[data-drawer-open]`/`[data-drawer-close]`). Route mới bắt buộc đặt **TRƯỚC** catch-all `GET /{slug}`. Tên route web luôn prefix `web.`. Không refactor ngoài phạm vi.
-3. **Cách xuất code (bắt buộc)**: mỗi file sửa/tạo mới → **MỘT code block chứa TOÀN BỘ nội dung file từ dòng 1 đến dòng cuối**, phía trên ghi rõ `### File: đường/dẫn/file`. KHÔNG diff, KHÔNG placeholder "...". Nội dung không liên quan giữ NGUYÊN VĂN bản gốc.
+3. **Cách xuất code (bắt buộc)**: mỗi file sửa/tạo mới → **MỘT code block riêng biệt chứa TOÀN BỘ nội dung file từ dòng 1 đến dòng cuối**, phía trên ghi rõ `### File: đường/dẫn/file`. KHÔNG diff, KHÔNG dùng placeholder "...". Nội dung không liên quan giữ NGUYÊN VĂN bản gốc để tiện copy trực tiếp đè vào file local.
 4. **Đủ mắt xích**: liệt kê TẤT CẢ file thay đổi (CSS ↔ Blade ↔ JS ↔ Route/Controller). Comment tiếng Việt ngắn gọn tại logic mới.
-5. **Kết thúc**: tóm tắt ngắn đã sửa file nào, luồng hoạt động; nêu rõ điểm cần kiểm tra lại trên trình duyệt/database.
+5. **Kết thúc**: tóm tắt ngắn đã sửa file nào, luồng hoạt động; nêu rõ các bước cụ thể cần kiểm tra lại trên trình duyệt/database ở local trước khi commit lên git.
 
 #  Yêu cầu tiếp theo gợi ý sửa code đầy đủ các file dang code block và tôi chỉ việc copy từng file
 - Trước khi sửa rà soát hết các database và file code liên quan tránh sửa nhầm, Luôn luôn đọc code mới nhất từ nhánh main
