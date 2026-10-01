@@ -9,7 +9,7 @@
         <div class="container topbar__in">
             <p>🚚 Miễn phí vận chuyển cho đơn từ 300K 🚀 Giao nhanh 2h nội thành</p>
             <nav class="topbar__nav" aria-label="Liên kết nhanh">
-                <a href="tel:0362795897">📞 0362 795 897</a>
+                <a href="tel:0362795897">Hotline mua hàng: 📞 0362 795 897</a>
                 <a href="#">🧾 Tra cứu đơn</a>
                 <a href="#">📍 Cửa hàng</a>
             </nav>
