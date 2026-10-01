@@ -1,0 +1,473 @@
+/* =====================================================================
+   13-STATIC-PAGE.CSS — Trang tĩnh "Hỗ trợ" (footer):
+   Hướng dẫn đặt hàng / Chính sách đổi trả / Chính sách bảo mật / Điều khoản.
+   - Mobile-first, dùng token màu chung trong 01-base.css (:root).
+   - Prefix lớp: sp- (static page). Không đụng selector trang khác.
+   - Block sản phẩm gợi ý tái dùng .product-grid + .pcard (05-product-card.css),
+     nút tái dùng .btn/.btn--leaf/.btn--ghost (01-base.css) — không định nghĩa lại.
+   ===================================================================== */
+
+/* ============ HERO TRANG TĨNH ============ */
+.sp-hero {
+    padding: 20px 0 8px;
+}
+
+.sp-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--clay);
+    background: color-mix(in srgb, var(--clay) 10%, #fff);
+    border: 1px solid color-mix(in srgb, var(--clay) 25%, #fff);
+    border-radius: 999px;
+    padding: 5px 12px;
+}
+
+.sp-hero h1 {
+    margin-top: 12px;
+    font-size: clamp(22px, 4.6vw, 34px);
+    line-height: 1.25;
+    color: var(--leaf-deep);
+}
+
+.sp-hero__lead {
+    margin-top: 10px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--ink);
+    max-width: 72ch;
+}
+
+.sp-hero__updated {
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.sp-hero a,
+.sp-bullets a,
+.sp-checklist a,
+.sp-step__body a,
+.sp-faq__answer a,
+.sp-info-card__note a {
+    color: var(--leaf);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    word-break: break-word;
+}
+
+.sp-hero a:hover,
+.sp-bullets a:hover,
+.sp-checklist a:hover,
+.sp-step__body a:hover,
+.sp-faq__answer a:hover,
+.sp-info-card__note a:hover {
+    color: var(--leaf-deep);
+}
+
+/* ============ SECTION CHUNG ============ */
+.sp-section {
+    padding: 18px 0 6px;
+}
+
+.sp-section .sec-title {
+    margin-bottom: 14px;
+}
+
+/* Section cuối trước CTA chừa thêm khoảng trắng */
+.sp-section--last {
+    padding-bottom: 14px;
+}
+
+/* ============ DANH SÁCH GẠCH ĐẦU (bullet) ============ */
+.sp-bullets {
+    display: grid;
+    gap: 9px;
+}
+
+.sp-bullets li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--ink);
+}
+
+.sp-bullets li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 9px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+}
+
+/* ============ CHECKLIST ĐƯỢC / KHÔNG ĐƯỢC (đổi trả) ============ */
+.sp-checklist {
+    display: grid;
+    gap: 10px;
+}
+
+.sp-checklist li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.sp-checklist li::before {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.sp-checklist--yes li::before {
+    content: "✓";
+    background: var(--leaf);
+}
+
+.sp-checklist--no li::before {
+    content: "✕";
+    background: var(--rose);
+}
+
+/* ============ CÁC BƯỚC (số tròn + đường nối) ============ */
+.sp-steps {
+    counter-reset: sp-step;
+    display: grid;
+    gap: 0;
+}
+
+.sp-step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+}
+
+.sp-step__num {
+    justify-self: start;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: "Lora", Georgia, serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: #fff;
+    background: linear-gradient(160deg, var(--leaf), var(--leaf-deep));
+    box-shadow: 0 3px 8px rgb(46 125 79 / .25);
+}
+
+/* Đường nối dọc giữa 2 bước (bước cuối không nối) */
+.sp-step:not(:last-child) {
+    position: relative;
+}
+
+.sp-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 46px;
+    bottom: -6px;
+    width: 2px;
+    background: color-mix(in srgb, var(--leaf) 28%, var(--line));
+}
+
+.sp-step__body {
+    padding-bottom: 22px;
+    min-width: 0;
+}
+
+.sp-step__body h3 {
+    font-size: 16px;
+    color: var(--leaf-deep);
+    padding-top: 8px;
+}
+
+.sp-step__body p {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--ink);
+}
+
+/* ============ MẸO (thẻ icon + chữ) ============ */
+.sp-tips {
+    display: grid;
+    gap: 10px;
+}
+
+.sp-tip {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--leaf-soft);
+    border: 1px solid color-mix(in srgb, var(--leaf) 18%, #fff);
+    border-radius: var(--r);
+    padding: 12px 14px;
+}
+
+.sp-tip__icon {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    background: #fff;
+    box-shadow: var(--shadow);
+}
+
+.sp-tip p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+/* ============ LƯỚI THẺ THÔNG TIN (giao hàng & thanh toán) ============ */
+.sp-info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.sp-info-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
+
+.sp-info-card h3 {
+    font-size: 15.5px;
+    color: var(--leaf-deep);
+}
+
+.sp-info-card ul {
+    margin-top: 10px;
+    display: grid;
+    gap: 7px;
+}
+
+.sp-info-card li {
+    position: relative;
+    padding-left: 16px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.sp-info-card li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--leaf);
+}
+
+.sp-info-card__note {
+    margin-top: 10px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+/* ============ HỘP GHI CHÚ NỔI BẬT ============ */
+.sp-card-note {
+    background: color-mix(in srgb, var(--gold) 12%, var(--card));
+    border: 1px dashed color-mix(in srgb, var(--gold) 55%, var(--line));
+    border-radius: var(--r);
+    padding: 14px 16px;
+}
+
+.sp-card-note .sp-bullets li::before {
+    background: var(--clay);
+}
+
+/* ============ FAQ ACCORDION (details/summary — không cần JS) ============ */
+.sp-faq {
+    display: grid;
+    gap: 10px;
+}
+
+.sp-faq__item {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.sp-faq__item summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 16px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--leaf-deep);
+    min-height: 44px;
+}
+
+/* dấu +/- góc phải, tự xoay khi mở */
+.sp-faq__item summary::after {
+    content: "+";
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--leaf);
+    background: var(--leaf-soft);
+    transition: transform .25s ease;
+}
+
+.sp-faq__item[open] summary::after {
+    content: "−";
+    transform: rotate(180deg);
+}
+
+.sp-faq__item summary::-webkit-details-marker {
+    display: none;
+}
+
+.sp-faq__answer {
+    padding: 0 16px 14px;
+}
+
+.sp-faq__answer p {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--ink);
+}
+
+/* ============ BẢNG THỜI GIAN XỬ LÝ ============ */
+.sp-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    -webkit-overflow-scrolling: touch;
+}
+
+.sp-table {
+    width: 100%;
+    min-width: 480px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+
+.sp-table th,
+.sp-table td {
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.sp-table thead th {
+    background: var(--leaf-soft);
+    color: var(--leaf-deep);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sp-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.sp-table tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--paper) 60%, #fff);
+}
+
+/* ============ CTA LIÊN HỆ CUỐI TRANG ============ */
+.sp-cta {
+    margin: 22px 0 30px;
+    background: linear-gradient(150deg, var(--leaf-deep), var(--leaf));
+    border-radius: var(--r);
+    color: #fff;
+    text-align: center;
+    padding: 26px 18px;
+}
+
+.sp-cta h2 {
+    font-size: clamp(18px, 3.6vw, 24px);
+    color: #fff;
+}
+
+.sp-cta p {
+    margin-top: 8px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    opacity: .92;
+}
+
+.sp-cta__actions {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Nút nền trắng nổi trên nền xanh đậm */
+.sp-cta .btn--leaf {
+    background: #fff;
+    color: var(--leaf-deep);
+}
+
+.sp-cta .btn--ghost {
+    background: transparent;
+    color: #fff;
+    border-color: rgb(255 255 255 / .75);
+}
+
+.sp-cta .btn--ghost:hover {
+    background: rgb(255 255 255 / .12);
+}
+
+/* ============ DESKTOP ≥ 640px ============ */
+@media (min-width: 640px) {
+    .sp-hero {
+        padding: 26px 0 10px;
+    }
+
+    .sp-info-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .sp-step__body h3 {
+        font-size: 17px;
+    }
+}

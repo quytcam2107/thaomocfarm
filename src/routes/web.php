@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\CartController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\CheckoutController;
 use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\SearchController;
 
@@ -54,6 +55,12 @@ Route::get('/dat-hang-thanh-cong/{order_number}', [CheckoutController::class, 's
 Route::get('/san-pham/{slug}', [ProductController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('web.product.show');
+
+// 6b. 4 trang tinh "Ho tro" (footer) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} bên dưới
+Route::get('/huong-dan-dat-hang', [PageController::class, 'orderGuide'])->name('web.page.order-guide');
+Route::get('/chinh-sach-doi-tra', [PageController::class, 'returnPolicy'])->name('web.page.return-policy');
+Route::get('/chinh-sach-bao-mat', [PageController::class, 'privacyPolicy'])->name('web.page.privacy');
+Route::get('/dieu-khoan-su-dung', [PageController::class, 'terms'])->name('web.page.terms');
 
 // 7. Alias pretty-url /{slug} — BẮT BUỘC ở cuối cùng
 Route::get('/{slug}', [CategoryController::class, 'show'])

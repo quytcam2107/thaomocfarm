@@ -7,10 +7,10 @@
         </div>
         <nav aria-label="Hỗ trợ khách hàng">
             <h4>Hỗ trợ</h4>
-            <a href="#">Hướng dẫn đặt hàng</a>
-            <a href="#">Chính sách đổi trả</a>
-            <a href="#">Chính sách bảo mật</a>
-            <a href="#">Điều khoản</a>
+            <a href="{{ route('web.page.order-guide') }}">Hướng dẫn đặt hàng</a>
+            <a href="{{ route('web.page.return-policy') }}">Chính sách đổi trả</a>
+            <a href="{{ route('web.page.privacy') }}">Chính sách bảo mật</a>
+            <a href="{{ route('web.page.terms') }}">Điều khoản</a>
         </nav>
         <nav aria-label="Danh mục">
             <h4>Danh mục</h4>
@@ -26,5 +26,6 @@
             <p>✉️ <a href="mailto:thaomocfarm@gmail.com">thaomocfarm@gmail.com</a></p>
         </div>
     </div>
-    <p class="footer__bottom container">© <span id="year">{{ date('Y') }}</span> Mộc Xanh · Bản quyền thuộc về Mộc Xanh</p>
+    <p class="footer__bottom container">© <span id="year">{{ date('Y') }}</span> Mộc Xanh · Bản quyền thuộc về Mộc Xanh
+    </p>
 </footer>
