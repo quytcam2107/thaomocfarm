@@ -1,6 +1,10 @@
-# 01 — DATABASE (34 bảng, trích từ migrations thật trong `src/database/migrations`)
+# 01 — DATABASE (34 bảng nghiệp vụ + 7 bảng framework)
 
-**Quy ước chung:** PK `id` bigint auto; FK lưu dạng `unsignedBigInteger` KHÔNG ràng buộc FK; mọi bảng có `timestamps()` trừ `coupon_products`, `coupon_categories`; tiền tệ là `unsignedInteger` đơn vị **VND**; enum MySQL backed string khớp các enum PHP trong `app/Enums`.
+## Nguồn dữ liệu & cách cập nhật
+- **Cấu trúc chi tiết + TOÀN BỘ dữ liệu thật**: do lệnh `php artisan ai:export-database` sinh tự động vào `src/PROJECT_CONTEXT/` (xem `INDEX.md` ở đó). Mỗi bảng có `tables/<bảng>.md` (cột, kiểu, index, FK, thống kê min/max/top values, 50 dòng mẫu) và `data/<bảng>.jsonl` (mỗi dòng = 1 bản ghi JSON). Chạy lại lệnh bất cứ khi nào cần cập nhật; lệnh chỉ đọc (SELECT), không sửa dữ liệu.
+- **File này**: tổng quan quy ước, quan hệ giữa các bảng, bẫy thiết kế — phần mà bản export tự động không diễn giải được.
+
+**Quy ước chung:** PK `id` bigint auto; FK lưu dạng `unsignedBigInteger` **KHÔNG ràng buộc FK** — toàn vẹn dữ liệu do Service đảm bảo; mọi bảng có `timestamps()` trừ `coupon_products`, `coupon_categories`; tiền tệ là `unsignedInteger` đơn vị **VND**; enum MySQL backed string khớp các enum PHP trong `app/Enums`.
 
 ## users (migration 0001_01_01_000000)
 | Cột | Kiểu | Ghi chú |
@@ -101,5 +105,24 @@ key(UNIQUE), value(text,null), group_name(default 'general'). Index(group_name).
 ## search_terms
 term(UNIQUE), hits(uint default 1). Index(hits). Dùng cho gợi ý tìm kiếm.
 
+## Sơ đồ quan hệ (không có FK constraint — nối theo quy ước tên cột)
+- `users` 1—N `addresses`, `orders`, `wishlists`, `reviews`, `coupon_usages`, `order_status_histories` (created_by), `stock_movements` (created_by); 1—1 `carts`.
+- `categories` tự tham chiếu qua `parent_id`; N—1 → `products.category_id`; `coupons` N—N `categories` (qua `coupon_categories`).
+- `products` 1—N `product_variants`, `product_images`, `reviews`, `promotion_products`, `cart_items`, `order_items`, `wishlists`; `coupons` N—N `products` (qua `coupon_products`).
+- `product_variants` 1—N `cart_items`, `order_items`, `stock_movements`; `promotion_products.product_variant_id` nullable.
+- `promotions` 1—N `promotion_products`.
+- `coupons` 1—N `coupon_products`, `coupon_categories`, `coupon_usages`; `orders.coupon_id` → coupons.
+- `carts` 1—N `cart_items`.
+- `orders` 1—N `order_items`, `order_status_histories`, `coupon_usages`; 1—1 `payments`, 1—1 `shipments`; `reviews.order_id` nullable → orders.
+
+## Bẫy thiết kế cần nhớ
+1. KHÔNG có FOREIGN KEY ở tầng DB → mọi kiểm tra tồn tại/toàn vẹn nằm trong Service (`CheckoutService`, `CartService`...).
+2. Tiền luôn là **int VND** (`unsignedInteger`).
+3. FULLTEXT `search_name(name)` trên `products` tạo bằng `DB::statement` sau `Schema::create` — không thấy trong khai báo columns; chỉ MySQL hỗ trợ, sqlite dev sẽ bỏ qua.
+4. `orders.coupon_code_snapshot` VARCHAR(50) thêm bởi migration `2026_09_26_000001` (bọc `Schema::hasColumn`) — coupon có thể bị xóa nhưng đơn hàng vẫn giữ mã đã dùng.
+5. `coupon_products` / `coupon_categories` KHÔNG có timestamps.
+6. `stock_movements.qty` là INTEGER **signed** (âm khi export/reserve).
+7. `carts.user_id` NULLABLE UNIQUE — mỗi user tối đa 1 giỏ; khách vãng lai dùng `cart_token` UUID.
+
 ## Framework tables
-`cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `sessions` (driver database), `password_reset_tokens`. Factory chỉ có `UserFactory` — dữ liệu khác dùng seeder riêng nếu cần.
+`cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `sessions` (driver database), `password_reset_tokens`. Factory chỉ có `UserFactory` — dữ liệu khác dùng seeder riêng nếu cần. Bản export mặc định **loại** các bảng này; thêm `--include-framework` nếu muốn xuất đủ.

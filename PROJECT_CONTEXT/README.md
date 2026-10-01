@@ -4,22 +4,32 @@ Mục đích: dán kèm vào prompt khi yêu cầu AI sửa/tính năng mới, �
 
 | File | Nội dung |
 |---|---|
-| `01-DATABASE.md` | Toàn bộ 34 bảng: cột, kiểu, index, unique, FULLTEXT, enum values — trích nguyên từ migrations |
-| `02-CODE.md` | Models/scopes/relations, 11 Enums, 4 DTOs, 5 Services + method công khai, Controllers, 5 FormRequests (rules thật), routes/web.php theo thứ tự, views/components Blade, cấu trúc CSS partials, contract JS, config/thaomoc.php, helpers, danh sách "bẫy đã biết" |
+| `01-DATABASE.md` | Tổng quan 34 bảng nghiệp vụ + 7 bảng framework: quy ước, quan hệ giữa bảng, bẫy thiết kế (maintain tay) |
+| `02-CODE.md` | Models/scopes/relations, 11 Enums, 4 DTOs, 5 Services + method công khai, Controllers, 5 FormRequests (rules thật), routes/web.php theo thứ tự, views/components Blade, cấu trúc CSS partials, contract JS, config/thaomoc.php, helpers, lệnh Artisan (`ai:export-database`), danh sách "bẫy đã biết" |
+| `INDEX.md` *(auto)* | Bản xuất database: danh sách toàn bộ bảng + số bản ghi + link tới file chi tiết — do `php artisan ai:export-database` sinh |
+| `tables/<bảng>.md` *(auto)* | Cấu trúc thật từng bảng (cột, kiểu, null, default, index, FK, comment) + thống kê min/max/top values + 50 dòng mẫu dữ liệu |
+| `data/<bảng>.jsonl` *(auto)* | TOÀN BỘ dữ liệu từng bảng, mỗi dòng = 1 bản ghi JSON (không giới hạn record) |
+
+*(auto) = sinh tự động, KHÔNG sửa tay — chạy lại `php artisan ai:export-database` bất cứ khi nào cần cập nhật; lệnh chỉ đọc (SELECT), không ảnh hưởng dữ liệu.*
+
+## Cách dùng cho AI
+1. Đọc `README.md` này (rule làm việc) + `02-CODE.md`.
+2. Về database: đọc `INDEX.md` để biết có bảng nào / bao nhiêu bản ghi; đọc `tables/<bảng>.md` cho cấu trúc + mẫu; chỉ mở `data/<bảng>.jsonl` khi cần dữ liệu đầy đủ (file có thể lớn).
+3. Khi tài liệu và code thực tế khác nhau → code thực tế thắng, báo lại chênh lệch.
 
 ---
 
 ## RULE LÀM VIỆC — ÁP DỤNG CHO MỌI YÊU CẦU
 
 ### Bối cảnh dự án
-- Dự án Laravel (Blade + CSS/JS tĩnh trong public/assets), giao diện mobile-first.
+- Dự án Laravel (Blade + CSS/JS tĩnh trong public/assets), giao diện mobile-first, source code nằm trong `src/`.
 - Bản code chuẩn để đối chiếu là nhánh `main` của git.
-- Tài liệu này (01-DATABASE.md + 02-CODE.md) phản ánh ĐÚNG code thực tế tại `src/`, cập nhật ngày 28/09/2026.
+- Tài liệu này (01-DATABASE.md + 02-CODE.md) phản ánh ĐÚNG code thực tế tại `src/`; dữ liệu database luôn lấy từ bản xuất mới nhất (`INDEX.md`, `tables/`, `data/`).
 
 ### 1. Đọc trước khi làm
 - TRƯỚC khi sửa bất cứ gì, phải đọc kỹ kiến trúc và nội dung TOÀN BỘ file liên quan: layout, component Blade, routes, controller, các CSS partials (`public/assets/css/partials/*`), JS assets (`public/assets/js/*`).
-- Hiểu rõ naming convention, cấu trúc class CSS, tên route, tên cột database đang dùng thực tế.
-- Đối chiếu với 01-DATABASE.md / 02-CODE.md trước; nếu tài liệu và code thực tế khác nhau → code thực tế thắng, và phải báo lại chênh lệch.
+- Hiểu rõ naming convention, cấu trúc class CSS, tên route, tên cột database đang dùng thực tế — tên cột/kiểu liệu THẬT lấy từ `tables/<bảng>.md`, dữ liệu thật lấy từ `data/<bảng>.jsonl` (không đoán từ file này).
+- Đối chiếu với 01-DATABASE.md / 02-CODE.md + bản xuất database trước; nếu tài liệu và code thực tế khác nhau → code thực tế thắng, và phải báo lại chênh lệch.
 
 ### 2. Bám sát code & database hiện có
 - Luôn viết theo ĐÚNG code và database đang có: tên route, tên bảng/cột, class, component, biến... lấy từ thực tế dự án, KHÔNG bịa đặt, KHÔNG giả định.
@@ -61,7 +71,7 @@ Mục đích: dán kèm vào prompt khi yêu cầu AI sửa/tính năng mới, �
 
 ### Cache & Helpers
 - Driver cache = file → CẤM dùng `Cache::tags`. Dùng `remember_group($group, $key, $ttl, $fn)` và `bump_group_version($group)` (helpers trong `app/Support/helpers.php`).
-- Nhóm cache thực tế: `home`, `catalog`, `content`, `settings`, `review`. Chưa có artisan command bump cache — muốn bump phải gọi helper qua tinker.
+- Nhóm cache thực tế: `home`, `catalog`, `content`, `settings`, `review`. Chưa có artisan command bump cache — muốn bump phải gọi helper qua tinker. Lệnh artisan duy nhất hiện có: `ai:export-database` (xem 02-CODE.md).
 
 ### Frontend
 - Mobile-first; CSS chia 12 partials trong `public/assets/css/partials/`, `style.css` @import theo thứ tự cascade — KHÔNG đảo thứ tự, sửa style phải mở đúng partial.
@@ -76,7 +86,8 @@ Mục đích: dán kèm vào prompt khi yêu cầu AI sửa/tính năng mới, �
 ---
 
 ## PROMPT MẪU
-> "Đây là dự án Laravel mobile-first. Tài liệu ngữ cảnh đính kèm: [dán 01-DATABASE.md + 02-CODE.md]. Hãy tuân thủ tuyệt đối RULE LÀM VIỆC trong README.md và tên route/cột/class/selector trong tài liệu. Chỉ xuất toàn bộ nội dung file thay đổi."
+> "Đây là dự án Laravel mobile-first (source trong `src/`). Tài liệu ngữ cảnh đính kèm: [dán README.md + 01-DATABASE.md + 02-CODE.md]; dữ liệu database thật nằm trong `PROJECT_CONTEXT/INDEX.md`, `tables/*.md`, `data/*.jsonl`. Hãy tuân thủ tuyệt đối RULE LÀM VIỆC trong README.md và tên route/cột/class/selector trong tài liệu. Chỉ xuất toàn bộ nội dung file thay đổi."
 
 ## CẬP NHẬT TÀI LIỆU
-Khi thêm migration/model/route/CSS partial/component mới, cập nhật lại 01-DATABASE.md và 02-CODE.md cho khớp thực tế, rồi commit kèm.
+- **Database (cấu trúc + dữ liệu)**: chạy lại `php artisan ai:export-database` (trong thư mục `src/`) — tự ghi đè `INDEX.md`, `tables/`, `data/`; không cần làm gì thêm, chỉ đọc được cập nhật ngay.
+- **Code**: khi thêm migration/model/route/CSS partial/component mới, cập nhật tay 01-DATABASE.md / 02-CODE.md cho khớp thực tế, rồi commit kèm.

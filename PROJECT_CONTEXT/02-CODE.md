@@ -1,96 +1,977 @@
-# 02 — CODE (models, enums, services, controllers, routes, views, CSS/JS — trích từ `src/`)
+# 02 — CODE
 
-## Models (`app/Models`, namespace `App\Models`) — 28 model
-Address, Banner, Cart, CartItem, Category, Coupon, CouponUsage, NewsletterSubscriber, Order, OrderItem, OrderStatusHistory, Payment, Post, PostCategory, Product, ProductImage, ProductVariant, Promotion, PromotionProduct, Review, SearchTerm, Setting, Shipment, StockMovement, Store, Testimonial, User, Wishlist.
-Điểm đáng nhớ (đã xác minh trong code):
-- `Product`: scopeActive/Featured/BestSeller/Search(?term), relations category/variants/images/reviews/wishlists/promotionProducts; `defaultVariant()` và `coverImage()` là HasOne lọc is_default/is_cover; `url()` trả `/san-pham/{slug}`; `incrementViews()`.
-- `Category::url()` → `/danh-muc/{slug}`.
-- `Coupon`: scopeActive, scopeValid (starts_at/expires_at nullable-aware với now), scopeDisplayable; belongsToMany products/categories + hasMany usages.
-- `Banner`: scopeActive, scopePosition(string), imageUrl().
-- `Promotion`: scopeActive, scopeFlashSale, scopeCurrentlyRunning.
-- `PromotionProduct`: slotsLeft(), soldPercent(); quan hệ promotion/product/variant.
-- `User`: role enum string, isStaff()/isAdmin(), hasMany addresses/orders/wishlists/reviews, hasOne cart.
-- Casts datetime phổ biến: starts_at/expires_at (Coupon), start_at/end_at (Promotion, Banner), published_at (Product, Post).
+> Models, Enums, DTOs, Services, Controllers, Requests, Routes, Views, CSS/JS và các cấu hình liên quan — trích từ `src/`.
 
-## Enums (`app/Enums`, backed string) — 11 enum
+---
+
+## 1. Artisan Commands
+
+### `app/Console/Commands`
+
+| Lệnh | File | Tác dụng |
+|---|---|---|
+| `php artisan ai:export-database` | `app/Console/Commands/AiExportDatabase.php` | Xuất **cấu trúc + toàn bộ dữ liệu** của mọi bảng ra `src/PROJECT_CONTEXT/` gồm `INDEX.md`, `tables/<bảng>.md` và `data/<bảng>.jsonl` để AI đọc. Chỉ thực hiện `SELECT`, không sửa dữ liệu. Có thể chạy lại để cập nhật. |
+
+### Options
+
+- `--connection=`: Mặc định theo `.env`.
+- `--output=`: Mặc định `src/PROJECT_CONTEXT`.
+- `--include-framework`: Export thêm các bảng framework như `cache`, `jobs`, `sessions`, `migrations`.
+
+> **Lưu ý:** Command chỉ đọc database bằng `SELECT`. Không `INSERT`, `UPDATE`, `DELETE` hoặc thay đổi schema.
+
+---
+
+## 2. Models
+
+**Thư mục:** `app/Models`  
+**Namespace:** `App\Models`
+
+Tổng cộng **28 models**:
+
+`Address`, `Banner`, `Cart`, `CartItem`, `Category`, `Coupon`, `CouponUsage`, `NewsletterSubscriber`, `Order`, `OrderItem`, `OrderStatusHistory`, `Payment`, `Post`, `PostCategory`, `Product`, `ProductImage`, `ProductVariant`, `Promotion`, `PromotionProduct`, `Review`, `SearchTerm`, `Setting`, `Shipment`, `StockMovement`, `Store`, `Testimonial`, `User`, `Wishlist`.
+
+### `Product`
+
+Scopes:
+
+- `scopeActive()`
+- `scopeFeatured()`
+- `scopeBestSeller()`
+- `scopeSearch(?term)`
+
+Relations:
+
+- `category`
+- `variants`
+- `images`
+- `reviews`
+- `wishlists`
+- `promotionProducts`
+
+Đặc biệt:
+
+- `defaultVariant()` là `HasOne`, lọc `is_default`.
+- `coverImage()` là `HasOne`, lọc `is_cover`.
+- `url()` trả về `/san-pham/{slug}`.
+- `incrementViews()` tăng lượt xem.
+
+### `Category`
+
+- `url()` trả về `/danh-muc/{slug}`.
+
+### `Coupon`
+
+Scopes:
+
+- `scopeActive()`
+- `scopeValid()`
+- `scopeDisplayable()`
+
+`scopeValid()` xử lý `starts_at` và `expires_at` theo kiểu nullable-aware với `now()`.
+
+Relations:
+
+- `products`
+- `categories`
+- `usages`
+
+### `Banner`
+
+Scopes:
+
+- `scopeActive()`
+- `scopePosition(string)`
+
+Method:
+
+- `imageUrl()`
+
+### `Promotion`
+
+Scopes:
+
+- `scopeActive()`
+- `scopeFlashSale()`
+- `scopeCurrentlyRunning()`
+
+### `PromotionProduct`
+
+Methods:
+
+- `slotsLeft()`
+- `soldPercent()`
+
+Relations:
+
+- `promotion`
+- `product`
+- `variant`
+
+### `User`
+
+Role sử dụng string enum.
+
+Methods:
+
+- `isStaff()`
+- `isAdmin()`
+
+Relations:
+
+- `addresses`
+- `orders`
+- `wishlists`
+- `reviews`
+- `cart`
+
+`cart` là `hasOne`.
+
+### Date Casts
+
+| Model | Fields |
+|---|---|
+| `Coupon` | `starts_at`, `expires_at` |
+| `Promotion` | `start_at`, `end_at` |
+| `Banner` | `start_at`, `end_at` |
+| `Product` | `published_at` |
+| `Post` | `published_at` |
+
+---
+
+## 3. Enums
+
+**Thư mục:** `app/Enums`
+
+Tất cả là **backed string enum**.
+
+Tổng cộng **11 enum**:
+
 | Enum | Values | Ghi chú |
 |---|---|---|
-| OrderStatus | new, confirmed, packing, shipping, delivered, cancelled, returning | có `label()` tiếng Việt + `next(): array` định nghĩa luồng chuyển trạng thái hợp lệ |
-| OrderPaymentStatus | pending, paid, refunded | có label() |
-| PaymentMethod | cod (bank_transfer đang bị comment) | chỉ COD hoạt động |
-| CouponType | fixed, percent, shipping | có label() |
-| PromotionType | flash_sale, campaign | |
-| PromotionStatus | scheduled, active, ended, cancelled | |
-| ProductStatus | draft, active, hidden | |
-| BannerPosition | home_hero, home_mid, category, product | |
-| ReviewStatus | pending, approved, hidden | |
-| ShipmentCarrier | internal, ghn, ghtk, vtp | |
-| StockMovementType | import, export, adjust, order_reserve, order_release | |
+| `OrderStatus` | `new`, `confirmed`, `packing`, `shipping`, `delivered`, `cancelled`, `returning` | Có `label()` tiếng Việt và `next(): array` định nghĩa luồng chuyển trạng thái hợp lệ. |
+| `OrderPaymentStatus` | `pending`, `paid`, `refunded` | Có `label()`. |
+| `PaymentMethod` | `cod` | `bank_transfer` đang comment; chỉ COD hoạt động. |
+| `CouponType` | `fixed`, `percent`, `shipping` | Có `label()`. |
+| `PromotionType` | `flash_sale`, `campaign` | |
+| `PromotionStatus` | `scheduled`, `active`, `ended`, `cancelled` | |
+| `ProductStatus` | `draft`, `active`, `hidden` | |
+| `BannerPosition` | `home_hero`, `home_mid`, `category`, `product` | |
+| `ReviewStatus` | `pending`, `approved`, `hidden` | |
+| `ShipmentCarrier` | `internal`, `ghn`, `ghtk`, `vtp` | |
+| `StockMovementType` | `import`, `export`, `adjust`, `order_reserve`, `order_release` | |
 
-## DTOs (`app/DTOs`) — readonly promoted properties
-- `ProductViewDTO`: id, name, sku, subtitle, description, price(int VND), old_price(?int), discount_percent, avg_rating(float), review_count, sold_count, stock, image, meta_description, category(?CategoryViewDTO).
-- `CategoryViewDTO`: name, url. `RelatedProductDTO`: url, image, name, price, old_price, discount_percent, avg_rating, sold_count. `ReviewViewDTO`: customer, rating, content, created_at.
+---
 
-## Services (`app/Services`)
-- **CartService**: getOrCreateCart, mergeGuestCart, addToCart, updateCartItem, removeItem, getCartDetails, getCartSummary, getCartItemCount, calculateShippingFee.
-- **CatalogService**: getProductDetail, getProductReviews, getCategoryShow(?array), getAllProducts, searchProducts.
-- **CheckoutService**: getCheckoutData, calculateShippingFee, processCheckout→Order. Toàn bộ ghi đơn chạy trong `DB::transaction`: tạo orders + order_items(snapshot) + payments + shipments + order_status_histories + stock_movements(order_reserve) + coupon_usages qua `recordUsage($couponId, auth()->id(), $order->id, $discountAmount)`; lưu `coupon_code_snapshot`.
-- **CouponService**: findByCode, eligibleSubtotal, validateForCart, `calculateDiscount(Coupon, int $eligibleSubtotal, int $shippingFee): int`, applyToCart, resolveAppliedCoupon, removeAppliedCoupon, getAvailableCoupons, applyCoupon, recordUsage, getPublicCoupons.
-- **HomeService**: featuredCategories, flashSale(?array), homeCoupons, bestSellers, herbalTea.
-Cache group được dùng thực tế: `home`, `catalog`, `content`, `settings`, `review` (bump bằng helper, chưa có artisan command).
+## 4. DTOs
 
-## Controllers (`app/Http/Controllers/Web`)
-HomeController(index), ProductController(show, index), CategoryController(show), SearchController(index, suggest), CartController(index, add, update, remove, count, applyCoupon, removeCoupon — JSON), CheckoutController(index, store, success).
+**Thư mục:** `app/DTOs`
 
-## Requests (`app\Requests` — namespace `App\Requests`, KHÔNG nằm trong Controllers/FormRequests)
-- AddToCartRequest: product_id required exists:products,id; variant_id required exists:product_variants,id; qty 1..99.
-- UpdateCartRequest: qty 1..99.
-- ApplyCouponRequest: code uppercase+trim, 3..50, regex `/^[A-Z0-9\-]+$/`.
-- CheckoutRequest: name ≤255; phone regex `/^[0-9]{9,11}$/`; email nullable; province/district/address required; ward nullable; shipping_method in:fast,standard; payment_method in:cod; note ≤1000. Messages tiếng Việt đầy đủ.
-- CategoryShowRequest tồn tại (filter/sort cho trang danh mục).
+Sử dụng **readonly promoted properties**.
 
-## Routes (`routes/web.php` — THỨ TỰ QUAN TRỌNG)
-```
-GET /                          web.home             HomeController@index
-GET /tat-ca-san-pham           web.products.index   ProductController@index
-GET /tim-kiem                  web.search.index     SearchController@index      (TRƯỚC {slug})
-GET /tim-kiem/goi-y            web.search.suggest   SearchController@suggest    (TRƯỚC {slug})
-GET /danh-muc/{slug}           web.category.show    CategoryController@show     where [a-z0-9\-]+
-GET /gio-hang                  web.cart.index       CartController@index
-POST /gio-hang/them            web.cart.add         CartController@add
-POST /gio-hang/cap-nhat/{itemId} web.cart.update    CartController@update
-DELETE /gio-hang/xoa/{itemId}  web.cart.remove      CartController@remove
-GET /gio-hang/count            web.cart.count       CartController@count
-POST /gio-hang/ma-giam-gia/ap-dung  web.cart.coupon.apply
-DELETE /gio-hang/ma-giam-gia       web.cart.coupon.remove
-GET /thanh-toan                web.checkout.index   CheckoutController@index
-POST /thanh-toan               web.checkout.store   CheckoutController@store
-GET /dat-hang-thanh-cong/{order_number} web.checkout.success
-GET /san-pham/{slug}           web.product.show     ProductController@show
-GET /{slug}                    web.category.pretty  CategoryController@show     ← BẮT BUỘC CUỐI CÙNG
-```
+### `ProductViewDTO`
 
-## Views (`resources/views`)
-Layout `<x-layouts.app>` (components/layouts/app.blade.php): meta csrf-token, style.css, app.js + cart.js.
-Pages: web/home, web/category, web/product, web/products, web/search, web/cart, web/checkout, web/checkout-success (+ home.blade.php cũ, welcome.blade.php mặc định).
-Components Blade (`<x-...>`): header, footer, drawer, floatnav; sections/{hero, usp, collections, flash-sale, best-sellers, coupons, herbal-tea, testimonials, tips, trust, region, stats, newsletter}; product/{gallery, info, buybar, tabs, related, review-item, schema}; category/{chips, filters, filter-groups, filter-drawer, toolbar, pagination, seo-text}; ui/{breadcrumb, category-card, product-card, coupon-card, pagination}. Component tự ẩn khi data rỗng — không render "không có dữ liệu".
+Fields:
 
-## CSS (`public/assets/css`)
-`style.css` @import đúng thứ tự cascade 12 partials (01-base … 12-layout-extras); font import bên trong 01-base.css. Mobile-first, breakpoint max-width. Không đảo thứ tự @import, sửa style phải mở đúng partial.
+- `id`
+- `name`
+- `sku`
+- `subtitle`
+- `description`
+- `price`
+- `old_price`
+- `discount_percent`
+- `avg_rating`
+- `review_count`
+- `sold_count`
+- `stock`
+- `image`
+- `meta_description`
+- `category`
 
-## JS (`public/assets/js`)
-- `app.js`: drawer qua `[data-drawer-open]`/`[data-drawer-close]` (class `is-open`), reveal `is-in`, spotlight `is-spotlight`, `show`, đếm `data-count`.
-- `cart.js`: nút `.add-cart` POST fetch `/gio-hang/them` (header X-CSRF-TOKEN từ `meta[name="csrf-token"]`), đọc `input[name="variant_id"]:checked` hoặc `input[name="variant"]:checked` + `input[name="qty"]`, cập nhật `#cartBadge`, refresh `fetch('/gio-hang/count')`, toast `#toast`. Khi set input.value bằng JS phải `dispatchEvent(new Event('change'))`.
+Quy ước:
 
-## Config & Helpers
-`config/thaomoc.php`: order.prefix TMX (format TMX-YYYYMMDD-xxxxx, random 5 số); rate_limits(login 5, checkout 3, apply_coupon 10, search 30, send_otp 3)/phút; cache TTL theo nhóm (home: featured_categories 600, flash_sale 300, best_sellers 600, banners 3600; catalog: category_tree 3600, product_detail 300; content: posts 1800, testimonials 3600; settings 3600); shipping: default_fee 30000, **free_threshold env SHIPPING_FREE_THRESHOLD default 300000**, carrier nội bộ "Giao hàng nội bộ Thảo Mộc Farm"; upload 2MB jpeg/png/webp, thumbnails 300/600/1200; review require_verified_purchase true, auto_approve false.
-Helpers (`app/Support/helpers.php`): `group_version_key(group)`, `remember_group(group,key,ttl,closure)` (key = `{group}:v{version}:{key}`, thay Cache::tags vì driver file), `bump_group_version(group): int`, `format_vnd(800000)→"800.000₫"`, `format_number_compact(3100)→"3.1k"`.
+- `price`: `int`, đơn vị VND.
+- `old_price`: `?int`.
+- `avg_rating`: `float`.
+- `category`: `?CategoryViewDTO`.
 
-## Bẫy đã biết (không được phá)
-1. Route catch-all `/{slug}` phải ở CUỐI routes/web.php.
-2. Tên route web đều prefix `web.` (route('web.product.show', ...) v.v.).
-3. Không có FK constraint → tự đảm bảo toàn vẹn dữ liệu trong Service.
-4. `coupon_products`/`coupon_categories` không có timestamps.
-5. Driver cache file → không dùng Cache::tags, chỉ remember_group/bump_group_version.
-6. Selector JS là contract: #cartBadge, .add-cart, #toast, meta[name=csrf-token], data-drawer-* — đổi tên phải đổi đồng bộ Blade.
-7. Tiền luôn là int VND; chỉ format ở tầng view bằng format_vnd().
+### `CategoryViewDTO`
+
+- `name`
+- `url`
+
+### `RelatedProductDTO`
+
+- `url`
+- `image`
+- `name`
+- `price`
+- `old_price`
+- `discount_percent`
+- `avg_rating`
+- `sold_count`
+
+### `ReviewViewDTO`
+
+- `customer`
+- `rating`
+- `content`
+- `created_at`
+
+---
+
+## 5. Services
+
+**Thư mục:** `app/Services`
+
+### `CartService`
+
+- `getOrCreateCart()`
+- `mergeGuestCart()`
+- `addToCart()`
+- `updateCartItem()`
+- `removeItem()`
+- `getCartDetails()`
+- `getCartSummary()`
+- `getCartItemCount()`
+- `calculateShippingFee()`
+
+### `CatalogService`
+
+- `getProductDetail()`
+- `getProductReviews()`
+- `getCategoryShow(?array)`
+- `getAllProducts()`
+- `searchProducts()`
+
+### `CheckoutService`
+
+- `getCheckoutData()`
+- `calculateShippingFee()`
+- `processCheckout()` → tạo `Order`.
+
+Toàn bộ quá trình ghi đơn chạy trong `DB::transaction`.
+
+Transaction bao gồm:
+
+- `orders`
+- `order_items`
+- `payments`
+- `shipments`
+- `order_status_histories`
+- `stock_movements`
+- `coupon_usages`
+
+`order_items` lưu snapshot dữ liệu sản phẩm tại thời điểm đặt hàng.
+
+Khi checkout thành công, `stock_movements` tạo movement:
+
+- `order_reserve`
+
+Coupon usage được ghi bằng:
+
+`recordUsage($couponId, auth()->id(), $order->id, $discountAmount)`
+
+Đồng thời lưu:
+
+- `coupon_code_snapshot`
+
+### `CouponService`
+
+Methods:
+
+- `findByCode()`
+- `eligibleSubtotal()`
+- `validateForCart()`
+- `calculateDiscount(Coupon, int $eligibleSubtotal, int $shippingFee): int`
+- `applyToCart()`
+- `resolveAppliedCoupon()`
+- `removeAppliedCoupon()`
+- `getAvailableCoupons()`
+- `applyCoupon()`
+- `recordUsage()`
+- `getPublicCoupons()`
+
+### `HomeService`
+
+Methods:
+
+- `featuredCategories()`
+- `flashSale(?array)`
+- `homeCoupons()`
+- `bestSellers()`
+- `herbalTea()`
+
+### Cache Groups
+
+Các cache group đang được sử dụng thực tế:
+
+- `home`
+- `catalog`
+- `content`
+- `settings`
+- `review`
+
+Cache group được bump bằng helper.
+
+Hiện tại **chưa có Artisan command riêng để bump cache**.
+
+Artisan command duy nhất trong app:
+
+`php artisan ai:export-database`
+
+---
+
+## 6. Controllers
+
+**Thư mục:** `app/Http/Controllers/Web`
+
+| Controller | Methods |
+|---|---|
+| `HomeController` | `index` |
+| `ProductController` | `show`, `index` |
+| `CategoryController` | `show` |
+| `SearchController` | `index`, `suggest` |
+| `CartController` | `index`, `add`, `update`, `remove`, `count`, `applyCoupon`, `removeCoupon` |
+| `CheckoutController` | `index`, `store`, `success` |
+
+---
+
+## 7. Requests
+
+**Thư mục:** `app/Requests`  
+**Namespace:** `App\Requests`
+
+> Requests **không nằm trong** `Controllers` hoặc `FormRequests`.
+
+### `AddToCartRequest`
+
+- `product_id`: `required|exists:products,id`
+- `variant_id`: `required|exists:product_variants,id`
+- `qty`: `1..99`
+
+### `UpdateCartRequest`
+
+- `qty`: `1..99`
+
+### `ApplyCouponRequest`
+
+`code`:
+
+- uppercase
+- trim
+- độ dài `3..50`
+- regex `/^[A-Z0-9\-]+$/`
+
+### `CheckoutRequest`
+
+Fields:
+
+- `name`
+- `phone`
+- `email`
+- `province`
+- `district`
+- `ward`
+- `address`
+- `shipping_method`
+- `payment_method`
+- `note`
+
+Rules:
+
+- `name`: ≤ 255.
+- `phone`: `/^[0-9]{9,11}$/`.
+- `email`: nullable.
+- `province`: required.
+- `district`: required.
+- `ward`: nullable.
+- `address`: required.
+- `shipping_method`: `in:fast,standard`.
+- `payment_method`: `in:cod`.
+- `note`: ≤ 1000.
+
+Messages validation đầy đủ bằng tiếng Việt.
+
+### `CategoryShowRequest`
+
+Dùng cho filter/sort tại trang danh mục.
+
+---
+
+## 8. Routes
+
+**File:** `routes/web.php`
+
+> **Thứ tự route rất quan trọng.**
+
+| Method | URI | Name | Controller |
+|---|---|---|---|
+| `GET` | `/` | `web.home` | `HomeController@index` |
+| `GET` | `/tat-ca-san-pham` | `web.products.index` | `ProductController@index` |
+| `GET` | `/tim-kiem` | `web.search.index` | `SearchController@index` |
+| `GET` | `/tim-kiem/goi-y` | `web.search.suggest` | `SearchController@suggest` |
+| `GET` | `/danh-muc/{slug}` | `web.category.show` | `CategoryController@show` |
+| `GET` | `/gio-hang` | `web.cart.index` | `CartController@index` |
+| `POST` | `/gio-hang/them` | `web.cart.add` | `CartController@add` |
+| `POST` | `/gio-hang/cap-nhat/{itemId}` | `web.cart.update` | `CartController@update` |
+| `DELETE` | `/gio-hang/xoa/{itemId}` | `web.cart.remove` | `CartController@remove` |
+| `GET` | `/gio-hang/count` | `web.cart.count` | `CartController@count` |
+| `POST` | `/gio-hang/ma-giam-gia/ap-dung` | `web.cart.coupon.apply` | `CartController@applyCoupon` |
+| `DELETE` | `/gio-hang/ma-giam-gia` | `web.cart.coupon.remove` | `CartController@removeCoupon` |
+| `GET` | `/thanh-toan` | `web.checkout.index` | `CheckoutController@index` |
+| `POST` | `/thanh-toan` | `web.checkout.store` | `CheckoutController@store` |
+| `GET` | `/dat-hang-thanh-cong/{order_number}` | `web.checkout.success` | `CheckoutController@success` |
+| `GET` | `/san-pham/{slug}` | `web.product.show` | `ProductController@show` |
+| `GET` | `/{slug}` | `web.category.pretty` | `CategoryController@show` |
+
+### Route Rules
+
+Hai route:
+
+- `GET /tim-kiem`
+- `GET /tim-kiem/goi-y`
+
+phải được khai báo **trước** các route có `{slug}`.
+
+Route catch-all:
+
+`GET /{slug}`
+
+**BẮT BUỘC phải nằm cuối cùng trong `routes/web.php`.**
+
+---
+
+## 9. Views
+
+**Thư mục:** `resources/views`
+
+### Layout
+
+Layout chính:
+
+`<x-layouts.app>`
+
+File:
+
+`components/layouts/app.blade.php`
+
+Bao gồm:
+
+- `meta[name="csrf-token"]`
+- `style.css`
+- `app.js`
+- `cart.js`
+
+### Pages
+
+- `web/home`
+- `web/category`
+- `web/product`
+- `web/products`
+- `web/search`
+- `web/cart`
+- `web/checkout`
+- `web/checkout-success`
+
+Các file cũ/default vẫn tồn tại:
+
+- `home.blade.php`
+- `welcome.blade.php`
+
+### Blade Components
+
+#### Common
+
+- `header`
+- `footer`
+- `drawer`
+- `floatnav`
+
+#### Sections
+
+- `sections/hero`
+- `sections/usp`
+- `sections/collections`
+- `sections/flash-sale`
+- `sections/best-sellers`
+- `sections/coupons`
+- `sections/herbal-tea`
+- `sections/testimonials`
+- `sections/tips`
+- `sections/trust`
+- `sections/region`
+- `sections/stats`
+- `sections/newsletter`
+
+#### Product
+
+- `product/gallery`
+- `product/info`
+- `product/buybar`
+- `product/tabs`
+- `product/related`
+- `product/review-item`
+- `product/schema`
+
+#### Category
+
+- `category/chips`
+- `category/filters`
+- `category/filter-groups`
+- `category/filter-drawer`
+- `category/toolbar`
+- `category/pagination`
+- `category/seo-text`
+
+#### UI
+
+- `ui/breadcrumb`
+- `ui/category-card`
+- `ui/product-card`
+- `ui/coupon-card`
+- `ui/pagination`
+
+### Component Behavior
+
+Component tự ẩn khi data rỗng.
+
+Không render:
+
+`"Không có dữ liệu"`
+
+---
+
+## 10. CSS
+
+**Thư mục:** `public/assets/css`
+
+File entry point:
+
+`style.css`
+
+`style.css` import đúng thứ tự cascade của **12 partials**:
+
+- `01-base`
+- `02-...`
+- `03-...`
+- `04-...`
+- `05-...`
+- `06-...`
+- `07-...`
+- `08-...`
+- `09-...`
+- `10-...`
+- `11-...`
+- `12-layout-extras`
+
+Font được import bên trong `01-base.css`.
+
+Quy tắc:
+
+- Mobile-first.
+- Breakpoint sử dụng `max-width`.
+- Không đảo thứ tự `@import`.
+- Khi sửa CSS phải mở đúng partial tương ứng.
+- Không gom CSS vào `style.css` nếu partial tương ứng đã tồn tại.
+
+---
+
+## 11. JavaScript
+
+**Thư mục:** `public/assets/js`
+
+### `app.js`
+
+Drawer sử dụng:
+
+- `[data-drawer-open]`
+- `[data-drawer-close]`
+
+Class trạng thái:
+
+- `is-open`
+
+Reveal:
+
+- `is-in`
+
+Spotlight:
+
+- `is-spotlight`
+
+Show:
+
+- `show`
+
+Counter:
+
+- `data-count`
+
+### `cart.js`
+
+Nút thêm giỏ hàng:
+
+`.add-cart`
+
+Request:
+
+`POST /gio-hang/them`
+
+CSRF token lấy từ:
+
+`meta[name="csrf-token"]`
+
+Header:
+
+`X-CSRF-TOKEN`
+
+Variant được đọc từ:
+
+- `input[name="variant_id"]:checked`
+- hoặc `input[name="variant"]:checked`
+
+Quantity:
+
+`input[name="qty"]`
+
+Cart badge:
+
+`#cartBadge`
+
+Refresh cart count:
+
+`GET /gio-hang/count`
+
+Toast:
+
+`#toast`
+
+### JavaScript Contract
+
+Khi set `input.value` bằng JavaScript phải gọi:
+
+`input.dispatchEvent(new Event('change'))`
+
+để kích hoạt các listener liên quan.
+
+---
+
+## 12. Config
+
+**File:** `config/thaomoc.php`
+
+### Order
+
+Prefix:
+
+`TMX`
+
+Format:
+
+`TMX-YYYYMMDD-xxxxx`
+
+Trong đó `xxxxx` là random 5 số.
+
+### Rate Limits
+
+Đơn vị: request/phút.
+
+| Action | Limit |
+|---|---:|
+| `login` | 5 |
+| `checkout` | 3 |
+| `apply_coupon` | 10 |
+| `search` | 30 |
+| `send_otp` | 3 |
+
+### Cache TTL
+
+#### `home`
+
+| Key | TTL |
+|---|---:|
+| `featured_categories` | 600 |
+| `flash_sale` | 300 |
+| `best_sellers` | 600 |
+| `banners` | 3600 |
+
+#### `catalog`
+
+| Key | TTL |
+|---|---:|
+| `category_tree` | 3600 |
+| `product_detail` | 300 |
+
+#### `content`
+
+| Key | TTL |
+|---|---:|
+| `posts` | 1800 |
+| `testimonials` | 3600 |
+
+#### `settings`
+
+`3600`
+
+### Shipping
+
+Default fee:
+
+`30000`
+
+Free shipping threshold:
+
+`env('SHIPPING_FREE_THRESHOLD', 300000)`
+
+Environment:
+
+`SHIPPING_FREE_THRESHOLD=300000`
+
+Carrier nội bộ:
+
+`Giao hàng nội bộ Thảo Mộc Farm`
+
+### Upload
+
+- Max size: `2MB`
+- Formats: `jpeg`, `png`, `webp`
+- Thumbnails: `300`, `600`, `1200`
+
+### Review
+
+- `require_verified_purchase = true`
+- `auto_approve = false`
+
+---
+
+## 13. Helpers
+
+**File:** `app/Support/helpers.php`
+
+### `group_version_key()`
+
+`group_version_key($group)`
+
+### `remember_group()`
+
+`remember_group($group, $key, $ttl, $closure)`
+
+Key thực tế:
+
+`{group}:v{version}:{key}`
+
+Không sử dụng `Cache::tags()` vì cache driver hiện tại là `file`.
+
+### `bump_group_version()`
+
+`bump_group_version($group): int`
+
+### `format_vnd()`
+
+Ví dụ:
+
+`format_vnd(800000)` → `"800.000₫"`
+
+### `format_number_compact()`
+
+Ví dụ:
+
+`format_number_compact(3100)` → `"3.1k"`
+
+---
+
+## 14. Database Export
+
+Database context phục vụ AI được tạo bằng:
+
+`php artisan ai:export-database`
+
+Output:
+
+- `src/PROJECT_CONTEXT/INDEX.md`
+- `src/PROJECT_CONTEXT/tables/<bảng>.md`
+- `src/PROJECT_CONTEXT/data/<bảng>.jsonl`
+
+### Ý nghĩa
+
+`INDEX.md`
+
+→ Index/tổng quan database.
+
+`tables/<bảng>.md`
+
+→ Cấu trúc từng bảng.
+
+`data/<bảng>.jsonl`
+
+→ Toàn bộ dữ liệu từng bảng.
+
+Mục đích:
+
+> `PROJECT_CONTEXT` là nguồn context database để AI đọc và hiểu cấu trúc cũng như dữ liệu thực tế của project.
+
+---
+
+# 15. Bẫy đã biết — Không được phá
+
+## 15.1. Route Catch-all
+
+Route:
+
+`/{slug}`
+
+phải ở **CUỐI CÙNG** `routes/web.php`.
+
+---
+
+## 15.2. Route Names
+
+Tất cả route web đều có prefix:
+
+`web.`
+
+Ví dụ:
+
+`route('web.product.show', ...)`
+
+Không tự ý đổi thành:
+
+`route('product.show', ...)`
+
+---
+
+## 15.3. Database Foreign Keys
+
+Database **không có FK constraint**.
+
+Toàn vẹn dữ liệu phải được tự đảm bảo trong Service/Application layer.
+
+Không được giả định database đang enforce foreign key.
+
+---
+
+## 15.4. Coupon Pivot Tables
+
+Hai bảng:
+
+- `coupon_products`
+- `coupon_categories`
+
+**không có timestamps**.
+
+Không tự ý sử dụng:
+
+- `created_at`
+- `updated_at`
+
+cho hai bảng này.
+
+---
+
+## 15.5. Cache Driver
+
+Cache driver hiện tại:
+
+`file`
+
+Không sử dụng:
+
+`Cache::tags()`
+
+Phải sử dụng:
+
+- `remember_group()`
+- `bump_group_version()`
+
+---
+
+## 15.6. JavaScript Selectors
+
+Các selector sau là **frontend contract**:
+
+- `#cartBadge`
+- `.add-cart`
+- `#toast`
+- `meta[name="csrf-token"]`
+- `[data-drawer-open]`
+- `[data-drawer-close]`
+
+Nếu đổi tên bất kỳ selector nào:
+
+> Phải cập nhật đồng bộ toàn bộ Blade/JS liên quan.
+
+---
+
+## 15.7. Money
+
+Tiền trong backend/database luôn là:
+
+`int VND`
+
+Không lưu tiền dạng float.
+
+Chỉ format ở tầng View bằng:
+
+`format_vnd()`
+
+Ví dụ:
+
+`format_vnd($product->price)`
+
+Không format tiền trước khi truyền vào Service hoặc database.
+
+---
+
+## 15.8. Database Export
+
+Database export được thực hiện bằng:
+
+`php artisan ai:export-database`
+
+Output:
+
+- `src/PROJECT_CONTEXT/INDEX.md`
+- `src/PROJECT_CONTEXT/tables/`
+- `src/PROJECT_CONTEXT/data/`
+
+Command:
+
+- Export cấu trúc database.
+- Export toàn bộ dữ liệu các bảng.
+- Chỉ đọc dữ liệu bằng `SELECT`.
+- Không sửa dữ liệu.
+- Có thể chạy lại để cập nhật context cho AI.
+- Không giới hạn số lượng record.
+- Export các dữ liệu cần thiết để AI hiểu project.
+- Các bảng framework chỉ được thêm khi sử dụng `--include-framework`.
+
+---
+
+# 16. Core Contracts Summary
+
+Các contract quan trọng nhất cần giữ nguyên:
+
+| Nhóm | Contract |
+|---|---|
+| Routes | `/{slug}` phải ở cuối. |
+| Routes | Route name luôn có prefix `web.`. |
+| Database | Không có FK constraint. |
+| Database | `coupon_products` không có timestamps. |
+| Database | `coupon_categories` không có timestamps. |
+| Cache | Driver = `file`. |
+| Cache | Không dùng `Cache::tags()`. |
+| Cache | Dùng `remember_group()` / `bump_group_version()`. |
+| Money | Tiền luôn là `int VND`. |
+| Money | Chỉ format ở View bằng `format_vnd()`. |
+| Frontend | `#cartBadge` là contract. |
+| Frontend | `.add-cart` là contract. |
+| Frontend | `#toast` là contract. |
+| Frontend | `meta[name="csrf-token"]` là contract. |
+| Frontend | `[data-drawer-open]` / `[data-drawer-close]` là contract. |
+| JavaScript | Khi set `input.value` bằng JS phải `dispatchEvent(new Event('change'))`. |
+| Database Export | Dùng `php artisan ai:export-database`. |
+| Database Export | Output tại `src/PROJECT_CONTEXT/`. |
+
+> **Nguyên tắc:** Khi thay đổi code, phải giữ nguyên các contract trên trừ khi có yêu cầu thay đổi rõ ràng. Nếu bắt buộc thay đổi một contract, phải kiểm tra và cập nhật toàn bộ thành phần phụ thuộc trước khi hoàn tất.
