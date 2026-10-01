@@ -567,3 +567,8 @@
     font-size: 12px;
     color: var(--muted, #6b7280);
 }
+/* FIX ĐỒNG BỘ: home đếm tới end_at của phiên — ẩn dòng countdown khi phiên kết thúc
+   (state do app.js thêm class .is-ended vào .countdown--fs) */
+.countdown--fs.is-ended {
+    display: none;
+}

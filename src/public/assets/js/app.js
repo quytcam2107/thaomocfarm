@@ -100,8 +100,11 @@
 
     /* =====================================================================
        COUNTDOWN FLASH SALE — HOME + PDP dùng chung 1 engine GIỜ:PHÚT:GIÂY
-       - Home:  #cdH/#cdM/#cdS  (data-ends trên .countdown — bỏ qua, giữ mốc cuối ngày như cũ)
-       - PDP:   #pdCdH/#pdCdM/#pdCdS (data-ends = unix end_at của phiên flash sale)
+       - Mốc kết thúc duy nhất = end_at của phiên flash sale (server tính),
+         blade xuất data-ends (unix giây) GIỐNG NHAU cho cả 2 trang.
+       - FIX ĐỒNG BỘ: home không còn đếm tới "cuối ngày theo đồng hồ máy
+         khách"; PDP không còn chạy pdp-flash.js riêng (2 script trước đây
+         cùng ghi đè #pdCdH/M/S gây sai giờ). KHÔNG dùng meta server-time.
        - KHÔNG hiển thị số "ngày": tổng giây còn lại quy hết ra giờ (vd 26 tiếng
          => "26:00:00"), đồng nhất cách đếm của trang home.
        ===================================================================== */
@@ -122,14 +125,17 @@
         return timer;
     }
 
-    /* Countdown trang home: tới cuối ngày (giữ nguyên hành vi cũ 100%) */
+    /* Countdown trang home: đếm tới end_at của phiên (data-ends = unix giây) */
+    const cdHome = q('.countdown[data-ends]');
     const cdH = q('#cdH'), cdM = q('#cdM'), cdS = q('#cdS');
-    if (cdH && cdM && cdS) {
-        const end = new Date(); end.setHours(23, 59, 59, 999);
-        runCountdown(cdH, cdM, cdS, Math.floor(end.getTime() / 1000));
+    if (cdH && cdM && cdS && cdHome) {
+        const endsUnix = parseInt(cdHome.dataset.ends, 10);
+        if (!isNaN(endsUnix) && endsUnix > 0) {
+            runCountdown(cdH, cdM, cdS, endsUnix);
+        }
     }
 
-    /* NEW: Countdown flash sale trên PDP — đếm tới end_at của phiên, H:M:S như home */
+    /* Countdown flash sale trên PDP — đếm tới CÙNG end_at với home, H:M:S như home */
     const pdBox = q('[data-pd-flash]');
     if (pdBox) {
         const pdH = q('#pdCdH'), pdM = q('#pdCdM'), pdS = q('#pdCdS');

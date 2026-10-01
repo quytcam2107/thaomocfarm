@@ -7,8 +7,8 @@
                 {{-- Giữ UI của B, nhưng dùng text của A --}}
                 <h2 class="flash__title" id="flashTitle">⚡ Flash Sale hôm nay</h2>
 
-                {{-- Thêm data-ends của A vào để JS đếm ngược hoạt động đúng --}}
-                <p class="countdown" data-ends="{{ $products['ends_at'] }}" role="timer" aria-live="polite">
+                {{-- data-ends = unix giây end_at của phiên (CÙNG mốc với PDP) — JS app.js đếm về mốc này --}}
+                <p class="countdown" data-ends="{{ $products['ends_at_unix'] }}" role="timer" aria-live="polite">
                     Kết thúc sau
                     <b class="cd" id="cdH">00</b>:<b class="cd" id="cdM">00</b>:<b class="cd" id="cdS">00</b>
                 </p>

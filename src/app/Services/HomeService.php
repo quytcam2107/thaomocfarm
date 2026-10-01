@@ -66,7 +66,7 @@ class HomeService
     }
 
     /**
-     * Block flash sale "Giá siêu hời" đang chạy.
+     * Block flash sale trang chủ.
      * - Chọn promotion flash_sale active + trong khung giờ
      * - Eager load product + coverImage + defaultVariant (không N+1)
      * - Cột select của relation ofMany phải định danh tên bảng (tránh lỗi 1052)
@@ -85,7 +85,7 @@ class HomeService
                 ->where('start_at', '<=', now())
                 ->where('end_at', '>', now())
                 ->orderBy('end_at')
-                ->first(['id', 'name', 'end_at']);
+                ->first(['id', 'end_at']); // name + end_at unix lấy fresh từ currentPromotionMeta() bên dưới
 
             if ($promotion === null) {
                 return null;
@@ -135,11 +135,28 @@ class HomeService
             $soldToday = array_sum(array_column($items, 'qty_sold'));
             $urgentCount = count(array_filter($items, static fn(array $i): bool => $i['is_urgent']));
 
+            /*
+             * FIX ĐỒNG BỘ HOME <-> PDP:
+             * metadata phiên (ends_at/ends_at_unix/promotion_name) KHÔNG lấy từ bản
+             * query riêng trong block cache 'home' (TTL 5') nữa — vì admin sửa end_at
+             * thì home hiển thị mốc cũ trong khi PDP đã đổi mốc mới. Nay đọc qua
+             * FlashSalePriceService::currentPromotionMeta() (cache nhóm 'catalog',
+             * CÙNG điều kiện chọn phiên với PDP: type=flash_sale, status=active,
+             * start_at<=now<end_at, ưu tiên end_at gần nhất) => 2 màn luôn dùng
+             * chung một mốc kết thúc. Danh sách items vẫn cache 'home' như cũ.
+             */
+            $meta = $this->flashPricing->currentPromotionMeta();
+
+            // Hết phiên giữa lúc còn bản cache 'home' cũ => coi như không có deal
+            if ($meta === null || $meta['promotion_id'] !== (int) $promotion->id) {
+                return null;
+            }
+
             return [
                 'promotion_id' => (int) $promotion->id,
-                'promotion_name' => $promotion->name,
+                'promotion_name' => $meta['promotion_name'],
                 'ends_at' => $promotion->end_at->toIso8601String(),
-                'ends_at_unix' => $promotion->end_at->getTimestamp(),
+                'ends_at_unix' => $meta['ends_at_unix'],
                 'sold_today' => $soldToday,
                 'urgent_count' => $urgentCount,
                 'items' => $items,

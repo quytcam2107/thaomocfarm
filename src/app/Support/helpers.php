@@ -69,3 +69,14 @@ if (!function_exists('format_number_compact')) {
         return (string) $number;
     }
 }
+
+if (!function_exists('date_iso8601_from_unix')) {
+    /**
+     * FIX ĐỒNG BỘ FLASH SALE: unix giây -> ISO8601 theo múi giờ app (đồng nhất
+     * với $promotion->end_at->toIso8601String() trước đây trong HomeService).
+     */
+    function date_iso8601_from_unix(int $unix): string
+    {
+        return \Illuminate\Support\Carbon::createFromTimestamp($unix)->toIso8601String();
+    }
+}
