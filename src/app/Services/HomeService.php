@@ -4,46 +4,26 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\ProductStatus;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\PromotionProduct;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use App\Enums\ProductStatus;
-use App\Models\Product;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
+/**
+ * HomeService — các block trang chủ (danh mục nổi bật, flash sale, coupon,
+ * bán chạy, trà hoa). Ngưỡng/số lượng fix cứng đã tách sang config/home.php;
+ * public API và kết quả giữ nguyên 100%.
+ */
 class HomeService
 {
     public function __construct(
         private readonly CouponService $couponService
     ) {
     }
-
-    /** Số danh mục nổi bật tối đa hiển thị ở block trang chủ */
-    private const FEATURED_LIMIT = 8;
-
-    /** TTL cache của block danh mục nổi bật (10 phút) */
-    private const FEATURED_TTL = 600;
-
-    /** Số mã giảm giá tối đa hiển thị ở block trang chủ */
-    private const COUPONS_LIMIT = 8;
-
-    /** TTL cache block mã giảm giá (10 phút) */
-    private const COUPONS_TTL = 600;
-
-    /** Số sản phẩm bán chạy tối đa hiển thị */
-    private const BEST_SELLERS_LIMIT = 4;
-
-    /** TTL cache block bán chạy (10 phút) */
-    private const BEST_SELLERS_TTL = 600;
-
-    /** Số sản phẩm Trà hoa thảo mộc tối đa hiển thị ở block trang chủ */
-    private const HERBAL_TEA_LIMIT = 8;
-
-    /** TTL cache block Trà hoa thảo mộc (10 phút) */
-    private const HERBAL_TEA_TTL = 600;
 
     /**
      * Danh sách danh mục nổi bật kèm số sản phẩm đang bán.
@@ -54,7 +34,7 @@ class HomeService
      */
     public function featuredCategories(): array
     {
-        return remember_group('home', 'featured_categories', self::FEATURED_TTL, function (): array {
+        return remember_group('home', 'featured_categories', $this->ttl('featured_categories'), function (): array {
             return Category::query()
                 ->where('status', 'active')
                 ->where('is_featured', true)
@@ -64,7 +44,7 @@ class HomeService
                 ])
                 ->orderBy('sort_order')
                 ->orderBy('id')
-                ->limit(self::FEATURED_LIMIT)
+                ->limit($this->limit('featured_categories'))
                 ->get(['id', 'name', 'slug', 'icon', 'sort_order'])
                 ->map(fn(Category $category): array => [
                     'id' => (int) $category->id,
@@ -80,24 +60,6 @@ class HomeService
         });
     }
 
-    /** Số sản phẩm flash sale tối đa hiển thị ở block trang chủ */
-    private const FLASH_LIMIT = 8;
-
-    /** TTL cache block flash sale (giây) – ngắn hơn vì deal đổi thường xuyên */
-    private const FLASH_TTL = 300;
-
-    /** Ngưỡng % đã bán của deal -> hiện text cảnh báo "Sắp cháy hàng" */
-    private const FLASH_URGENT_PERCENT = 70;
-
-    /** Số slot còn lại -> hiện text cảnh báo "Sắp cháy hàng" (deal gần hết) */
-    private const FLASH_URGENT_SLOTS = 10;
-
-    /** Ngưỡng % giảm giá -> text kích thích "Giảm giá sâu" khi deal chưa sắp cháy hàng */
-    private const FLASH_DEEP_DISCOUNT_PERCENT = 30;
-
-    /** Ngưỡng lượt bán của deal -> text kích thích "Bán chạy" khi deal chưa sắp cháy hàng */
-    private const FLASH_HOT_SOLD_COUNT = 100;
-
     /**
      * Block flash sale "Giá siêu hời" đang chạy.
      * - Chọn promotion flash_sale active + trong khung giờ
@@ -109,7 +71,7 @@ class HomeService
      */
     public function flashSale(): ?array
     {
-        return remember_group('home', 'flash_sale', self::FLASH_TTL, function (): ?array {
+        return remember_group('home', 'flash_sale', $this->ttl('flash_sale'), function (): ?array {
             /** @var Promotion|null $promotion */
             $promotion = Promotion::query()
                 ->where('type', 'flash_sale')
@@ -151,7 +113,7 @@ class HomeService
                 ])
                 ->orderBy('sort_order') // giữ đúng thứ tự sort_order admin cấu hình trong DB
                 ->orderBy('id')
-                ->limit(self::FLASH_LIMIT)
+                ->limit($this->limit('flash_sale'))
                 ->get(['id', 'product_id', 'product_variant_id', 'flash_price', 'discount_percent', 'qty_total', 'qty_sold', 'sort_order'])
                 ->filter(fn(PromotionProduct $pp): bool => $pp->product !== null
                     && ($pp->product_variant_id !== null || $pp->product->defaultVariant !== null))
@@ -189,18 +151,20 @@ class HomeService
      */
     private function flashHookText(int $discount, int $soldPercent, int $slotsLeft, int $qtySold): array
     {
+        $hooks = (array) config('home.flash_hooks');
+
         // 1) Sắp cháy hàng: đã bán >= ngưỡng % hoặc còn rất ít slot
-        if ($soldPercent >= self::FLASH_URGENT_PERCENT || ($slotsLeft > 0 && $slotsLeft <= self::FLASH_URGENT_SLOTS)) {
+        if ($soldPercent >= (int) $hooks['urgent_percent'] || ($slotsLeft > 0 && $slotsLeft <= (int) $hooks['urgent_slots'])) {
             return ['text' => 'Sắp cháy hàng 🔥', 'tone' => 'hot'];
         }
 
         // 2) Giảm giá sâu: % giảm >= ngưỡng
-        if ($discount >= self::FLASH_DEEP_DISCOUNT_PERCENT) {
+        if ($discount >= (int) $hooks['deep_discount_percent']) {
             return ['text' => 'Giảm giá sâu -' . $discount . '%', 'tone' => 'deep'];
         }
 
         // 3) Bán chạy: lượt bán của deal >= ngưỡng
-        if ($qtySold >= self::FLASH_HOT_SOLD_COUNT) {
+        if ($qtySold >= (int) $hooks['hot_sold_count']) {
             return ['text' => 'Bán chạy ⚡', 'tone' => 'sell'];
         }
 
@@ -271,8 +235,8 @@ class HomeService
      */
     public function homeCoupons(): array
     {
-        return remember_group('home', 'coupons', self::COUPONS_TTL, function (): array {
-            return $this->couponService->getPublicCoupons(self::COUPONS_LIMIT);
+        return remember_group('home', 'coupons', $this->ttl('coupons'), function (): array {
+            return $this->couponService->getPublicCoupons($this->limit('coupons'));
         });
     }
 
@@ -281,34 +245,14 @@ class HomeService
      * - 1 query chính + 1 eager load ảnh bìa (ofMany định danh bảng)
      * - Cache array thuần (không object) để tránh lỗi unserialize
      *
-     * @return array<int, array{id: int, name: string, url: string, image: string, rating_avg: string, sold_count: int, price: int, old_price: int|null, discount_percent: int, product_id: int, variant_id: int}>
+     * @return array<int, array<string, mixed>>
      */
     public function bestSellers(): array
     {
-        return remember_group('home', 'best_sellers', self::BEST_SELLERS_TTL, function (): array {
-            $products = Product::query()
-                ->select(['id', 'slug', 'name', 'price_min', 'compare_price', 'sold_count', 'rating_avg'])
-                ->where('status', ProductStatus::ACTIVE->value)
-                ->with([
-                    'coverImage' => function (HasOne $query): void {
-                        $query->select([
-                            'product_images.id',
-                            'product_images.product_id',
-                            'product_images.path',
-                            'product_images.thumb_path',
-                        ]);
-                    },
-                    'defaultVariant' => function (Relation $query): void {
-                        $query->select([
-                            'product_variants.id',
-                            'product_variants.product_id',
-                            'product_variants.price',
-                            'product_variants.stock',
-                        ]);
-                    }
-                ])
+        return remember_group('home', 'best_sellers', $this->ttl('best_sellers'), function (): array {
+            $products = $this->homeProductQuery()
                 ->orderByDesc('sold_count')
-                ->limit(self::BEST_SELLERS_LIMIT)
+                ->limit($this->limit('best_sellers'))
                 ->get();
 
             return $products->map(static function (Product $p): array {
@@ -348,37 +292,17 @@ class HomeService
      */
     public function herbalTea(): array
     {
-        return remember_group('home', 'herbal_tea', self::HERBAL_TEA_TTL, function (): array {
+        return remember_group('home', 'herbal_tea', $this->ttl('herbal_tea'), function (): array {
             $category = Category::query()->where('slug', 'tra-hoa-thao-moc')->first(['id']);
 
             if ($category === null) {
                 return [];
             }
 
-            $products = Product::query()
-                ->select(['id', 'slug', 'name', 'price_min', 'compare_price', 'sold_count', 'rating_avg'])
-                ->where('status', ProductStatus::ACTIVE->value)
+            $products = $this->homeProductQuery()
                 ->where('category_id', $category->id)
-                ->with([
-                    'coverImage' => function (HasOne $query): void {
-                        $query->select([
-                            'product_images.id',
-                            'product_images.product_id',
-                            'product_images.path',
-                            'product_images.thumb_path',
-                        ]);
-                    },
-                    'defaultVariant' => function (Relation $query): void {
-                        $query->select([
-                            'product_variants.id',
-                            'product_variants.product_id',
-                            'product_variants.price',
-                            'product_variants.stock',
-                        ]);
-                    }
-                ])
                 ->orderByDesc('sold_count')
-                ->limit(self::HERBAL_TEA_LIMIT)
+                ->limit($this->limit('herbal_tea'))
                 ->get();
 
             return $products->map(static function (Product $p): array {
@@ -405,5 +329,46 @@ class HomeService
                 ];
             })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();
         });
+    }
+
+    /**
+     * Query sản phẩm dùng chung 2 block listing trang chủ (bán chạy + trà hoa):
+     * active + eager coverImage/defaultVariant với cột định danh bảng.
+     */
+    private function homeProductQuery(): Builder
+    {
+        return Product::query()
+            ->select(['id', 'slug', 'name', 'price_min', 'compare_price', 'sold_count', 'rating_avg'])
+            ->where('status', ProductStatus::ACTIVE->value)
+            ->with([
+                'coverImage' => function (HasOne $query): void {
+                    $query->select([
+                        'product_images.id',
+                        'product_images.product_id',
+                        'product_images.path',
+                        'product_images.thumb_path',
+                    ]);
+                },
+                'defaultVariant' => function (Relation $query): void {
+                    $query->select([
+                        'product_variants.id',
+                        'product_variants.product_id',
+                        'product_variants.price',
+                        'product_variants.stock',
+                    ]);
+                }
+            ]);
+    }
+
+    /** Số item tối đa 1 block (config/home.php → limits). */
+    private function limit(string $block): int
+    {
+        return (int) config('home.limits.' . $block);
+    }
+
+    /** TTL cache 1 block (config/home.php → ttl). */
+    private function ttl(string $block): int
+    {
+        return (int) config('home.ttl.' . $block);
     }
 }

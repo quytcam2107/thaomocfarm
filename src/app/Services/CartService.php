@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\ProductVariant;
+use App\Services\Cart\CartTotals;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
@@ -252,7 +253,6 @@ class CartService
         $userId = auth()->id();
 
         $goodsDiscount = 0;
-        $shippingDiscount = 0;
         $applied = null;
 
         $resolved = $this->couponService->resolveAppliedCoupon($cartId, $userId);
@@ -272,27 +272,24 @@ class CartService
             ];
         }
 
-        $discountedSubtotal = max(0, $subtotal - $goodsDiscount);
-        $shippingFee = $this->calculateShippingFee($discountedSubtotal);
-
-        if ($applied !== null && $applied['type'] === 'shipping') {
-            $shippingDiscount = $shippingFee;
-        }
-
-        $discount = $goodsDiscount + $shippingDiscount;
+        // Phần tính tiền pure delegate sang CartTotals (công thức giữ nguyên bản gốc)
+        $totals = CartTotals::compute(
+            $subtotal,
+            $applied,
+            $goodsDiscount,
+            fn(int $s): int => $this->calculateShippingFee($s)
+        );
 
         if ($applied !== null) {
-            $applied['discount'] = $discount;
+            $applied['discount'] = $totals['discount'];
         }
-
-        $total = $discountedSubtotal + $shippingFee - $shippingDiscount;
 
         return [
             'subtotal' => $subtotal,
-            'discounted_subtotal' => $discountedSubtotal,
-            'discount' => $discount,
-            'shipping_fee' => $shippingFee,
-            'total' => $total,
+            'discounted_subtotal' => $totals['discounted_subtotal'],
+            'discount' => $totals['discount'],
+            'shipping_fee' => $totals['shipping_fee'],
+            'total' => $totals['total'],
             'total_qty' => (int) $details['total_qty'],
             'item_count' => (int) $details['total_items'],
             'applied' => $applied,

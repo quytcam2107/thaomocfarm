@@ -7,9 +7,15 @@ namespace App\Services;
 use App\Enums\CouponType;
 use App\Models\Coupon;
 use App\Models\CartItem;
+use App\Services\Coupon\CouponTexts;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * CouponService — vòng đời mã giảm giá trong giỏ (find/validate/apply/resolve).
+ * Toàn bộ câu chữ fix cứng đã tách sang App\Services\Coupon\CouponTexts
+ * + config/coupons.php; public API và logic giữ nguyên 100%.
+ */
 class CouponService
 {
     /** Key session lưu mã đang áp cho giỏ hàng. */
@@ -71,6 +77,7 @@ class CouponService
         $query = CartItem::where('cart_items.cart_id', $cartId)
             ->join('product_variants', 'product_variants.id', '=', 'cart_items.product_variant_id');
 
+        // Không ràng buộc phạm vi => cả giỏ đều đủ điều kiện
         if ($productIds === [] && $categoryIds === []) {
             return (int) $query->sum(DB::raw('product_variants.price * cart_items.qty'));
         }
@@ -122,14 +129,14 @@ class CouponService
     public function validateForCart(Coupon $coupon, int $cartId, ?int $userId): array
     {
         if ($this->statusValue($coupon) !== 'active') {
-            return ['ok' => false, 'reason' => 'Mã giảm giá đã bị vô hiệu hóa.', 'eligible' => 0];
+            return ['ok' => false, 'reason' => CouponTexts::message('disabled'), 'eligible' => 0];
         }
         if (!$this->isWithinTimeWindow($coupon)) {
-            return ['ok' => false, 'reason' => 'Mã giảm giá chưa bắt đầu hoặc đã hết hạn.', 'eligible' => 0];
+            return ['ok' => false, 'reason' => CouponTexts::message('expired'), 'eligible' => 0];
         }
         $eligible = $this->eligibleSubtotal($cartId, $coupon);
         if ($eligible <= 0) {
-            return ['ok' => false, 'reason' => 'Giỏ hàng không có sản phẩm áp dụng được mã này.', 'eligible' => 0];
+            return ['ok' => false, 'reason' => CouponTexts::message('not_eligible'), 'eligible' => 0];
         }
         if ($eligible < (int) $coupon->min_order_value) {
             return [
@@ -139,7 +146,7 @@ class CouponService
             ];
         }
         if (!$this->hasUsageRemaining($coupon, $userId)) {
-            return ['ok' => false, 'reason' => 'Mã giảm giá đã hết lượt sử dụng.', 'eligible' => $eligible];
+            return ['ok' => false, 'reason' => CouponTexts::message('exhausted'), 'eligible' => $eligible];
         }
         return ['ok' => true, 'reason' => '', 'eligible' => $eligible];
     }
@@ -176,7 +183,7 @@ class CouponService
     {
         $coupon = $this->findByCode($code);
         if ($coupon === null) {
-            return ['success' => false, 'message' => 'Mã giảm giá không tồn tại hoặc đã hết hiệu lực.', 'code' => ''];
+            return ['success' => false, 'message' => CouponTexts::message('invalid'), 'code' => ''];
         }
         $check = $this->validateForCart($coupon, $cartId, $userId);
         if (!$check['ok']) {
@@ -185,7 +192,7 @@ class CouponService
         session([self::SESSION_KEY => strtoupper((string) $coupon->code)]);
         return [
             'success' => true,
-            'message' => 'Áp dụng mã ' . $coupon->code . ' thành công.',
+            'message' => CouponTexts::message('applied', [':code' => (string) $coupon->code]),
             'code' => (string) $coupon->code,
         ];
     }
@@ -228,68 +235,29 @@ class CouponService
     }
 
     /**
-     * Danh sách mã đang phát hành — map ra đúng 4 props mà component cpn dùng:
-     *  - code:      string (mã uppercase)
-     *  - desc:      string (mô tả, tự sinh ngắn gọn nếu DB trống)
-     *  - minOrder:  string (đã format "Đơn tối thiểu xxx.000₫")
-     *  - exp:       string (HSD dd/mm/yyyy hoặc "Không giới hạn")
-     *  - applied:   bool  (đang là mã đang áp trong session — dùng để wrap highlight)
+     * Danh sách mã đang phát hành — map ra đúng props mà component cpn dùng:
+     *  code / desc / minOrder / exp / applied.
      *
      * @return array<int, array<string, mixed>>
      */
     public function getAvailableCoupons(int $cartId, ?int $userId): array
     {
-        $now = now();
-
-        $coupons = Coupon::query()
-            ->where('status', 'active')
-            ->where(function (Builder $q) use ($now): void {
-                $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
-            })
-            ->where(function (Builder $q) use ($now): void {
-                $q->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
-            })
-            ->orderBy('min_order_value')
-            ->orderBy('id')
-            ->get();
+        $coupons = $this->activeCouponsQuery()->get();
 
         $sessionCode = strtoupper(trim((string) session(self::SESSION_KEY, '')));
         $out = [];
 
         foreach ($coupons as $coupon) {
-            $type = $this->typeValue($coupon);
-            $value = (int) $coupon->value;
-            $min = (int) $coupon->min_order_value;
-            $max = $coupon->max_discount !== null ? (int) $coupon->max_discount : null;
-            $code = strtoupper((string) $coupon->code);
-
             // Mô tả hiển thị trong cpn__body. Ưu tiên description DB, fallback tự sinh.
             $dbDesc = trim((string) ($coupon->description ?? ''));
-            if ($dbDesc !== '') {
-                $desc = $dbDesc;
-            } else {
-                $desc = match ($type) {
-                    'fixed' => 'Giảm ' . format_vnd($value) . ' cho đơn hàng áp dụng.',
-                    'percent' => 'Giảm ' . $value . '% đơn hàng' . ($max !== null ? ', tối đa ' . format_vnd($max) : '') . '.',
-                    'shipping' => 'Miễn phí vận chuyển cho đơn hàng áp dụng.',
-                    default => 'Áp dụng cho đơn hàng đủ điều kiện.',
-                };
-            }
-
-            $minOrder = $min > 0 ? 'Đơn tối thiểu ' . format_vnd($min) : 'Không có điều kiện tối thiểu';
-
-            $exp = $coupon->expires_at !== null
-                ? 'HSD: ' . $coupon->expires_at->format('d/m/Y')
-                : 'Không giới hạn';
-
-            $applied = $sessionCode !== '' && $sessionCode === $code;
+            $desc = $dbDesc !== '' ? $dbDesc : CouponTexts::autoDescription($coupon);
 
             $out[] = [
-                'code' => $code,
+                'code' => strtoupper((string) $coupon->code),
                 'desc' => $desc,
-                'minOrder' => $minOrder,
-                'exp' => $exp,
-                'applied' => $applied,
+                'minOrder' => CouponTexts::minOrderLabel((int) $coupon->min_order_value, 'no_min_cart'),
+                'exp' => CouponTexts::expiryLabel($coupon->expires_at),
+                'applied' => $sessionCode !== '' && $sessionCode === strtoupper((string) $coupon->code),
             ];
         }
 
@@ -305,10 +273,10 @@ class CouponService
     {
         $coupon = $this->findByCode($code);
         if ($coupon === null) {
-            return ['success' => false, 'message' => 'Mã giảm giá không tồn tại hoặc đã hết hiệu lực.', 'discount' => 0, 'code' => ''];
+            return ['success' => false, 'message' => CouponTexts::message('invalid'), 'discount' => 0, 'code' => ''];
         }
         if ($this->statusValue($coupon) !== 'active' || !$this->isWithinTimeWindow($coupon)) {
-            return ['success' => false, 'message' => 'Mã giảm giá chưa bắt đầu hoặc đã hết hạn.', 'discount' => 0, 'code' => ''];
+            return ['success' => false, 'message' => CouponTexts::message('expired'), 'discount' => 0, 'code' => ''];
         }
         if ($cartTotal < (int) $coupon->min_order_value) {
             return [
@@ -319,18 +287,19 @@ class CouponService
             ];
         }
         if (!$this->hasUsageRemaining($coupon, $userId)) {
-            return ['success' => false, 'message' => 'Mã giảm giá đã hết lượt sử dụng.', 'discount' => 0, 'code' => ''];
+            return ['success' => false, 'message' => CouponTexts::message('exhausted'), 'discount' => 0, 'code' => ''];
         }
         $discount = $this->calculateDiscount($coupon, $cartTotal, 0);
-        return ['success' => true, 'message' => 'Áp dụng mã ' . $coupon->code . ' thành công.', 'discount' => $discount, 'code' => (string) $coupon->code];
+        return ['success' => true, 'message' => CouponTexts::message('applied', [':code' => (string) $coupon->code]), 'discount' => $discount, 'code' => (string) $coupon->code];
     }
+
     /**
      * Ghi nhận lượt sử dụng coupon sau khi đặt hàng thành công.
      * Dùng cho checkout transaction.
      */
     public function recordUsage(int $couponId, ?int $userId, int $orderId, int $discountAmount): void
     {
-        \Illuminate\Support\Facades\DB::table('coupon_usages')->insert([
+        DB::table('coupon_usages')->insert([
             'coupon_id' => $couponId,
             'user_id' => $userId,
             'order_id' => $orderId,
@@ -339,18 +308,47 @@ class CouponService
             'updated_at' => now(),
         ]);
     }
+
     /**
      * Danh sách mã giảm giá công khai cho block trang chủ (không ngữ cảnh giỏ).
      * - Chỉ lấy mã status=active và nằm trong cửa sổ thời gian
-     * - Trả mảng thuần (string/int) — an toàn cho cache driver file (bẫy serialize)
+     * - Trả mảng thuần (string) — an toàn cho cache driver file (bẫy serialize)
      *
      * @return array<int, array{code: string, desc: string, minOrder: string, exp: string}>
      */
     public function getPublicCoupons(int $limit = 8): array
     {
+        $coupons = $this->activeCouponsQuery()
+            ->limit($limit)
+            ->get(['id', 'code', 'type', 'value', 'min_order_value', 'max_discount', 'description', 'expires_at']);
+
+        $out = [];
+
+        foreach ($coupons as $coupon) {
+            // Mô tả: ưu tiên description trong DB, thiếu thì tự sinh ngắn gọn
+            $dbDesc = trim((string) ($coupon->description ?? ''));
+            $desc = $dbDesc !== '' ? $dbDesc : CouponTexts::autoDescription($coupon);
+
+            $out[] = [
+                'code' => strtoupper((string) $coupon->code),
+                'desc' => $desc,
+                'minOrder' => CouponTexts::minOrderLabel((int) $coupon->min_order_value, 'no_min_public'),
+                'exp' => CouponTexts::expiryLabel($coupon->expires_at),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Query chung "đang phát hành": active + trong cửa sổ thời gian,
+     * sắp xếp ổn định (tách để getAvailableCoupons/getPublicCoupons dùng lại).
+     */
+    private function activeCouponsQuery(): Builder
+    {
         $now = now();
 
-        $coupons = Coupon::query()
+        return Coupon::query()
             ->where('status', 'active')
             ->where(function (Builder $q) use ($now): void {
                 $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
@@ -359,40 +357,6 @@ class CouponService
                 $q->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
             })
             ->orderBy('min_order_value')
-            ->orderBy('id')
-            ->limit($limit)
-            ->get(['id', 'code', 'type', 'value', 'min_order_value', 'max_discount', 'description', 'expires_at']);
-
-        $out = [];
-
-        foreach ($coupons as $coupon) {
-            $type = $this->typeValue($coupon);
-            $value = (int) $coupon->value;
-            $min = (int) $coupon->min_order_value;
-            $max = $coupon->max_discount !== null ? (int) $coupon->max_discount : null;
-
-            // Mô tả: ưu tiên description trong DB, thiếu thì tự sinh ngắn gọn
-            $dbDesc = trim((string) ($coupon->description ?? ''));
-
-            if ($dbDesc !== '') {
-                $desc = $dbDesc;
-            } else {
-                $desc = match ($type) {
-                    'fixed' => 'Giảm ' . format_vnd($value) . ' cho đơn hàng áp dụng.',
-                    'percent' => 'Giảm ' . $value . '% đơn hàng' . ($max !== null ? ', tối đa ' . format_vnd($max) : '') . '.',
-                    'shipping' => 'Miễn phí vận chuyển cho đơn hàng áp dụng.',
-                    default => 'Áp dụng cho đơn hàng đủ điều kiện.',
-                };
-            }
-
-            $out[] = [
-                'code' => strtoupper((string) $coupon->code),
-                'desc' => $desc,
-                'minOrder' => $min > 0 ? 'Đơn tối thiểu ' . format_vnd($min) : 'Không yêu cầu tối thiểu',
-                'exp' => $coupon->expires_at !== null ? 'HSD: ' . $coupon->expires_at->format('d/m/Y') : 'Không giới hạn',
-            ];
-        }
-
-        return $out;
+            ->orderBy('id');
     }
 }
