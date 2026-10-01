@@ -74,9 +74,11 @@ fieldset {
     --r-btn: 10px;
 }
 
-html {
-    scroll-behavior: smooth;
-}
+/* Smooth scroll TOÀN CỤC đã gỡ ở đây (trước đây là `html { scroll-behavior: smooth }`).
+   Lý do: khai báo này làm MỌI lệnh cuộn của trình duyệt (kể cả scrollTo({behavior:'auto'})
+   hay nhảy neo) bị nội suy mượt và fire event scroll dồn dập — là một nguồn gây ra cảm giác
+   nút back-to-top "lúc hiện lúc không". Thay vào đó app.js tự cuộn mượt bằng
+   scrollTo({ behavior: 'smooth' }) tại đúng chỗ cần (nút back-to-top), các cuộn khác giữ tức thì. */
 
 body {
     margin: 0;
@@ -88,6 +90,9 @@ body {
 }
 
 body.is-locked {
+    /* Khóa cuộn khi mở drawer: CHỈ dùng overflow:hidden (giữ nguyên bản gốc).
+       KHÔNG dùng position:fixed + inset:0 — thân trang bị "neo" vào viewport sẽ
+       văng về đầu trang khi đóng drawer, khiến nút back-to-top "lúc hiện lúc không". */
     overflow: hidden;
 }
 

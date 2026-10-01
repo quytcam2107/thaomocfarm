@@ -282,7 +282,9 @@
     }
 } */
 
-/* ============ BACK-TO-TOP (nút lên đầu trang — chỉ render ở trang home) ============ */
+/* ============ BACK-TO-TOP (nút lên đầu trang — chỉ render ở trang home) ============
+   Trạng thái mặc định: ẨN. app.js thêm .is-visible khi cuộn quá ngưỡng và
+   gỡ .is-visible khi đã về gần đầu trang -> không còn cảnh "lúc hiện lúc không". */
 .back-to-top {
     position: fixed;
     right: 14px;
@@ -298,17 +300,20 @@
     background: var(--leaf);
     color: #fff;
     box-shadow: 0 6px 18px rgb(34 48 42 / .22);
-    opacity: 0;
-    /* mặc định ẩn — app.js thêm .is-visible */
+    /* Mặc định ẨN: visibility:hidden + opacity:0 (visibility loại nút khỏi tab order,
+       không có cảnh "nút vô hình vẫn nhận focus"). app.js thêm .is-visible khi vuốt
+       xuống quá ngưỡng và gỡ .is-visible khi về gần đầu trang -> hết lỗi
+       "lúc hiện lúc không". */
     visibility: hidden;
+    opacity: 0;
     transform: translateY(10px);
     transition: opacity .25s ease, transform .25s ease, visibility .25s;
     pointer-events: none;
 }
 
 .back-to-top.is-visible {
-    opacity: 1;
     visibility: visible;
+    opacity: 1;
     transform: none;
     pointer-events: auto;
 }

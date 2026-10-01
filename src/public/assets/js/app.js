@@ -72,23 +72,46 @@
         lock(false);
     });
 
-    /* ===== Back-to-top (chỉ hiện ở trang có render #backToTop — trang home) =====
-       - Ẩn/hiện theo ngưỡng cuộn 400px, dùng class CSS (không inline style).
-       - Bấm -> cuộn lên đầu trang; tôn trọng prefers-reduced-motion. */
+    /* ===== Back-to-top (chỉ render ở trang bật :show-back-to-top — hiện là home) =====
+       Quy tắc: ĐẦU TRANG -> ẩn, VUỐT XUỐNG -> hiện.
+       - CSS đã mặc định ẨN (.back-to-top { visibility:hidden; opacity:0 } khai báo trong
+         partials/12-layout-extras.css) -> kể cả khi JS chưa chạy nút cũng không hiện.
+       - 2 ngưỡng chống nhấp nháy (hysteresis): hiện khi scrollY > SHOW_AT (160px),
+         ẩn chỉ khi scrollY < HIDE_AT (60px). Vùng 60-160px giữ nguyên trạng thái cũ,
+         nên nút không "lúc hiện lúc không" khi trang dao động quanh một ngưỡng.
+       - Event scroll throttle bằng requestAnimationFrame; đồng bộ lại khi load/pageshow
+         (mở tab giữa trang, restore vị trí cuộn) và khi resize (layout đổi -> hết "treo" trạng thái).
+       - Bấm nút: cuộn mượt về đầu; nút tự ẩn khi scrollY chạm ngưỡng HIDE_AT trong quá trình
+         cuộn lên — không set ẩn sớm để tránh nút biến mất giữa chừng rồi hiện lại.
+       - Chỉ toggle class .is-visible (không inline style); tôn trọng prefers-reduced-motion. */
     const backToTop = q('#backToTop');
     if (backToTop) {
+        const SHOW_AT = 160;   // cuộn qua mốc này -> hiện nút
+        const HIDE_AT = 60;    // cuộn về dưới mốc này -> ẩn nút
+        let bttVisible = false;
         let bttTicking = false;
+
         const bttUpdate = () => {
-            const show = window.scrollY > 400;
-            backToTop.classList.toggle('is-visible', show);
-            backToTop.setAttribute('aria-hidden', String(!show));
+            bttTicking = false;
+            const y = window.scrollY || document.documentElement.scrollTop || 0;
+            // 2 ngưỡng: qua SHOW_AT thì hiện, về dưới HIDE_AT thì ẩn, ở giữa giữ nguyên
+            if (y > SHOW_AT) bttVisible = true;
+            else if (y < HIDE_AT) bttVisible = false;
+            backToTop.classList.toggle('is-visible', bttVisible);
+            backToTop.setAttribute('aria-hidden', String(!bttVisible));
         };
+
         window.addEventListener('scroll', () => {
             if (bttTicking) return;          // throttle bằng rAF — rẻ khi cuộn nhanh
             bttTicking = true;
             requestAnimationFrame(bttUpdate);
         }, { passive: true });
-        bttUpdate();                          // đồng bộ trạng thái ngay khi tải trang (restore scroll)
+
+        // Đồng bộ trạng thái ngay khi tải trang + khi mở lại tab (restore scroll) + khi đổi màn hình
+        bttUpdate();
+        window.addEventListener('pageshow', bttUpdate);
+        window.addEventListener('resize', () => requestAnimationFrame(bttUpdate));
+
         backToTop.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
         });
