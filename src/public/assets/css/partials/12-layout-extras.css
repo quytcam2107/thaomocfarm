@@ -322,6 +322,31 @@
     transform: scale(.94);
 }
 
+/* Nhấn nút: icon nảy nhẹ xác nhận đã bấm (trên mobile không có :hover) */
+.back-to-top:active svg {
+    transform: translateY(-3px);
+}
+
+.back-to-top svg {
+    transition: transform .2s ease;
+}
+
+/* Trong lúc JS đang cuộn mượt về đầu trang (.is-scrolling do app.js thêm/gỡ):
+   - đổi nền sang vàng gold + icon xoay 180deg (mũi tên thành hướng xuống) ->
+     người dùng thấy rõ "trang đang tự cuộn", phân biệt với vuốt tay;
+   - giữ nguyên transform trên button khi :active để icon không bị nháy nảy
+     liên tục lúc trang chạy qua ngưỡng ẩn nút giữa quá trình cuộn. */
+.back-to-top.is-scrolling,
+.back-to-top.is-scrolling:active {
+    background: var(--gold);
+    transform: none;
+}
+
+.back-to-top.is-scrolling svg,
+.back-to-top.is-scrolling:active svg {
+    transform: rotate(180deg);
+}
+
 @media (min-width: 768px) {
 
     /* floatnav ẩn trên desktop -> hạ nút xuống sát mép dưới */

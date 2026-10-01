@@ -81,9 +81,13 @@
          nên nút không "lúc hiện lúc không" khi trang dao động quanh một ngưỡng.
        - Event scroll throttle bằng requestAnimationFrame; đồng bộ lại khi load/pageshow
          (mở tab giữa trang, restore vị trí cuộn) và khi resize (layout đổi -> hết "treo" trạng thái).
-       - Bấm nút: cuộn mượt về đầu; nút tự ẩn khi scrollY chạm ngưỡng HIDE_AT trong quá trình
-         cuộn lên — không set ẩn sớm để tránh nút biến mất giữa chừng rồi hiện lại.
-       - Chỉ toggle class .is-visible (không inline style); tôn trọng prefers-reduced-motion. */
+       - Bấm nút: TỰ ĐIỀU KHIỂN cuộn bằng requestAnimationFrame (hàm easeInOutCubic,
+         ~1 giây) -> mượt và đều hơn native smooth (native chạy nhanh/chậm phụ thuộc
+         độ dài trang). Nút tự ẩn khi scrollY chạm ngưỡng HIDE_AT trong quá trình cuộn
+         lên — không set ẩn sớm để tránh nút biến mất giữa chừng rồi hiện lại.
+       - Người dùng can thiệp (lăn chuột / cảm ứng / phím điều hướng) => hủy animation
+         ngay, trả quyền cuộn cho người dùng. Tôn trọng prefers-reduced-motion (nhảy
+         thẳng về đầu trang). Chỉ toggle class .is-visible (không inline style). */
     const backToTop = q('#backToTop');
     if (backToTop) {
         const SHOW_AT = 160;   // cuộn qua mốc này -> hiện nút
@@ -112,8 +116,37 @@
         window.addEventListener('pageshow', bttUpdate);
         window.addEventListener('resize', () => requestAnimationFrame(bttUpdate));
 
+        /* ===== Cuộn mượt tự điều khiển bằng rAF (easeInOutCubic, ~1 giây) =====
+           - Native smooth: tốc độ do trình duyệt quyết, trang dài cuộn rất nhanh, cảm giác "vút";
+             bản này duration cố định + easing -> đều và mượt hơn trên mọi thiết bị.
+           - start < 0 => đang chạy animation, chặn bấm lặp (click liên tiếp không giật).
+           - Hủy khi người dùng lăn chuột/cảm ứng/phím: trả quyền cuộn ngay cho user. */
+        let bttRaf = -1;
+        const bttStop = () => {
+            if (bttRaf >= 0) { cancelAnimationFrame(bttRaf); bttRaf = -1; }
+            backToTop.classList.remove('is-scrolling');   // gỡ trạng thái "đang tự cuộn" của CSS
+        };
+        ['wheel', 'touchstart', 'keydown'].forEach(evt =>
+            window.addEventListener(evt, bttStop, { passive: true })
+        );
+
         backToTop.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+            // Người dùng tắt hiệu ứng chuyển động -> về thẳng đầu trang
+            // if (reduceMotion) { bttStop(); window.scrollTo(0, 0); return; }
+            if (bttRaf >= 0) return;                       // đang cuộn thì bỏ qua click lặp
+            const from = window.scrollY || document.documentElement.scrollTop || 0;
+            if (from <= 1) return;                         // đã ở đầu trang
+            backToTop.classList.add('is-scrolling');       // CSS đổi nền/icon báo "đang cuộn"
+            const dur = Math.min(1200, Math.max(650, from * 0.8)); // ngắn->650ms, dài->max 1.2s
+            const t0 = performance.now();
+            const easeInOutCubic = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+            const step = now => {
+                const p = Math.min(1, (now - t0) / dur);
+                window.scrollTo(0, from * (1 - easeInOutCubic(p)));
+                if (p < 1) bttRaf = requestAnimationFrame(step);
+                else bttStop();                            // kết thúc -> giải phóng khóa
+            };
+            bttRaf = requestAnimationFrame(step);
         });
     }
 
