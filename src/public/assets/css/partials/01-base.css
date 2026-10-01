@@ -70,6 +70,8 @@ fieldset {
     --line: #e5ddcd;
     --shadow: 0 2px 10px rgb(34 48 42 / .08);
     --r: 16px;
+    /* Token bo góc chung cho CÁC NÚT: vuông tròn nhẹ, không còn pill 999px */
+    --r-btn: 10px;
 }
 
 html {
@@ -187,7 +189,8 @@ h2,
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border-radius: 999px;
+    /* Sửa: bo vuông tròn nhẹ theo token chung thay vì pill 999px */
+    border-radius: var(--r-btn);
     font-weight: 600;
     font-size: 14px;
     padding: 11px 20px;

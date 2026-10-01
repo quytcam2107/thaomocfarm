@@ -67,7 +67,8 @@
 .sort-select {
     height: 40px;
     border: 1px solid var(--line);
-    border-radius: 999px;
+    /* Sửa: control dạng nút bo vuông tròn nhẹ theo token chung */
+    border-radius: var(--r-btn);
     background: #fff;
     padding: 0 14px;
     font-size: 13px;
@@ -79,7 +80,8 @@
     gap: 6px;
     height: 40px;
     padding: 0 16px;
-    border-radius: 999px;
+    /* Sửa: nút lọc bo vuông tròn nhẹ theo token chung */
+    border-radius: var(--r-btn);
     background: var(--leaf);
     color: #fff;
     font-size: 13px;
@@ -100,7 +102,8 @@
     background: var(--leaf-soft);
     border: 1px solid var(--leaf);
     color: var(--leaf);
-    border-radius: 999px;
+    /* Sửa: chip filter bo vuông tròn nhẹ theo token chung */
+    border-radius: var(--r-btn);
     padding: 6px 12px;
     font-size: 12px;
     font-weight: 600;

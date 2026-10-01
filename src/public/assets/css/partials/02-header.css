@@ -42,7 +42,8 @@
     place-items: center;
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    /* Sửa: nút burger dùng token bo góc chung */
+    border-radius: var(--r-btn);
     color: var(--leaf);
 }
 
@@ -95,7 +96,8 @@
     align-items: center;
     gap: 1px;
     padding: 6px 10px;
-    border-radius: 12px;
+    /* Sửa: icon action dùng token bo góc chung */
+    border-radius: var(--r-btn);
     font-size: 18px;
 }
 
@@ -136,7 +138,8 @@
     /* neo dropdown gợi ý + neo spotlight */
     background: #fff;
     border: 1.5px solid var(--line);
-    border-radius: 999px;
+    /* Sửa: ô tìm kiếm bo vuông tròn nhẹ theo token chung */
+    border-radius: var(--r-btn);
     overflow: visible;
     /* dropdown tràn ra ngoài pill */
 }
@@ -157,7 +160,8 @@
     background: var(--leaf);
     color: #fff;
     font-size: 17px;
-    border-radius: 0 999px 999px 0;
+    /* Sửa: nút tìm nằm sát mép phải ô search — bo cùng token, lệch phải bằng --r-btn - 1.5px viền để khít góc */
+    border-radius: 0 var(--r-btn) var(--r-btn) 0;
 }
 
 /* ===== Search suggest dropdown ===== */
@@ -319,7 +323,8 @@ body.is-spotlight .search__suggest {
     flex-shrink: 0;
     padding: 8px 16px;
     border: 1px solid var(--line);
-    border-radius: 999px;
+    /* Sửa: chip danh mục con bo vuông tròn nhẹ theo token chung */
+    border-radius: var(--r-btn);
     background: #fff;
     font-size: 13px;
     font-weight: 500;

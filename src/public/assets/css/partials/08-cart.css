@@ -155,7 +155,8 @@
     min-width: 0;
     height: 42px;
     border: 1.5px solid var(--line);
-    border-radius: 999px;
+    /* Sửa: ô nhập mã đồng bộ bo góc với nút .btn bên cạnh */
+    border-radius: var(--r-btn);
     padding: 0 16px;
     font-size: 13.5px;
     text-transform: uppercase;
