@@ -10,7 +10,12 @@
         <x-ui.breadcrumb :items="$breadcrumbs" />
 
         <div class="pd-layout">
-            <x-product.gallery :images="$images" :alt="$product->name" />
+            {{-- Truyền thêm shareUrl/shareTitle/hasFlashSale: hàng nút chia sẻ chỉ hiện
+            khi sản phẩm thuộc flash sale (lấp khoảng trống dưới pd-thumbs).
+            Route web.product.show dùng đúng $product->slug (cột slug bảng products). --}}
+            <x-product.gallery :images="$images" :alt="$product->name"
+                :share-url="route('web.product.show', $product->slug)" :share-title="$product->name"
+                :has-flash-sale="$product->flashSale !== null" />
             <x-product.info :product="$product" :variants="$variants" />
         </div>
 

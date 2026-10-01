@@ -7,6 +7,10 @@
     border-radius: var(--r);
     padding: 16px;
     margin-top: 8px;
+    /* FIX khoảng trắng thừa dưới .pd-thumbs khi SP có flash sale: mặc định grid
+       là stretch -> cột gallery bị kéo giãn theo cột info (cao hơn vì block
+       pd-flash). Cho 2 cột tự nhiên theo nội dung (start) là hết phần thừa. */
+    align-items: start;
 }
 
 @media (min-width: 1024px) {
@@ -54,6 +58,80 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* ============ NÚT CHIA SẺ PDP (mới — chỉ render khi SP có flash sale) =======
+   Nằm ngay dưới .pd-thumbs để lấp khoảng trống vốn bị "thừa" khi block
+   pd-flash làm cột info cao hơn. Mobile-first: wrap dòng, tối giản. */
+.pd-share {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.pd-share__label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.pd-share__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    color: #40514a;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, background .15s;
+}
+
+.pd-share__btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.pd-share__btn:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+}
+
+.pd-share__btn--fb {
+    color: #1877f2;
+    border-color: #1877f2;
+}
+
+.pd-share__btn--fb:hover {
+    background: #f0f5ff;
+}
+
+.pd-share__btn--zalo {
+    color: #0068ff;
+    border-color: #0068ff;
+}
+
+.pd-share__btn--zalo:hover {
+    background: #f0f5ff;
+}
+
+.pd-share__btn--native {
+    color: var(--leaf);
+    border-color: #0068ff;
+    background: var(--leaf-soft);
+}
+
+/* Copy link giữ màu trung tính (kế thừa .pd-share__btn) — hover đồng bộ với nút native */
+.pd-share__btn--copy:hover,
+.pd-share__btn--native:hover {
+    background: #f3efe4;
 }
 
 .pd-info h1 {

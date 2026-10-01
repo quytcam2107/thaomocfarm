@@ -121,6 +121,7 @@ class ProductDetailFetcher
             'product_id' => $product->id,
             'product' => [
                 'id' => $product->id,
+                'slug' => $product->slug,
                 'name' => $product->name,
                 'sku' => $product->sku,
                 'subtitle' => $product->subtitle ?? '',

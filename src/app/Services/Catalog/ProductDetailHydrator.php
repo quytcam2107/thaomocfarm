@@ -34,6 +34,7 @@ class ProductDetailHydrator
 
         $productDTO = new ProductViewDTO(
             id: $cached['product']['id'],
+            slug: (string) ($cached['product']['slug'] ?? ''),
             name: $cached['product']['name'],
             sku: $cached['product']['sku'],
             subtitle: $cached['product']['subtitle'],

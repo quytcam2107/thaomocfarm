@@ -1,4 +1,4 @@
-@props(['images' => [], 'alt' => ''])
+@props(['images' => [], 'alt' => '', 'shareUrl' => null, 'shareTitle' => '', 'hasFlashSale' => false])
 
 <div class="pd-gallery">
     <div class="pd-stage">
@@ -17,5 +17,28 @@
                 <img src="{{ asset('images/placeholder.svg') }}" alt="" width="128" height="128" loading="lazy">
             </button>
         @endforelse
+    </div>
+
+    <div class="pd-share" role="group" aria-label="Chia sẻ sản phẩm">
+
+        <button type="button" class="pd-share__btn pd-share__btn--native" data-share-native
+            data-share-url="{{ $shareUrl }}" data-share-title="{{ $shareTitle }}">
+            <img src="{{ asset('assets/images/svg/share.svg') }}" width="16" height="16" alt="" aria-hidden="true">
+        </button>
+
+        <a class="pd-share__btn pd-share__btn--fb" target="_blank" rel="noopener noreferrer"
+            href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($shareUrl) }}"
+            aria-label="Chia sẻ lên Facebook">
+            <img src="{{ asset('assets/images/svg/facebook.svg') }}" width="20" height="20" alt="" aria-hidden="true">
+
+        </a>
+
+        <a class="pd-share__btn pd-share__btn--zalo" target="_blank" rel="noopener noreferrer"
+            href="https://zalo.me/share?url={{ urlencode($shareUrl) }}&text={{ urlencode($shareTitle) }}"
+            aria-label="Chia sẻ qua Zalo">
+            <img src="{{ asset('assets/images/svg/zalo.png') }}" width="20" height="20" alt="" aria-hidden="true">
+
+        </a>
+
     </div>
 </div>
