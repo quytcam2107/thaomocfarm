@@ -25,7 +25,7 @@
             @foreach($variants as $v)
                 <label class="pill">
                     <input type="radio" name="{{ $v['name'] ?? 'variant' }}" value="{{ $v['value'] }}" {{ ($v['selected'] ?? false) ? 'checked' : '' }}>
-                    <span>{{ $v['label'] }}</span>
+                    <span>{{ $v->label ?? $v['label'] }}</span>
                 </label>
             @endforeach
         </div>
@@ -43,7 +43,10 @@
         <button class="btn btn--leaf add-cart" data-name="{{ $product->name }}" data-product-id="{{ $product->id }}">
             🛒 Thêm vào giỏ
         </button>
-        <button class="btn btn--clay" id="buyNow" data-id="{{ $product->id }}">⚡ Mua ngay</button>
+        {{-- Buy Now: JS (app.js) đọc data-product-id + radio variant_id:checked + input[name=qty] rồi POST
+        /gio-hang/mua-ngay --}}
+        <button class="btn btn--clay" id="buyNow" type="button" data-product-id="{{ $product->id }}"
+            data-name="{{ $product->name }}">⚡ Mua ngay</button>
         {{-- <button class="btn btn--ghost pcard__fav--lg" aria-label="Thêm vào yêu thích" aria-pressed="false"
             data-product-id="{{ $product->id }}">♡ Yêu thích</button> --}}
     </div>

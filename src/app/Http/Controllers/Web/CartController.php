@@ -78,6 +78,40 @@ class CartController extends Controller
         }
     }
 
+    /**
+     * MUA NHANG (Buy Now): thêm sản phẩm + variant + qty đang chọn trên PDP
+     * vào giỏ (tái sử dụng addToCart — đã kiểm tra tồn kho), sau đó trả URL
+     * trang thanh toán để JS redirect. Giữ nguyên cookie cart_token cho guest.
+     */
+    public function buyNow(AddToCartRequest $request): JsonResponse
+    {
+        $cart = $this->cartService->getOrCreateCart();
+
+        try {
+            $this->cartService->addToCart(
+                $cart->id,
+                $request->integer('product_id'),
+                $request->integer('variant_id'),
+                $request->integer('qty', 1)
+            );
+
+            $response = response()->json([
+                'success' => true,
+                'message' => 'Đang chuyển tới trang thanh toán',
+                'cartCount' => $this->cartService->getCartItemCount($cart->id),
+                'redirect' => route('web.checkout.index'),
+            ]);
+
+            if (!Auth::check() && $cart->cart_token) {
+                $response->withCookie(cookie('cart_token', $cart->cart_token, 43200));
+            }
+
+            return $response;
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
     public function update(UpdateCartRequest $request, int $itemId): JsonResponse
     {
         $cart = $this->cartService->getOrCreateCart();

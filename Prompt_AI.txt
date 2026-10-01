@@ -21,5 +21,6 @@ Nếu tài liệu và code/database thực tế khác nhau → **thực tế th�
 4. **Đủ mắt xích**: liệt kê TẤT CẢ file thay đổi (CSS ↔ Blade ↔ JS ↔ Route/Controller). Comment tiếng Việt ngắn gọn tại logic mới.
 5. **Kết thúc**: tóm tắt ngắn đã sửa file nào, luồng hoạt động; nêu rõ điểm cần kiểm tra lại trên trình duyệt/database.
 
-# Yêu cầu tiếp theo
-<Điền yêu cầu chức năng/sửa lỗi vào đây>
+#  Yêu cầu tiếp theo gợi ý sửa code đầy đủ các file dang code block và tôi chỉ việc copy từng file
+- Trước khi sửa rà soát hết các database và file code liên quan tránh sửa nhầm
+- Luôn luôn đọc code mới nhất từ nhánh main

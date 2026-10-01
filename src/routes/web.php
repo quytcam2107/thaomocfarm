@@ -35,6 +35,8 @@ Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])
 // 4. Gio hang
 Route::get('/gio-hang', [CartController::class, 'index'])->name('web.cart.index');
 Route::post('/gio-hang/them', [CartController::class, 'add'])->name('web.cart.add');
+// 4a. Mua nhanh (Buy Now): them vao gio roi chuyen thang den thanh toan — dat trong nhom /gio-hang/*, TRƯỚC catch-all {slug}
+Route::post('/gio-hang/mua-ngay', [CartController::class, 'buyNow'])->name('web.cart.buy-now');
 Route::post('/gio-hang/cap-nhat/{itemId}', [CartController::class, 'update'])->name('web.cart.update');
 Route::delete('/gio-hang/xoa/{itemId}', [CartController::class, 'remove'])->name('web.cart.remove');
 Route::get('/gio-hang/count', [CartController::class, 'count'])->name('web.cart.count');
