@@ -28,6 +28,8 @@ class FlashSalePriceService
 {
     /**
      * Danh sách deal flash_sale đang chạy.
+     * FIX HIỂN THỊ CẢ KHI HẾT PHIÊN: bỏ điều kiện end_at > now() — promotion
+     * status=active vẫn trả deal; trạng thái hết hạn do is_ended quyết (view).
      *
      * @return list<array{product_id:int,variant_id:int|null,flash_price:int,discount_percent:int,final_price:int,qty_total:int,qty_sold:int,per_user_limit:int,sort_order:int}>
      */
@@ -41,7 +43,6 @@ class FlashSalePriceService
                 ->where('type', PromotionType::FLASH_SALE->value)
                 ->where('status', PromotionStatus::ACTIVE->value)
                 ->where('start_at', '<=', now())
-                ->where('end_at', '>', now())
                 ->orderBy('end_at')
                 ->first(['id']);
 
@@ -143,12 +144,18 @@ class FlashSalePriceService
     }
 
     /**
-     * Metadata phiên flash_sale đang chạy cho PDP (countdown + tên chương trình).
-     * Cùng điều kiện chọn phiên với HomeService::flashSale() (type=flash_sale,
-     * status=active, start_at<=now<end_at, ưu tiên end_at gần nhất) => PDP và
-     * trang home luôn đếm ngược về CÙNG một mốc thời gian.
+     * Metadata phiên flash_sale cho countdown HOME + PDP (nguồn duy nhất).
      *
-     * @return array{promotion_id:int,promotion_name:string,ends_at_unix:int}|null
+     * QUY TẮC MỐC ĐẾM (server tính tại thời điểm render — đồng bộ 2 màn):
+     *   - Phiên còn chạy (end_at > now): mốc = min(end_at, now + 24h)
+     *     => chưa hết hạn mà end_at xa hơn 24h thì đếm đúng 24h.
+     *   - Phiên đã hết hạn (is_ended = true): VẪN hiển thị block, mốc = now + 24h
+     *     => countdown chạy vòng 24h, không bao giờ > 24 và không mất section.
+     *
+     * Lưu ý: vì mốc được tính "tươi" mỗi lần cache miss (TTL 300s nhóm catalog),
+     * Home và PDP render sát nhau sẽ cùng bộ số; sai lệch tối đa = TTL cache.
+     *
+     * @return array{promotion_id:int,promotion_name:string,ends_at_unix:int,is_ended:bool}|null
      */
     public function currentPromotionMeta(): ?array
     {
@@ -160,7 +167,6 @@ class FlashSalePriceService
                 ->where('type', PromotionType::FLASH_SALE->value)
                 ->where('status', PromotionStatus::ACTIVE->value)
                 ->where('start_at', '<=', now())
-                ->where('end_at', '>', now())
                 ->orderBy('end_at')
                 ->first(['id', 'name', 'end_at']);
 
@@ -168,10 +174,20 @@ class FlashSalePriceService
                 return null;
             }
 
+            $now = time();
+            $endUnix = $promotion->end_at->getTimestamp();
+            $isEnded = $endUnix <= $now;
+
+            // Hết hạn -> đếm vòng 24h từ hiện tại; còn hạn -> min(end_at, now+24h)
+            $countdownEnd = $isEnded
+                ? $now + 86400
+                : min($endUnix, $now + 86400);
+
             return [
                 'promotion_id' => (int) $promotion->id,
                 'promotion_name' => (string) $promotion->name,
-                'ends_at_unix' => $promotion->end_at->getTimestamp(),
+                'ends_at_unix' => $countdownEnd,
+                'is_ended' => $isEnded,
             ];
         });
     }

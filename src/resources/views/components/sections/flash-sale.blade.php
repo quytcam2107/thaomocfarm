@@ -7,14 +7,15 @@
                 {{-- Giữ UI của B, nhưng dùng text của A --}}
                 <h2 class="flash__title" id="flashTitle">⚡ Flash Sale hôm nay</h2>
 
-                {{-- data-ends = unix giây end_at của phiên (CÙNG mốc với PDP) — JS app.js đếm về mốc này --}}
-                <p class="countdown" data-ends="{{ $products['ends_at_unix'] }}" role="timer" aria-live="polite">
-                    Kết thúc sau
+                {{-- data-ends = unix giây MỐC ĐẾM server đã tính (<= 24h, kể cả khi phiên hết hạn vẫn show + đếm vòng 24h)
+                    — app.js đếm về mốc này --}} <p class="countdown" data-ends="{{ $products['ends_at_unix'] }}"
+                    role="timer" aria-live="polite">
+                    {{ !empty($products['is_ended']) ? 'Ưu đãi kết thúc sau' : 'Kết thúc sau' }}
                     <b class="cd" id="cdH">00</b>:<b class="cd" id="cdM">00</b>:<b class="cd" id="cdS">00</b>
-                </p>
+                    </p>
 
-                {{-- Giữ UI của B, nhưng dùng route của A --}}
-                <a class="flash__all" href="{{ route('web.home') }}">Xem tất cả ưu đãi →</a>
+                    {{-- Giữ UI của B, nhưng dùng route của A --}}
+                    <a class="flash__all" href="{{ route('web.home') }}">Xem tất cả ưu đãi →</a>
             </div>
 
             {{-- Dải social proof tổng của phiên flash sale (data mới từ HomeService) --}}

@@ -65,27 +65,23 @@ class HomeService
         });
     }
 
-    /**
-     * Block flash sale trang chủ.
-     * - Chọn promotion flash_sale active + trong khung giờ
-     * - Eager load product + coverImage + defaultVariant (không N+1)
-     * - Cột select của relation ofMany phải định danh tên bảng (tránh lỗi 1052)
-     * - GIÁ BÁN = flash_price sau khi áp discount_percent
-     * - Trả về null nếu không có deal => view tự ẩn block
-     *
-     * @return array{promotion_id: int, promotion_name: string, ends_at: string, ends_at_unix: int, sold_today: int, urgent_count: int, items: array<int, array<string, mixed>>}|null
-     */
     public function flashSale(): ?array
     {
         return remember_group('home', 'flash_sale', $this->ttl('flash_sale'), function (): ?array {
-            /** @var Promotion|null $promotion */
+            /**
+             * FIX HIỂN THỊ CẢ KHI HẾT PHIÊN:
+             * - Bỏ điều kiện end_at > now() — phiên active quá end_at vẫn show block.
+             * - Bỏ guard so sánh meta cache 'catalog' (nguyên nhân home mất flash
+             *   sale khi hết giờ do 2 cache lệch nhau); metadata đếm dùng trực tiếp
+             *   currentPromotionMeta() — nguồn duy nhất với PDP.
+             * @return array{promotion_id: int, promotion_name: string, ends_at_unix: int, is_ended: bool, sold_today: int, urgent_count: int, items: array<int, array<string, mixed>>}|null
+             */
             $promotion = Promotion::query()
                 ->where('type', 'flash_sale')
                 ->where('status', 'active')
                 ->where('start_at', '<=', now())
-                ->where('end_at', '>', now())
                 ->orderBy('end_at')
-                ->first(['id', 'end_at']); // name + end_at unix lấy fresh từ currentPromotionMeta() bên dưới
+                ->first(['id', 'end_at']);
 
             if ($promotion === null) {
                 return null;
@@ -135,28 +131,19 @@ class HomeService
             $soldToday = array_sum(array_column($items, 'qty_sold'));
             $urgentCount = count(array_filter($items, static fn(array $i): bool => $i['is_urgent']));
 
-            /*
-             * FIX ĐỒNG BỘ HOME <-> PDP:
-             * metadata phiên (ends_at/ends_at_unix/promotion_name) KHÔNG lấy từ bản
-             * query riêng trong block cache 'home' (TTL 5') nữa — vì admin sửa end_at
-             * thì home hiển thị mốc cũ trong khi PDP đã đổi mốc mới. Nay đọc qua
-             * FlashSalePriceService::currentPromotionMeta() (cache nhóm 'catalog',
-             * CÙNG điều kiện chọn phiên với PDP: type=flash_sale, status=active,
-             * start_at<=now<end_at, ưu tiên end_at gần nhất) => 2 màn luôn dùng
-             * chung một mốc kết thúc. Danh sách items vẫn cache 'home' như cũ.
-             */
+            // Countdown HOME + PDP dùng chung 1 nguồn: mốc đã clamp <= 24h,
+            // hết phiên vẫn có mốc = now + 24h (xem currentPromotionMeta)
             $meta = $this->flashPricing->currentPromotionMeta();
 
-            // Hết phiên giữa lúc còn bản cache 'home' cũ => coi như không có deal
-            if ($meta === null || $meta['promotion_id'] !== (int) $promotion->id) {
+            if ($meta === null) {
                 return null;
             }
 
             return [
                 'promotion_id' => (int) $promotion->id,
                 'promotion_name' => $meta['promotion_name'],
-                'ends_at' => $promotion->end_at->toIso8601String(),
                 'ends_at_unix' => $meta['ends_at_unix'],
+                'is_ended' => $meta['is_ended'],
                 'sold_today' => $soldToday,
                 'urgent_count' => $urgentCount,
                 'items' => $items,
