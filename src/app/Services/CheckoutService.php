@@ -38,49 +38,26 @@ class CheckoutService
     {
         $cartDetails = $this->cartService->getCartDetails($cartId);
 
-        if (empty($cartDetails['items'])) {
-            return [];
-        }
-
         $subtotal = (int) $cartDetails['subtotal'];
-        $userId = auth()->id();
-
         $goodsDiscount = 0;
         $shippingDiscount = 0;
-        $appliedCoupon = null;
+        $applied = null;
 
-        // Resolve coupon từ session (đúng constant CouponService::SESSION_KEY)
-        $resolved = $this->couponService->resolveAppliedCoupon($cartId, $userId);
+        $resolved = $this->couponService->resolveAppliedCoupon($cartId, auth()->id());
 
         if ($resolved !== null) {
-            $coupon = $resolved['coupon'];
-            $type = $resolved['type'];
+            $applied = ['code' => $resolved['code'], 'type' => $resolved['type']];
 
-            if ($type !== 'shipping') {
-                // Tính discount cho hàng hoá (fixed/percent)
-                $goodsDiscount = $this->couponService->calculateDiscount($coupon, $resolved['eligible'], 0);
+            if ($resolved['type'] !== 'shipping') {
+                $goodsDiscount = $this->couponService->calculateDiscount($resolved['coupon'], $resolved['eligible'], 0);
             }
-
-            $appliedCoupon = [
-                'code' => $resolved['code'],
-                'type' => $type,
-                'eligible' => $resolved['eligible'],
-                'discount' => 0, // sẽ set sau
-            ];
         }
 
         $discountedSubtotal = max(0, $subtotal - $goodsDiscount);
         $shippingFee = $this->calculateShippingFee($shippingMethod, $discountedSubtotal);
 
-        // Nếu mã là type=shipping → free ship toàn bộ
-        if ($appliedCoupon !== null && $appliedCoupon['type'] === 'shipping') {
+        if ($resolved !== null && $resolved['type'] === 'shipping') {
             $shippingDiscount = $shippingFee;
-        }
-
-        $discount = $goodsDiscount + $shippingDiscount;
-
-        if ($appliedCoupon !== null) {
-            $appliedCoupon['discount'] = $discount;
         }
 
         $total = max(0, $discountedSubtotal + $shippingFee - $shippingDiscount);
@@ -88,32 +65,28 @@ class CheckoutService
         return [
             'items' => $cartDetails['items'],
             'subtotal' => $subtotal,
+            'discount' => $goodsDiscount,
             'discounted_subtotal' => $discountedSubtotal,
             'shipping_fee' => $shippingFee,
-            'shipping_method' => $shippingMethod,
-            'discount' => $discount,
-            'appliedCoupon' => $appliedCoupon,
+            'shipping_discount' => $shippingDiscount,
             'total' => $total,
-            'free_shipping_threshold' => config('thaomoc.shipping.free_threshold', 300000),
+            'total_qty' => (int) $cartDetails['total_qty'],
+            'applied' => $applied,
         ];
     }
 
     /**
-     * Tính phí vận chuyển dựa theo phương thức chọn từ UI.
-     * - fast: 30.000₫ cố định
+     * Phí ship theo phương thức vận chuyển.
      * - standard: miễn phí nếu subtotal >= threshold, còn lại 20.000₫
-     *
-     * Lưu ý: nhận $discountedSubtotal (đã trừ discount hàng hoá) để khớp logic cart.
+     * - express: luôn thu phí express
      */
-    public function calculateShippingFee(string $method, int $discountedSubtotal): int
+    public function calculateShippingFee(string $method, int $subtotal): int
     {
-        if ($method === 'fast') {
-            return 30000;
+        if ($method === 'express') {
+            return (int) config('thaomoc.shipping.express_fee', 30000);
         }
 
-        // standard
-        $threshold = (int) config('thaomoc.shipping.free_threshold', 300000);
-        if ($discountedSubtotal >= $threshold) {
+        if ($subtotal >= (int) config('thaomoc.shipping.free_threshold', 200000)) {
             return 0;
         }
 
@@ -228,9 +201,10 @@ class CheckoutService
                     'name_snapshot' => $item['product_name'],
                     'sku_snapshot' => $variant->sku ?? '',
                     'image_snapshot' => $item['image'],
-                    'price' => $variant->price,
+                    // FIX: giá chốt đơn = giá flash sale đã áp discount_percent (nếu có deal)
+                    'price' => (int) ($item['unit_price'] ?? $variant->price),
                     'qty' => $item['qty'],
-                    'subtotal' => $variant->price * $item['qty'],
+                    'subtotal' => (int) ($item['unit_price'] ?? $variant->price) * $item['qty'],
                 ]);
             }
 

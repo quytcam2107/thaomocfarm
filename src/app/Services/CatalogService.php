@@ -12,13 +12,18 @@ use App\Services\Catalog\ProductDetailFetcher;
 use App\Services\Catalog\ProductDetailHydrator;
 use App\Services\Catalog\ProductListingMapper;
 use App\Services\Catalog\ProductQueryFilters;
+use App\Services\Promotion\FlashSalePriceService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
  * CatalogService — facade mỏng của tầng danh mục.
  * Logic nặng đã tách sang App\Services\Catalog\* + config/catalog.php
  * + data/catalog-seo.json; public API và kết quả giữ nguyên 100%.
+ *
+ * FIX: lưới sản phẩm (danh mục / tất cả SP / tìm kiếm) và PDP đều áp giá
+ * flash sale qua FlashSalePriceService => đồng bộ % với block trang chủ.
  */
 class CatalogService
 {
@@ -42,10 +47,18 @@ class CatalogService
         ['key' => '250-', 'min' => 250000, 'max' => null],
     ];
 
+    public function __construct(
+        private readonly FlashSalePriceService $flashPricing
+    ) {
+    }
+
     /**
      * Lấy chi tiết sản phẩm theo slug.
      * Cache array thuần (không cache object) để tránh lỗi unserialize.
      * Convert sang DTO sau khi đọc từ cache.
+     *
+     * Lưu ý: mảng thô được cache CHƯA áp flash sale (để không "đóng băng" giá
+     * deal suốt TTL); giá deal được áp MỖI request ngay sau khi đọc cache.
      */
     public function getProductDetail(string $slug): array
     {
@@ -55,6 +68,9 @@ class CatalogService
         $cached = remember_group('catalog', $cacheKey, $ttl, function () use ($slug) {
             return ProductDetailFetcher::fetch($slug);
         });
+
+        // FIX: áp giá flash sale (nếu có) cho PDP + related — chạy NGOÀI cache
+        $cached = $this->flashPricing->applyToDetailArray($cached);
 
         return ProductDetailHydrator::hydrate($cached, $this->getProductReviews((int) $cached['product_id']));
     }
@@ -76,6 +92,7 @@ class CatalogService
             rating: $r['rating'],
             content: $r['content'],
             created_at: $r['created_at'],
+            is_verified: (bool) ($r['is_verified'] ?? false),
         ), $cached['reviews']);
 
         return [
@@ -126,7 +143,7 @@ class CatalogService
         $paginator = $query->paginate((int) config('catalog.per_page', self::CATEGORY_PER_PAGE), ['*'], 'page', $filters['page']);
 
         $products = $paginator->getCollection()
-            ->map(fn(Product $p): array => ProductListingMapper::toCard($p))
+            ->map(fn(Product $p): array => ProductListingMapper::toCard($p, $this->flashPricing))
             ->all();
 
         $parent = $category->parent_id !== null
@@ -175,7 +192,7 @@ class CatalogService
             ->paginate((int) config('catalog.all_products_per_page', 8), ['*'], 'page', $filters['page']);
 
         $products = $paginator->getCollection()
-            ->map(fn(Product $p): array => ProductListingMapper::toCard($p))
+            ->map(fn(Product $p): array => ProductListingMapper::toCard($p, $this->flashPricing))
             ->all();
 
         $schemaCrumbs = [
@@ -217,7 +234,7 @@ class CatalogService
         // Chế độ giới hạn nhanh (ajax/suggestion): không phân trang, không breadcrumb
         if ($limit !== null && $limit > 0) {
             $products = $query->limit($limit)->get()
-                ->map(fn(Product $p): array => ProductListingMapper::toCard($p))
+                ->map(fn(Product $p): array => ProductListingMapper::toCard($p, $this->flashPricing))
                 ->all();
 
             return [
@@ -229,7 +246,7 @@ class CatalogService
         $paginator = $query->paginate((int) config('catalog.all_products_per_page', 8), ['*'], 'page', $filters['page']);
 
         $products = $paginator->getCollection()
-            ->map(fn(Product $p): array => ProductListingMapper::toCard($p))
+            ->map(fn(Product $p): array => ProductListingMapper::toCard($p, $this->flashPricing))
             ->all();
 
         $schemaCrumbs = [
@@ -262,7 +279,8 @@ class CatalogService
     }
 
     /**
-     * Query gốc chung cho mọi trang listing: active + đã publish + eager coverImage.
+     * Query gốc chung cho mọi trang listing: active + đã publish + eager coverImage
+     * + defaultVariant (cần để đối chiếu giá deal với đúng biến thể bán).
      */
     private function baseListingQuery(): Builder
     {
@@ -278,7 +296,15 @@ class CatalogService
                         'product_images.path',
                         'product_images.thumb_path',
                     ]);
-                }
+                },
+                // FIX: cần defaultVariant để map giá flash sale theo biến thể mặc định
+                'defaultVariant' => function (HasOne $r): void {
+                    $r->select([
+                        'product_variants.id',
+                        'product_variants.product_id',
+                        'product_variants.price',
+                    ]);
+                },
             ])
             ->select(['id', 'category_id', 'slug', 'name', 'price_min', 'compare_price', 'rating_avg', 'sold_count']);
     }

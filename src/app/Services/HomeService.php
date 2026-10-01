@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\PromotionProduct;
+use App\Services\Promotion\FlashSalePriceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -17,11 +18,15 @@ use Illuminate\Database\Eloquent\Relations\Relation;
  * HomeService — các block trang chủ (danh mục nổi bật, flash sale, coupon,
  * bán chạy, trà hoa). Ngưỡng/số lượng fix cứng đã tách sang config/home.php;
  * public API và kết quả giữ nguyên 100%.
+ *
+ * FIX GIÁ: block flash sale và 2 block listing đều đi qua
+ * FlashSalePriceService => giá bán = flash_price sau khi trừ discount_percent.
  */
 class HomeService
 {
     public function __construct(
-        private readonly CouponService $couponService
+        private readonly CouponService $couponService,
+        private readonly FlashSalePriceService $flashPricing
     ) {
     }
 
@@ -65,6 +70,7 @@ class HomeService
      * - Chọn promotion flash_sale active + trong khung giờ
      * - Eager load product + coverImage + defaultVariant (không N+1)
      * - Cột select của relation ofMany phải định danh tên bảng (tránh lỗi 1052)
+     * - GIÁ BÁN = flash_price sau khi áp discount_percent
      * - Trả về null nếu không có deal => view tự ẩn block
      *
      * @return array{promotion_id: int, promotion_name: string, ends_at: string, ends_at_unix: int, sold_today: int, urgent_count: int, items: array<int, array<string, mixed>>}|null
@@ -173,7 +179,11 @@ class HomeService
     }
 
     /**
-     * Map 1 dòng promotion_products sang mảng hiển thị cho view
+     * Map 1 dòng promotion_products sang mảng hiển thị cho view.
+     *
+     * FIX LOGIC GIÁ: flash_price là GIÁ GỐC của deal; giá bán bắt buộc là
+     * flash_price sau khi trừ discount_percent (trước đây đưa raw flash_price
+     * ra UI nên thẻ không hề giảm theo %).
      *
      * @return array<string, mixed>
      */
@@ -181,15 +191,33 @@ class HomeService
     {
         $product = $pp->product;
 
-        // % giảm: ưu tiên giá trị admin nhập, thiếu thì tự tính từ giá gốc
-        $discount = $pp->discount_percent > 0
+        // Giá niêm yết hiện hành (default variant, fallback price_min)
+        $basePrice = $product->defaultVariant !== null
+            ? (int) $product->defaultVariant->price
+            : (int) $product->price_min;
+
+        // % giảm: BẮT BUỘC dùng discount_percent admin nhập; chỉ suy ra khi = 0
+        $discount = (int) $pp->discount_percent > 0
             ? (int) $pp->discount_percent
-            : (int) round((1 - $pp->flash_price / max(1, (int) $product->price_min)) * 100);
+            : (int) round((1 - (int) $pp->flash_price / max(1, $basePrice)) * 100);
+
+        $discount = max(0, min(99, $discount));
+
+        // Giá gốc của deal = flash_price (fallback giá niêm yết nếu data thiếu)
+        $originalPrice = (int) $pp->flash_price > 0 ? (int) $pp->flash_price : $basePrice;
+
+        // GIÁ BÁN SAU GIẢM theo discount_percent
+        $finalPrice = (int) round($originalPrice * (100 - $discount) / 100);
+
+        // Không để giá sale vượt giá niêm yết
+        if ($basePrice > 0 && $finalPrice > $basePrice) {
+            $finalPrice = $basePrice;
+        }
+
         $imageUrl = $product->coverImage
             ? asset('assets/images/' . $product->coverImage->path)
             : asset('images/product-default.svg');
 
-        $discount = max(0, min(99, $discount));
         $slotsLeft = $pp->slotsLeft();
         $soldPercent = $pp->soldPercent();
         $qtySold = (int) $pp->qty_sold;
@@ -209,8 +237,14 @@ class HomeService
             // 'sold_text' => format_number_compact((int) $product->sold_count),
             'sold_text' => (int) $product->sold_count,
             'discount_percent' => $discount,
-            'flash_price_formatted' => format_vnd((int) $pp->flash_price),
-            'original_price_formatted' => format_vnd((int) $product->price_min),
+            // --- Số RAW (đã quy đổi theo discount_percent) ---
+            'flash_price' => $finalPrice,
+            'original_price' => $originalPrice,
+            'saved_amount' => max(0, $originalPrice - $finalPrice),
+            // --- Chuỗi format cho view ---
+            'flash_price_formatted' => format_vnd($finalPrice),
+            'original_price_formatted' => format_vnd($originalPrice),
+            'saved_amount_formatted' => format_vnd(max(0, $originalPrice - $finalPrice)),
             'slots_left' => $slotsLeft,
             'sold_percent' => $soldPercent,
 
@@ -243,6 +277,8 @@ class HomeService
     /**
      * Khối "Bán chạy tuần này": top sản phẩm active sắp theo sold_count.
      * - 1 query chính + 1 eager load ảnh bìa (ofMany định danh bảng)
+     * - FIX: bỏ `$p->flash_price` (bảng products KHÔNG có cột này) — giá deal
+     *   lấy qua FlashSalePriceService::priceFor()
      * - Cache array thuần (không object) để tránh lỗi unserialize
      *
      * @return array<int, array<string, mixed>>
@@ -255,30 +291,11 @@ class HomeService
                 ->limit($this->limit('best_sellers'))
                 ->get();
 
-            return $products->map(static function (Product $p): array {
-                $price = (int) $p->price_min;
-                $oldPrice = $p->compare_price !== null && (int) $p->compare_price > $price
-                    ? (int) $p->compare_price
-                    : null;
-                $discount = $oldPrice !== null
-                    ? (int) round((($oldPrice - $price) / max(1, $oldPrice)) * 100)
-                    : 0;
-
-                return [
-                    'id' => (int) $p->id,
-                    'product_id' => (int) $p->id,
-                    'variant_id' => (int) ($p->defaultVariant?->id ?? 0),
-                    'name' => $p->name,
-                    'url' => route('web.product.show', $p->slug),
-                    'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('images/product-default.svg')),
-                    'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
-                    'sold_count' => (int) $p->sold_count,
-                    'flash_price' => format_vnd((int) $p->flash_price),
-                    'price' => format_vnd((int) $p->price_min),
-                    'old_price' => format_vnd((int) $oldPrice),
-                    'discount_percent' => $discount,
-                ];
-            })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();
+            return $products
+                ->map(fn(Product $p): array => $this->buildListingItem($p))
+                ->filter(static fn(array $item): bool => $item['variant_id'] > 0)
+                ->values()
+                ->all();
         });
     }
 
@@ -286,6 +303,7 @@ class HomeService
      * Khối "Trà hoa thảo mộc": sản phẩm thuộc danh mục Trà hoa thảo mộc.
      * - Lọc theo category slug 'tra-hoa-thao-moc'
      * - 1 query chính + eager load ảnh bìa và biến thể mặc định
+     * - FIX: dùng chung buildListingItem() => giá flash sale áp thống nhất
      * - Cache array thuần (không object)
      *
      * @return array<int, array<string, mixed>>
@@ -305,30 +323,57 @@ class HomeService
                 ->limit($this->limit('herbal_tea'))
                 ->get();
 
-            return $products->map(static function (Product $p): array {
-                $price = (int) $p->price_min;
-                $oldPrice = $p->compare_price !== null && (int) $p->compare_price > $price
-                    ? (int) $p->compare_price
-                    : null;
-                $discount = $oldPrice !== null
-                    ? (int) round((($oldPrice - $price) / max(1, $oldPrice)) * 100)
-                    : 0;
-
-                return [
-                    'id' => (int) $p->id,
-                    'product_id' => (int) $p->id,
-                    'variant_id' => (int) ($p->defaultVariant?->id ?? 0),
-                    'name' => $p->name,
-                    'url' => route('web.product.show', $p->slug),
-                    'image' => $p->coverImage?->thumb_path ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('images/product-default.svg')),
-                    'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
-                    'sold_count' => (int) $p->sold_count,
-                    'price' => format_vnd((int) $p->price_min),
-                    'old_price' => format_vnd($oldPrice),
-                    'discount_percent' => $discount,
-                ];
-            })->filter(fn($item) => $item['variant_id'] > 0)->values()->all();
+            return $products
+                ->map(fn(Product $p): array => $this->buildListingItem($p))
+                ->filter(static fn(array $item): bool => $item['variant_id'] > 0)
+                ->values()
+                ->all();
         });
+    }
+
+    /**
+     * Map 1 Product (đã eager coverImage/defaultVariant) sang item listing,
+     * CÓ áp giá flash sale nếu sản phẩm đang tham gia deal.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildListingItem(Product $p): array
+    {
+        $variantId = (int) ($p->defaultVariant?->id ?? 0);
+        $price = $p->defaultVariant !== null ? (int) $p->defaultVariant->price : (int) $p->price_min;
+
+        $oldPrice = $p->compare_price !== null && (int) $p->compare_price > $price
+            ? (int) $p->compare_price
+            : null;
+        $discount = $oldPrice !== null
+            ? (int) round((($oldPrice - $price) / max(1, $oldPrice)) * 100)
+            : 0;
+
+        // Flash sale ghi đè giá niêm yết (đồng bộ % với block flash + PDP + giỏ hàng)
+        $flash = $this->flashPricing->priceFor((int) $p->id, $variantId > 0 ? $variantId : null, $price, $price);
+
+        if ($flash !== null) {
+            $price = $flash['price'];
+            $oldPrice = $flash['original_price'];
+            $discount = $flash['discount_percent'];
+        }
+
+        return [
+            'id' => (int) $p->id,
+            'product_id' => (int) $p->id,
+            'variant_id' => $variantId,
+            'name' => $p->name,
+            'url' => route('web.product.show', $p->slug),
+            'image' => $p->coverImage?->thumb_path
+                ?? ($p->coverImage ? asset('assets/images/' . $p->coverImage->path) : asset('images/product-default.svg')),
+            'rating_avg' => number_format((float) $p->rating_avg, 1, '.', ''),
+            'sold_count' => (int) $p->sold_count,
+            'flash_price' => $flash !== null ? format_vnd($price) : null,
+            'price' => format_vnd($price),
+            'old_price' => $oldPrice !== null ? format_vnd($oldPrice) : null,
+            'discount_percent' => $discount,
+            'is_flash_sale' => $flash !== null,
+        ];
     }
 
     /**

@@ -37,7 +37,8 @@
                         :productId="$product['product_id']" :variantId="$product['variant_id']"
                         :soldPercent="$product['sold_percent']" :soldTextToday="$product['sold_text_today']"
                         :urgentText="$product['urgent_text']" :urgentTone="$product['urgent_tone']"
-                        :slotsLeft="$product['slots_left']" :progressText="$product['progress_text']" />
+                        :slotsLeft="$product['slots_left']" :progressText="$product['progress_text']"
+                        :savedAmount="$product['saved_amount'] ?? null" />
                 @endforeach
             </div>
         </div>

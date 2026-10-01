@@ -46,6 +46,8 @@ class ProductDetailHydrator
         );
 
         $relatedDTOs = array_map(fn($r) => new RelatedProductDTO(
+            product_id: (int) ($r['product_id'] ?? 0),
+            variant_id: isset($r['variant_id']) ? (int) $r['variant_id'] : null,
             url: $r['url'],
             image: $r['image'],
             name: $r['name'],
@@ -62,6 +64,7 @@ class ProductDetailHydrator
             rating: $r['rating'],
             content: $r['content'],
             created_at: $r['created_at'],
+            is_verified: (bool) ($r['is_verified'] ?? false),
         ), $reviewData['reviews']);
 
         return [

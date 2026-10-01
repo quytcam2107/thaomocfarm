@@ -52,6 +52,7 @@ return [
         'catalog' => [
             'category_tree' => 3600,      // 1 giờ
             'product_detail' => 300,      // 5 phút
+            'flash_sale' => 300,
         ],
         'content' => [
             'posts' => 1800,              // 30 phút

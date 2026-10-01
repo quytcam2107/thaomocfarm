@@ -8,6 +8,8 @@ use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 /*
  * ProductDetailFetcher — tầng DB thuần của trang chi tiết sản phẩm
@@ -79,6 +81,8 @@ class ProductDetailFetcher
         }
         $breadcrumbs[] = ['label' => $product->name, 'url' => null];
 
+        // Related: giữ nguyên logic cũ nhưng PHẢI trả product_id + variant_id
+        // để FlashSalePriceService tra đúng deal và ghi đè giá ngoài cache.
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')
@@ -99,6 +103,8 @@ class ProductDetailFetcher
                 $disc = ($op && $op > $pr) ? (int) round((($op - $pr) / $op) * 100) : 0;
 
                 return [
+                    'product_id' => (int) $p->id,
+                    'variant_id' => $defVar ? (int) $defVar->id : null,
                     'url' => route('web.product.show', $p->slug),
                     'image' => $coverImg,
                     'name' => $p->name,
@@ -141,52 +147,52 @@ class ProductDetailFetcher
     }
 
     /**
-     * Lấy reviews đã duyệt + thống kê sao của 1 sản phẩm (array thuần).
+     * Lấy reviews + thống kê sao cho 1 sản phẩm (mảng thuần, cache-safe).
      *
-     * @return array{reviews: list<array<string, mixed>>, stats: array{avg: float, total: int, breakdown: array<int,int>}}
+     * FIX LỖI 1054: bảng `reviews` KHÔNG có cột `customer_name` (xem
+     * ai-database/tables/reviews.md). Tên khách hàng lấy qua quan hệ
+     * reviews.user_id -> users.name, eager-load bằng BelongsTo để tránh N+1.
+     *
+     * @return array{reviews: list<array<string, mixed>>, stats: array<string, mixed>}
      */
     public static function fetchReviews(int $productId): array
     {
-        $reviews = Review::where('product_id', $productId)
-            ->where('status', 'approved')
-            ->with('user:id,name')
-            ->latest()
-            ->limit(10)
-            ->get()
-            ->map(fn($r) => [
-                'customer' => $r->user?->name ?? 'Khách',
-                'rating' => (int) $r->rating,
-                'content' => (string) $r->content,
-                'created_at' => $r->created_at->format('d/m/Y'),
+        $reviews = Review::query()
+            ->where('reviews.product_id', $productId)
+            ->where('reviews.status', 'approved')
+            ->with([
+                // Chỉ select đúng cột TỒN TẠI: id + name (users.name)
+                'user' => function (BelongsTo $q): void {
+                    $q->select(['users.id', 'users.name']);
+                },
             ])
-            ->all();
+            ->orderByDesc('reviews.created_at')
+            ->limit(20)
+            ->get(['reviews.id', 'reviews.user_id', 'reviews.rating', 'reviews.content', 'reviews.is_verified', 'reviews.created_at']);
 
-        $stats = Review::where('product_id', $productId)
-            ->where('status', 'approved')
-            ->selectRaw('rating, count(*) as total')
-            ->groupBy('rating')
-            ->pluck('total', 'rating')
-            ->toArray();
-
-        $totalReviews = (int) array_sum($stats);
-        $weightedSum = 0;
-        foreach ($stats as $star => $count) {
-            $weightedSum += (int) $star * (int) $count;
-        }
+        $stats = [
+            'avg' => $reviews->count() > 0 ? round((float) $reviews->avg('rating'), 1) : null,
+            'average' => $reviews->count() > 0 ? round((float) $reviews->avg('rating'), 1) : 0,
+            'total' => $reviews->count(),
+            'by_star' => [
+                5 => $reviews->where('rating', 5)->count(),
+                4 => $reviews->where('rating', 4)->count(),
+                3 => $reviews->where('rating', 3)->count(),
+                2 => $reviews->where('rating', 2)->count(),
+                1 => $reviews->where('rating', 1)->count(),
+            ],
+        ];
 
         return [
-            'reviews' => $reviews,
-            'stats' => [
-                'avg' => $totalReviews > 0 ? round($weightedSum / $totalReviews, 1) : 5.0,
-                'total' => $totalReviews,
-                'breakdown' => [
-                    5 => (int) ($stats[5] ?? 0),
-                    4 => (int) ($stats[4] ?? 0),
-                    3 => (int) ($stats[3] ?? 0),
-                    2 => (int) ($stats[2] ?? 0),
-                    1 => (int) ($stats[1] ?? 0),
-                ],
-            ],
+            'reviews' => $reviews->map(fn(Review $r): array => [
+                // 'customer' giữ key cũ cho ReviewViewDTO; ẩn danh khi user bị xóa
+                'customer' => $r->user?->name ?: 'Ẩn danh',
+                'rating' => (int) $r->rating,
+                'content' => (string) $r->content,
+                'is_verified' => (bool) $r->is_verified,
+                'created_at' => optional($r->created_at)->format('d/m/Y'),
+            ])->values()->all(),
+            'stats' => $stats,
         ];
     }
 }

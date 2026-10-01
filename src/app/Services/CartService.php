@@ -15,7 +15,8 @@ use Illuminate\Support\Str;
 class CartService
 {
     public function __construct(
-        private readonly CouponService $couponService
+        private readonly CouponService $couponService,
+        private readonly \App\Services\Promotion\FlashSalePriceService $flashPricing
     ) {
     }
 
@@ -166,7 +167,9 @@ class CartService
     /**
      * Lấy chi tiết giỏ hàng
      * FIX: Dùng closure với tên bảng đầy đủ cho mọi select() trong ofMany
-     * để tránh lỗi MySQL 1052 Column ambiguous
+     * để tránh lỗi MySQL 1052 Column ambiguous.
+     * FIX GIÁ: unit price = giá flash sale (flash_price sau khi trừ discount_percent)
+     * khi biến thể trong giỏ đang tham gia deal => subtotal/checkout khớp giá đã hiển thị.
      */
     public function getCartDetails(int $cartId): array
     {
@@ -198,11 +201,28 @@ class CartService
                         'product_variants.price',
                         'product_variants.compare_price',
                         'product_variants.stock',
+                        'product_variants.is_default',
                     ]);
                 },
             ])
             ->get()
             ->map(function ($item) {
+                $variantPrice = (int) $item->variant->price;
+
+                // Giá bán thực tế: áp deal flash sale nếu biến thể này đang có deal
+                $flash = $this->flashPricing->priceFor(
+                    (int) $item->product_id,
+                    (int) $item->variant->id,
+                    $variantPrice,
+                    $variantPrice,
+                    (bool) $item->variant->is_default
+                );
+
+                $unitPrice = $flash !== null ? $flash['price'] : $variantPrice;
+                $comparePrice = $flash !== null
+                    ? $flash['original_price']
+                    : ($item->variant->compare_price ? (int) $item->variant->compare_price : $variantPrice);
+
                 return [
                     'id' => $item->id,
                     'product_id' => $item->product_id,
@@ -210,10 +230,13 @@ class CartService
                     'product_name' => $item->product->name,
                     'product_slug' => $item->product->slug,
                     'variant_label' => $item->variant->label,
-                    'price' => format_vnd($item->variant->price),
-                    'compare_price' => format_vnd($item->variant->compare_price),
+                    'price' => format_vnd($unitPrice),
+                    'unit_price' => $unitPrice,
+                    'compare_price' => format_vnd($comparePrice),
                     'qty' => $item->qty,
-                    'subtotal' => $item->qty * $item->variant->price,
+                    'subtotal' => $item->qty * $unitPrice,
+                    'is_flash_sale' => $flash !== null,
+                    'discount_percent' => $flash !== null ? $flash['discount_percent'] : 0,
                     'image' => asset(
                         $item->product->coverImage?->path
                         ? 'assets/images/' . ltrim($item->product->coverImage->path, '/')
