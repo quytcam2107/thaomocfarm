@@ -16,7 +16,7 @@
     'urgentTone' => 'new',    // hot|deep|sell|new -> chọn màu badge
     'slotsLeft' => null,      // slot còn lại
     'progressText' => null,   // "78% đã bán"
-    'savedAmount' => null,    // "Tiết kiệm 52.500₫" (tính từ discount_percent)
+    'savedAmount' => null,    // Số VND tiết kiệm (int) hoặc chuỗi "52.500₫" — chỉ tính từ discount_percent
 ])
 
 @php
@@ -42,7 +42,11 @@
 
     $priceText = $rawNumber($price);
     $oldText = $rawNumber($oldPrice);
-    $savedText = $rawNumber($savedAmount);
+
+    // FIX LỆCH #1: chỉ hiện dòng "Tiết kiệm" khi thực sự có tiền giảm (> 0),
+    // tránh render thẻ rỗng làm .pcard__buy cao bất thường giữa các card.
+    $savedValue = (int) preg_replace('/[^\d]/u', '', (string) ($savedAmount ?? '0'));
+    $savedText = $savedValue > 0 ? $rawNumber($savedValue) : null;
 @endphp
 
 <article class="pcard pcard--flash">
@@ -89,6 +93,18 @@
             <p class="flash__sold">{{ $soldTextToday }}</p>
         @endif
 
+        {{-- FIX LỆCH #2: .flash__save KHÔNG nằm trong .pcard__buy nữa.
+        .pcard__buy là flex row (price | nút add) -> nhét thêm 1 <p> vào sẽ
+            tạo flex item thứ 3, chữ bị dồn giữa và lệch khỏi giá.
+            Chuyển dòng tiết kiệm lên block riêng ngay trên .pcard__buy. --}}
+            @if($savedText)
+                <p class="flash__save">
+                    {{-- <i>: nhãn chữ, <b>: con số — CSS tự ẩn <i> ở màn rất hẹp --}}
+                                <i class="flash__save-label">Tiết kiệm</i>
+                                <b class="flash__save-value">{{ $savedText }}₫</b>
+                </p>
+            @endif
+
         <div class="pcard__buy">
             <p class="pcard__price">
                 <b>{{ $priceText }}₫</b>
@@ -96,10 +112,6 @@
                     <s>{{ $oldText }}₫</s>
                 @endif
             </p>
-            {{-- Dòng tiết kiệm: chứng minh giá đã giảm đúng discount_percent --}}
-            @if($savedText)
-                <p class="flash__save">Tiết kiệm {{ $savedText }}₫</p>
-            @endif
             {{-- Giữ nguyên contract JS: .add-cart + data-product-id/data-variant-id --}}
             <button class="pcard__add add-cart" type="button" data-product-id="{{ $productId }}"
                 data-variant-id="{{ $variantId }}" data-name="{{ $name }}" aria-label="Thêm {{ $name }} vào giỏ"><img
