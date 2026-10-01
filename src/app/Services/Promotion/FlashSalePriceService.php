@@ -143,6 +143,78 @@ class FlashSalePriceService
     }
 
     /**
+     * Metadata phiên flash_sale đang chạy cho PDP (countdown + tên chương trình).
+     * Cùng điều kiện chọn phiên với HomeService::flashSale() (type=flash_sale,
+     * status=active, start_at<=now<end_at, ưu tiên end_at gần nhất) => PDP và
+     * trang home luôn đếm ngược về CÙNG một mốc thời gian.
+     *
+     * @return array{promotion_id:int,promotion_name:string,ends_at_unix:int}|null
+     */
+    public function currentPromotionMeta(): ?array
+    {
+        $ttl = (int) config('thaomoc.cache.catalog.flash_sale', 300);
+
+        return remember_group('catalog', 'flash_sale_meta', $ttl, function (): ?array {
+            /** @var Promotion|null $promotion */
+            $promotion = Promotion::query()
+                ->where('type', PromotionType::FLASH_SALE->value)
+                ->where('status', PromotionStatus::ACTIVE->value)
+                ->where('start_at', '<=', now())
+                ->where('end_at', '>', now())
+                ->orderBy('end_at')
+                ->first(['id', 'name', 'end_at']);
+
+            if ($promotion === null) {
+                return null;
+            }
+
+            return [
+                'promotion_id' => (int) $promotion->id,
+                'promotion_name' => (string) $promotion->name,
+                'ends_at_unix' => $promotion->end_at->getTimestamp(),
+            ];
+        });
+    }
+
+    /**
+     * Block flash sale cho PDP — trả null khi sản phẩm KHÔNG thuộc deal đang
+     * chạy (component x-product.flash-block tự ẩn => UI cũ không đổi).
+     *
+     * Lưu ý thiết kế: KHÔNG xuất số "ngày" — countdown PDP đếm GIỜ:PHÚT:GIÂY
+     * giống hệt trang home (JS tự quy đổi phần dư thành giờ, không cần biết
+     * end_at cách bao nhiêu ngày).
+     *
+     * @return array{name:string,ends_at_unix:int,discount_percent:int,saved_amount:int,slots_left:int,sold_percent:int,per_user_limit:int}|null
+     */
+    public function pdpBlockFor(int $productId): ?array
+    {
+        $meta = $this->currentPromotionMeta();
+        $deal = $this->dealsByProduct()[$productId] ?? null;
+
+        if ($meta === null || $deal === null) {
+            return null;
+        }
+
+        // Đồng bộ công thức giá với applyToDetailArray(): flash_price = giá gốc deal
+        $original = $deal['flash_price'] > 0 ? (int) $deal['flash_price'] : 0;
+        $percent = $this->percentOf($deal, $original, $original);
+        $final = $this->applyPercent($original, $percent);
+
+        $qtyTotal = (int) $deal['qty_total'];
+        $qtySold = (int) $deal['qty_sold'];
+
+        return [
+            'name' => $meta['promotion_name'],
+            'ends_at_unix' => $meta['ends_at_unix'],
+            'discount_percent' => min(99, max(0, $percent)),
+            'saved_amount' => max(0, $original - $final),
+            'slots_left' => max(0, $qtyTotal - $qtySold),
+            'sold_percent' => $qtyTotal > 0 ? (int) round($qtySold * 100 / $qtyTotal) : 0,
+            'per_user_limit' => (int) $deal['per_user_limit'],
+        ];
+    }
+
+    /**
      * Áp giá flash sale lên mảng thô PDP (chạy NGOÀI cache => giá luôn tươi).
      *
      * @param array<string, mixed> $cached

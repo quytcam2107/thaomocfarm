@@ -72,7 +72,7 @@ class CatalogService
         // FIX: áp giá flash sale (nếu có) cho PDP + related — chạy NGOÀI cache
         $cached = $this->flashPricing->applyToDetailArray($cached);
 
-        return ProductDetailHydrator::hydrate($cached, $this->getProductReviews((int) $cached['product_id']));
+        return ProductDetailHydrator::hydrate($cached, $this->getProductReviews((int) $cached['product_id']), $this->flashPricing);
     }
 
     /**

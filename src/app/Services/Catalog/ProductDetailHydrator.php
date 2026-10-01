@@ -8,6 +8,7 @@ use App\DTOs\CategoryViewDTO;
 use App\DTOs\ProductViewDTO;
 use App\DTOs\RelatedProductDTO;
 use App\DTOs\ReviewViewDTO;
+use App\Services\Promotion\FlashSalePriceService;
 
 /*
  * ProductDetailHydrator — convert array thuần đã cache sang DTO cho view
@@ -18,14 +19,18 @@ class ProductDetailHydrator
     /**
      * @param array<string, mixed> $cached Mảng thô từ ProductDetailFetcher::fetch()
      * @param array{reviews: list<array<string, mixed>>, stats: array<string, mixed>} $reviewData
+     * @param FlashSalePriceService|null $flashPricing NEW: gắn block flash sale (countdown) cho PDP
      * @return array<string, mixed>
      */
-    public static function hydrate(array $cached, array $reviewData): array
+    public static function hydrate(array $cached, array $reviewData, ?FlashSalePriceService $flashPricing = null): array
     {
         $categoryDTO = $cached['category'] ? new CategoryViewDTO(
             name: $cached['category']['name'],
             url: $cached['category']['url'],
         ) : null;
+
+        // NEW: block flash sale cho PDP — null nếu SP không thuộc deal => component tự ẩn
+        $flashBlock = $flashPricing?->pdpBlockFor((int) $cached['product_id']);
 
         $productDTO = new ProductViewDTO(
             id: $cached['product']['id'],
@@ -43,6 +48,7 @@ class ProductDetailHydrator
             image: $cached['product']['image'],
             meta_description: $cached['product']['meta_description'],
             category: $categoryDTO,
+            flashSale: $flashBlock,
         );
 
         $relatedDTOs = array_map(fn($r) => new RelatedProductDTO(

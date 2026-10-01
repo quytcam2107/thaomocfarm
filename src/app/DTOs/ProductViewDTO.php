@@ -22,6 +22,8 @@ class ProductViewDTO
         public readonly string $image,
         public readonly string $meta_description,
         public readonly ?CategoryViewDTO $category,
+        // Block flash sale PDP (null khi SP không thuộc deal => UI giữ nguyên như cũ)
+        public readonly ?array $flashSale = null,
     ) {
     }
 }

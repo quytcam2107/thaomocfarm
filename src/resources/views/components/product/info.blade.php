@@ -11,6 +11,9 @@
         <span>· SKU: {{ $product->sku }}</span>
     </p>
 
+    {{-- NEW: block Flash Sale + countdown (tự ẩn khi SP không thuộc deal => UI cũ không đổi) --}}
+    <x-product.flash-block :product="$product" />
+
     <p class="pd-price">
         <b class="price">{{ number_format($product->price) }}₫</b>
         @if($product->old_price)

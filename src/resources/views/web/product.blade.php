@@ -22,6 +22,11 @@
     <x-slot name="extra">
         <x-product.buybar :product="$product" />
 
+        {{-- NEW: JS countdown flash sale PDP — chỉ tải khi SP thuộc deal (tiết kiệm payload trang thường) --}}
+        @if($product->flashSale ?? null)
+            <script src="{{ asset('assets/js/pdp-flash.js') }}" defer></script>
+        @endif
+
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const variants = @json($variants);
@@ -32,7 +37,7 @@
                 thumbs.forEach(btn => {
                     btn.addEventListener('click', () => {
                         stageImg.src = btn.dataset.full;
-                        thumbs.forEach(b => b.setAttribute('aria-current', 'false'));
+                        thumbs.forEach(b => b.setAttribute('aria-current', 'false'))
                         btn.setAttribute('aria-current', 'true');
                     });
                 });

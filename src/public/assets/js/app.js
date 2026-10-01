@@ -82,7 +82,6 @@
             const show = window.scrollY > 400;
             backToTop.classList.toggle('is-visible', show);
             backToTop.setAttribute('aria-hidden', String(!show));
-            bttTicking = false;
         };
         window.addEventListener('scroll', () => {
             if (bttTicking) return;          // throttle bằng rAF — rẻ khi cuộn nhanh
@@ -99,18 +98,49 @@
     const fg = q('#filterGroups'), fd = q('#filterDrawerBody');
     if (fg && fd) fd.innerHTML = fg.innerHTML;
 
-    /* Countdown tới cuối ngày */
+    /* =====================================================================
+       COUNTDOWN FLASH SALE — HOME + PDP dùng chung 1 engine GIỜ:PHÚT:GIÂY
+       - Home:  #cdH/#cdM/#cdS  (data-ends trên .countdown — bỏ qua, giữ mốc cuối ngày như cũ)
+       - PDP:   #pdCdH/#pdCdM/#pdCdS (data-ends = unix end_at của phiên flash sale)
+       - KHÔNG hiển thị số "ngày": tổng giây còn lại quy hết ra giờ (vd 26 tiếng
+         => "26:00:00"), đồng nhất cách đếm của trang home.
+       ===================================================================== */
+    const pad = n => String(n).padStart(2, '0');
+
+    /* Engine đếm H:M:S tới 1 unix timestamp; trả về timer để clear khi cần */
+    function runCountdown(hEl, mEl, sEl, endsUnix, onEnd) {
+        const tick = () => {
+            const s = Math.max(0, Math.floor((endsUnix * 1000 - Date.now()) / 1000));
+            // Không dùng ô "ngày": cộng dồn ngày vào giờ (giống cách home hiển thị)
+            hEl.textContent = pad(Math.floor(s / 3600));
+            mEl.textContent = pad(Math.floor((s % 3600) / 60));
+            sEl.textContent = pad(s % 60);
+            if (s <= 0) { clearInterval(timer); if (onEnd) onEnd(); }
+        };
+        tick();
+        const timer = setInterval(tick, 1000);
+        return timer;
+    }
+
+    /* Countdown trang home: tới cuối ngày (giữ nguyên hành vi cũ 100%) */
     const cdH = q('#cdH'), cdM = q('#cdM'), cdS = q('#cdS');
     if (cdH && cdM && cdS) {
         const end = new Date(); end.setHours(23, 59, 59, 999);
-        const pad = n => String(n).padStart(2, '0');
-        const tick = () => {
-            const s = Math.max(0, Math.floor((end - Date.now()) / 1000));
-            cdH.textContent = pad(Math.floor(s / 3600));
-            cdM.textContent = pad(Math.floor((s % 3600) / 60));
-            cdS.textContent = pad(s % 60);
-        };
-        tick(); setInterval(tick, 1000);
+        runCountdown(cdH, cdM, cdS, Math.floor(end.getTime() / 1000));
+    }
+
+    /* NEW: Countdown flash sale trên PDP — đếm tới end_at của phiên, H:M:S như home */
+    const pdBox = q('[data-pd-flash]');
+    if (pdBox) {
+        const pdH = q('#pdCdH'), pdM = q('#pdCdM'), pdS = q('#pdCdS');
+        const endsUnix = parseInt(pdBox.dataset.ends, 10);
+        if (pdH && pdM && pdS && !isNaN(endsUnix) && endsUnix > 0) {
+            runCountdown(pdH, pdM, pdS, endsUnix, () => {
+                // Phiên kết thúc giữa lúc người dùng đang xem: ẩn gọn block + báo toast
+                pdBox.classList.add('is-ended');
+                toast('Flash sale đã kết thúc — giá đã về mức thường');
+            });
+        }
     }
 
     /* Gallery: đổi ảnh chính theo thumb */

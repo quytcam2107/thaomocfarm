@@ -334,3 +334,81 @@ body.has-buybar .floatnav {
         padding-bottom: 0;
     }
 }
+
+/* ============ FLASH SALE TRÊN PDP (mới — chỉ render khi SP thuộc deal) ============
+   Nền sáng nhẹ tách khỏi nền trắng card; countdown bên trong tái dùng
+   .countdown + .cd của 04-home.css nên style ô số vàng đồng nhất trang chủ. */
+.pd-flash {
+    background: linear-gradient(135deg, #fff4ec, #fdf0f2);
+    border: 1px solid var(--rose);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 4px 0 14px;
+}
+
+/* JS thêm khi phiên kết thúc giữa lúc đang xem trang */
+.pd-flash.is-ended {
+    display: none;
+}
+
+.pd-flash__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 10px;
+}
+
+.pd-flash__badge {
+    background: var(--rose);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    animation: pdFlashPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pdFlashPulse {
+    50% {
+        opacity: .75;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pd-flash__badge {
+        animation: none;
+    }
+}
+
+.pd-flash__name {
+    font-size: 13px;
+    color: var(--leaf-deep);
+}
+
+/* Countdown PDP: bám layout home nhưng đẩy sang phải trên desktop */
+.pd-flash__cd {
+    color: #40514a;
+}
+
+@media (min-width: 480px) {
+    .pd-flash__cd {
+        margin-left: auto;
+    }
+}
+
+.pd-flash__facts {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12.5px;
+    color: #40514a;
+}
+
+.pd-flash__facts b {
+    color: var(--rose);
+}
