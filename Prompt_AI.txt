@@ -1,16 +1,25 @@
 # Bối cảnh
-Dự án Laravel "Thảo Mộc Farm" (Blade + CSS/JS tĩnh trong public/assets, mobile-first).
-Tài liệu ngữ cảnh đã có sẵn trong repo — BẮT BUỘC đọc 3 file sau TRƯỚC khi làm bất cứ gì:
-- PROJECT_CONTEXT/README.md   → rule làm việc + quy ước kỹ thuật cốt lõi
-- PROJECT_CONTEXT/01-DATABASE.md → schema thật của 34 bảng (cột, index, enum, unique)
-- PROJECT_CONTEXT/02-CODE.md  → models/scopes/enums/services/controllers/routes/views/CSS partials/contract JS/config/helpers
+Dự án Laravel "Thảo Mộc Farm" (Blade + CSS/JS tĩnh trong `public/assets`, mobile-first, source code nằm trong thư mục `src/`).
 
-# Quy tắc thực hiện (tóm tắt từ README.md — áp dụng đầy đủ theo README)
-1. Đọc toàn bộ file liên quan trước khi sửa; đối chiếu tài liệu với code thật — code thật thắng, báo lại nếu lệch.
-2. Bám sát tên route/cột/class/selector THẬT trong dự án, không bịa, không giả định. Giữ tương thích ngược các contract (#cartBadge, .add-cart, #toast, meta csrf-token, data-drawer-*). Route mới phải đặt TRƯỚC catch-all /{slug}. Không refactor ngoài phạm vi.
-3. Xuất code: file nào sửa/tạo → MỘT code block chứa TOÀN BỘ nội dung file, phía trên ghi "### File: đường/dẫn/file". Không diff, không placeholder "...". Nội dung không liên quan giữ NGUYÊN VĂN bản gốc.
-4. Đủ mắt xích: CSS ↔ Blade ↔ JS ↔ Route/Controller phải liệt kê hết file thay đổi. Comment tiếng Việt ngắn tại logic mới.
-5. Kết thúc: tóm tắt file đã sửa + luồng hoạt động + điểm cần tôi kiểm tra trên trình duyệt/database.
+Tài liệu ngữ cảnh đã có sẵn trong repo — **BẮT BUỘC đọc TRƯỚC khi làm bất cứ việc gì**:
+- `PROJECT_CONTEXT/README.md` → rule làm việc chi tiết + quy ước kỹ thuật cốt lõi.
+- `PROJECT_CONTEXT/01-DATABASE.md` → tổng quan schema thật: 34 bảng nghiệp vụ + 7 bảng framework, quy ước cột/index/enum/unique.
+- `PROJECT_CONTEXT/02-CODE.md` → models/scopes/relations, Enums, DTOs, Services, Controllers, FormRequests, routes, views, CSS partials, contract JS, config, helpers.
 
-# Nhiệm vụ lần này
-<MÔ TẢ YÊU CẦU CỤ THỂ CỦA BẠN VÀO ĐÂY>
+**Cơ sở dữ liệu thật** — xuất tự động bằng lệnh `php artisan ai:export-database` (tên DB lấy từ `.env`), chạy lại lệnh bất cứ khi nào cần cập nhật. Thư mục `ai-database/`:
+- `ai-database/INDEX.md` *(auto)* → danh sách toàn bộ bảng + số bản ghi + link file chi tiết. Đọc file này ĐẦU TIÊN khi cần thông tin database.
+- `ai-database/tables/<bảng>.md` *(auto)* → cấu trúc THẬT từng bảng: cột, kiểu, nullable, default, index, foreign key, comment + thống kê min/max/top values + 50 dòng mẫu dữ liệu.
+- `ai-database/data/<bảng>.jsonl` *(auto)* → TOÀN BỘ dữ liệu của bảng, mỗi dòng = 1 bản ghi JSON, không giới hạn record. Chỉ mở file này khi thực sự cần dữ liệu đầy đủ (file có thể lớn); nếu chỉ cần cấu trúc/mẫu thì đọc `tables/<bảng>.md` là đủ.
+- File *(auto)* KHÔNG được sửa tay — muốn cập nhật thì chạy lại lệnh export.
+
+Nếu tài liệu và code/database thực tế khác nhau → **thực tế thắng**, và phải báo lại điểm chênh lệch.
+
+# Quy tắc thực hiện (tóm tắt — áp dụng đầy đủ theo README.md)
+1. **Đọc trước khi sửa**: đọc toàn bộ file liên quan; không giả định nội dung chưa thấy. Tên cột/kiểu/dữ liệu thật lấy từ `ai-database/tables/` và `ai-database/data/`, không đoán.
+2. **Bám sát thực tế**: dùng đúng tên route/cột/class/selector THẬT. Giữ tương thích ngược các contract JS (`#cartBadge`, `.add-cart`, `#toast`, `meta[name="csrf-token"]`, `[data-drawer-open]`/`[data-drawer-close]`). Route mới bắt buộc đặt **TRƯỚC** catch-all `GET /{slug}`. Tên route web luôn prefix `web.`. Không refactor ngoài phạm vi.
+3. **Cách xuất code (bắt buộc)**: mỗi file sửa/tạo mới → **MỘT code block chứa TOÀN BỘ nội dung file từ dòng 1 đến dòng cuối**, phía trên ghi rõ `### File: đường/dẫn/file`. KHÔNG diff, KHÔNG placeholder "...". Nội dung không liên quan giữ NGUYÊN VĂN bản gốc.
+4. **Đủ mắt xích**: liệt kê TẤT CẢ file thay đổi (CSS ↔ Blade ↔ JS ↔ Route/Controller). Comment tiếng Việt ngắn gọn tại logic mới.
+5. **Kết thúc**: tóm tắt ngắn đã sửa file nào, luồng hoạt động; nêu rõ điểm cần kiểm tra lại trên trình duyệt/database.
+
+# Yêu cầu tiếp theo
+<Điền yêu cầu chức năng/sửa lỗi vào đây>
