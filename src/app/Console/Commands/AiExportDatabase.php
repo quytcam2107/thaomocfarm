@@ -9,7 +9,7 @@ class AiExportDatabase extends Command
 {
     protected $signature = 'ai:export-database
                             {--connection= : Kết nối CSDL cần xuất (mặc định: kết nối mặc định trong .env)}
-                            {--output= : Thư mục xuất file (mặc định: storage/app/ai-database)}
+                            {--output= : Thư mục xuất file (mặc định: PROJECT_CONTEXT cùng cấp với thư mục src)}
                             {--include-framework : Xuất cả các bảng framework (cache, jobs, sessions, migrations...)}';
 
     protected $description = 'Xuất cấu trúc + TOÀN BỘ dữ liệu của mọi bảng trong database ra các file Markdown/JSONL (mỗi bảng 1 file) để AI đọc hiểu. Chỉ đọc (SELECT), không thay đổi dữ liệu. Chạy lại lệnh bất cứ khi nào muốn cập nhật bản xuất.';
@@ -36,7 +36,15 @@ class AiExportDatabase extends Command
         $connectionName = $this->option('connection') ?: config('database.default');
         $connection = DB::connection($connectionName);
 
-        $outputDir = rtrim((string) ($this->option('output') ?: storage_path('app/ai-database')), '/\\');
+        // Mặc định: thư mục PROJECT_CONTEXT nằm CÙNG CẤP với thư mục src/
+        // (vd: C:\laragon\www\thaomocfarm\PROJECT_CONTEXT).
+        // Nếu dự án không đặt trong thư mục "src", fallback về base_path()/PROJECT_CONTEXT.
+        $defaultOutput = dirname(base_path()) . DIRECTORY_SEPARATOR . 'PROJECT_CONTEXT/ai-database';
+        if (!is_dir(dirname(base_path())) || !str_ends_with(str_replace('\\', '/', base_path()), '/src')) {
+            $defaultOutput = base_path('PROJECT_CONTEXT/ai-database');
+        }
+
+        $outputDir = rtrim((string) ($this->option('output') ?: $defaultOutput), '/\\');
         foreach ([$outputDir, "{$outputDir}/tables", "{$outputDir}/data"] as $dir) {
             if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
                 $this->error("Không thể tạo thư mục xuất: {$dir}");

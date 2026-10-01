@@ -1,0 +1,58 @@
+# Bảng `stock_movements`
+
+> File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
+> Bản cập nhật lúc: 2026-10-01T04:24:23+00:00
+
+## Thông tin chung
+
+- Số bản ghi: **7**
+- Dữ liệu đầy đủ (JSON Lines, 1 dòng = 1 bản ghi): `data/stock_movements.jsonl`
+
+## Cấu trúc (columns)
+
+| Cột | Kiểu | Null | Mặc định | Extra | Comment |
+|---|---|---|---|---|---|
+| `id` | bigint unsigned | NO | *NULL* | - | - |
+| `product_variant_id` | bigint unsigned | NO | *NULL* | - | - |
+| `type` | enum('import','export','adjust','order_reserve','order_release') | NO | *NULL* | - | - |
+| `qty` | int | NO | *NULL* | - | - |
+| `ref_type` | varchar(255) | YES | *NULL* | - | - |
+| `ref_id` | bigint unsigned | YES | *NULL* | - | - |
+| `note` | text | YES | *NULL* | - | - |
+| `created_by` | bigint unsigned | YES | *NULL* | - | - |
+| `created_at` | timestamp | YES | *NULL* | - | - |
+| `updated_at` | timestamp | YES | *NULL* | - | - |
+
+## Indexes
+
+| Tên | Unique | Kiểu | Cột |
+|---|---|---|---|
+| primary | ✔ | btree | `id` |
+| stock_movements_created_by_index |  | btree | `created_by` |
+| stock_movements_product_variant_id_created_at_index |  | btree | `product_variant_id`, `created_at` |
+| stock_movements_product_variant_id_index |  | btree | `product_variant_id` |
+| stock_movements_ref_type_ref_id_index |  | btree | `ref_type`, `ref_id` |
+
+## Thống kê dữ liệu
+
+- `id`: min = 1, max = 7 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `4` (1), `5` (1), `6` (1), `7` (1)
+- `product_variant_id`: min = 1, max = 10 — giá trị phổ biến: `5` (2), `1` (1), `2` (1), `3` (1), `6` (1), `10` (1)
+- `type`: giá trị phổ biến: `export` (7)
+- `qty`: min = -2, max = -1 — giá trị phổ biến: `-1` (6), `-2` (1)
+- `ref_type`: giá trị phổ biến: `order` (7)
+- `ref_id`: min = 1, max = 3 — giá trị phổ biến: `1` (3), `3` (3), `2` (1)
+- `note`: giá trị phổ biến: `Đặt hàng thành công` (7)
+- `created_at`: min = 2026-09-25 04:15:13, max = 2026-09-26 09:40:05 — giá trị phổ biến: `2026-09-25 04:15:13` (3), `2026-09-26 09:40:05` (3), `2026-09-25 04:24:20` (1)
+- `updated_at`: min = 2026-09-25 04:15:13, max = 2026-09-26 09:40:05 — giá trị phổ biến: `2026-09-25 04:15:13` (3), `2026-09-26 09:40:05` (3), `2026-09-25 04:24:20` (1)
+
+## Mẫu dữ liệu
+
+| id | product_variant_id | type | qty | ref_type | ref_id | note | created_by | created_at | updated_at
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 1 | export | -2 | order | 1 | Đặt hàng thành công | NULL | 2026-09-25 04:15:13 | 2026-09-25 04:15:13
+| 2 | 5 | export | -1 | order | 1 | Đặt hàng thành công | NULL | 2026-09-25 04:15:13 | 2026-09-25 04:15:13
+| 3 | 6 | export | -1 | order | 1 | Đặt hàng thành công | NULL | 2026-09-25 04:15:13 | 2026-09-25 04:15:13
+| 4 | 3 | export | -1 | order | 2 | Đặt hàng thành công | NULL | 2026-09-25 04:24:20 | 2026-09-25 04:24:20
+| 5 | 2 | export | -1 | order | 3 | Đặt hàng thành công | NULL | 2026-09-26 09:40:05 | 2026-09-26 09:40:05
+| 6 | 5 | export | -1 | order | 3 | Đặt hàng thành công | NULL | 2026-09-26 09:40:05 | 2026-09-26 09:40:05
+| 7 | 10 | export | -1 | order | 3 | Đặt hàng thành công | NULL | 2026-09-26 09:40:05 | 2026-09-26 09:40:05
