@@ -220,7 +220,7 @@ class BlogService
             'title' => $p->title,
             'slug' => $p->slug,
             'excerpt' => $p->excerpt ? \Illuminate\Support\Str::limit(strip_tags($p->excerpt), 120) : '',
-            'cover' => $p->cover ? asset('assets/images/' . ltrim($p->cover, '/')) : asset('assets/images/placeholder.svg'),
+            'cover' => asset($p->cover) ? asset($p->cover) : asset('assets/images/placeholder.svg'),
             'published_at' => $p->published_at?->format('d/m/Y'),
             'reading_minutes' => (int) $p->reading_minutes,
             'url' => route('web.blog.show', $p->slug),

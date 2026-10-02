@@ -7,10 +7,10 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
     use Illuminate\Support\Str;
 
     $shareUrl = route('web.blog.show', $post->slug);
-    $coverUrl = $post->cover
-        ? asset('assets/images/' . ltrim($post->cover, '/'))
-        : asset('assets/images/og-cover.jpg');
 
+    $coverUrl = $post->cover
+        ? (Str::startsWith($post->cover, ['http://', 'https://']) ? $post->cover : asset($post->cover))
+        : asset('assets/images/default-blog-cover.jpg');
     // JSON-LD Article theo schema.org
     $articleSchema = [
         '@context' => 'https://schema.org',
@@ -129,13 +129,14 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
 
         {{-- Bài liên quan --}}
         @if (count($relatedPosts))
+        
             <section class="sp-section reveal" aria-labelledby="relTitle">
                 <h2 class="sec-title" id="relTitle">Bài viết liên quan</h2>
                 <div class="bl-grid bl-grid--4">
                     @foreach ($relatedPosts as $rp)
                         <article class="bl-card">
                             <a class="bl-card__media" href="{{ $rp['url'] }}" tabindex="-1" aria-hidden="true">
-                                <img src="{{ $rp['cover'] }}" alt="Ảnh bìa: {{ $rp['title'] }}" width="640" height="400"
+                                <img src="{{ asset($rp['cover']) }}" alt="Ảnh bìa: {{ $rp['title'] }}" width="640" height="400"
                                     loading="lazy">
                             </a>
                             <div class="bl-card__body">

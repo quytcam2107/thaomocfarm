@@ -83,8 +83,7 @@ Dữ liệu: BlogService (paginate/categories/indexSeoMeta).
                     <article class="bl-card">
                         <a class="bl-card__media" href="{{ route('web.blog.show', $post->slug) }}" tabindex="-1"
                             aria-hidden="true">
-                            <img src="{{ $post->cover ? asset('assets/images/' . ltrim($post->cover, '/')) : asset('assets/images/placeholder.svg') }}"
-                                alt="Ảnh bìa: {{ $post->title }}" width="640" height="400" loading="lazy">
+                            <img src="{{ asset($post->cover) }}" alt="Ảnh bìa: {{ $post->title }}" width="640" height="400" loading="lazy">
                         </a>
                         <div class="bl-card__body">
                             @if ($post->category)
