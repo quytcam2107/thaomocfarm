@@ -10,6 +10,6 @@
     <x-sections.stats />
     <x-sections.testimonials :reviews="$testimonials ?? null" />
     <x-sections.trust />
-    <x-sections.tips />
+    <x-sections.tips :tips="$tips ?? null" />
     <x-sections.newsletter />
 </x-layouts.app>

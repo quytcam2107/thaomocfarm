@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Web\BlogController;
 use App\Http\Controllers\Web\CartController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\CheckoutController;
@@ -65,6 +66,15 @@ Route::get('/dieu-khoan-su-dung', [PageController::class, 'terms'])->name('web.p
 // 6c. Cac trang tinh "Ve chung toi" (footer moi): Gioi thieu + Lien he — cung phai dat TRƯỚC catch-all /{slug}
 Route::get('/gioi-thieu', [PageController::class, 'about'])->name('web.page.about');
 Route::get('/lien-he', [PageController::class, 'contact'])->name('web.page.contact');
+
+// 6d. Cam nang (blog) — dat TRƯỚC catch-all /{slug}; prefix web. theo quy ước
+Route::get('/cam-nang', [BlogController::class, 'index'])->name('web.blog.index');
+Route::get('/cam-nang/category/{slug}', [BlogController::class, 'category'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('web.blog.category');
+Route::get('/cam-nang/{slug}', [BlogController::class, 'show'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('web.blog.show');
 
 // 7. Alias pretty-url /{slug} — BẮT BUỘC ở cuối cùng
 Route::get('/{slug}', [CategoryController::class, 'show'])
