@@ -33,13 +33,6 @@
             'match' => fn() => request()->is('/'),
         ],
         [
-            'label' => 'Danh mục',
-            'icon' => '🗂️',
-            'url' => route('web.products.index'), // /tat-ca-san-pham — trang liệt kê toàn bộ SP + lọc theo danh mục
-            'desc' => 'Toàn bộ sản phẩm thảo mộc',
-            'match' => fn() => request()->is('tat-ca-san-pham', 'danh-muc/*', 'san-pham/*'),
-        ],
-        [
             'label' => 'Giới thiệu',
             'icon' => '🌱',
             'url' => route('web.page.about'), // /gioi-thieu
