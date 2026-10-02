@@ -238,6 +238,222 @@
     padding: 16px;
 }
 
+/* ============ DRAWER MENU MOBILE — thiết kế lại drawer__panel (#drawer) ============
+   Chỉ áp dụng cho #drawer (menu chính); filterDrawer dùng .drawer__filter nên
+   không bị ảnh hưởng. Các rule cũ .drawer__head/.drawer__nav bên trên vẫn giữ
+   cho filter drawer; phần dưới ghi đè có chọn lọc qua scope #drawer. */
+
+/* Header: logo + tên + tagline (ghi đè .drawer__head cho #drawer) */
+#drawer .drawer__head {
+    padding: 14px 16px;
+    gap: 10px;
+}
+
+.drawer__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.drawer__brand img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fff;
+    object-fit: contain;
+    flex: none;
+}
+
+.drawer__brand b {
+    display: block;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.drawer__brand small {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    opacity: .85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Nhãn nhóm: "Khám phá" / "Danh mục sản phẩm" / "Tiện ích" */
+.drawer__section-title {
+    margin: 14px 8px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.drawer__links,
+.drawer__cats,
+.drawer__util {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Link điều hướng chính: icon ô tròn + label + mô tả + mũi tên */
+.drawer__links a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    transition: background .2s, border-color .2s;
+}
+
+.drawer__links a.is-active {
+    background: var(--leaf-soft);
+    border-color: var(--leaf);
+    color: var(--leaf-deep);
+}
+
+.drawer__link-icon {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--leaf-soft);
+    font-size: 19px;
+}
+
+.drawer__links a.is-active .drawer__link-icon {
+    background: #fff;
+}
+
+.drawer__link-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.drawer__link-text b {
+    font-size: 14.5px;
+    line-height: 1.3;
+}
+
+.drawer__link-text small {
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.drawer__link-arrow {
+    flex: none;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Danh mục thật từ DB: thumbnail vuông bo tròn + tên + số sản phẩm */
+.drawer__cats a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+
+.drawer__cats img {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    object-fit: cover;
+    border-radius: 10px;
+    background: var(--leaf-soft);
+    border: 1px solid var(--line);
+}
+
+.drawer__cats .drawer__cat-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.drawer__cats .drawer__cat-text b {
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.drawer__cats .drawer__cat-text small {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.drawer__cats a.is-active {
+    background: var(--leaf-soft);
+    color: var(--leaf-deep);
+    box-shadow: inset 3px 0 0 var(--leaf);
+}
+
+/* Tiện ích nhanh: dòng gọn 1 dòng chữ */
+.drawer__util a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.drawer__util .drawer__link-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    border-radius: 10px;
+}
+
+/* Badge giỏ hàng trong drawer — cart.js cập nhật qua selector .cart-count */
+.drawer__util .cart-count {
+    margin-left: auto;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--clay);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+}
+
+.drawer__util .cart-count[hidden] {
+    display: none;
+}
+
+/* Chân drawer: CTA mua sắm, dính đáy panel khi nội dung dài */
+.drawer__foot {
+    margin-top: auto;
+    padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: var(--card);
+}
+
+.drawer__cta {
+    display: block;
+    text-align: center;
+    font-weight: 700;
+}
+
 @media (min-width: 1024px) {
     .drawer#drawer {
         display: none;
