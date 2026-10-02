@@ -5,8 +5,8 @@
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    // Badge giỏ hàng: chọn theo class .js-cart-count để lấy CẢ badge header__acts
-    // (desktop) lẫn badge floatnav (mobile — vì header__acts bị ẩn trên mobile).
+    // Badge giỏ hàng: chọn theo class .js-cart-count / .cart-count để lấy CẢ badge header__acts
+    // (desktop), badge floatnav (mobile) lẫn badge "Giỏ hàng" trong drawer__util (mobile).
     // Hàm query động để luôn lấy được danh sách mới nhất tại thời điểm cập nhật.
     function getCartBadges() {
         return Array.from(document.querySelectorAll('.js-cart-count, .cart-count'));
@@ -45,7 +45,7 @@
     }
 
     /**
-     * Cập nhật số lượng trên TẤT CẢ badge giỏ hàng (header__acts + floatnav)
+     * Cập nhật số lượng trên TẤT CẢ badge giỏ hàng (header__acts + floatnav + drawer tiện ích)
      * @param {number} count - Tổng số lượng sản phẩm trong giỏ
      */
     function updateCartBadge(count) {
@@ -71,7 +71,7 @@
     }
 
     // API dùng chung cho các script add-cart inline (products/category/search):
-    // window.updateCartCount(n) -> cập nhật đồng bộ mọi badge (mobile + desktop)
+    // window.updateCartCount(n) -> cập nhật đồng bộ mọi badge (mobile + desktop + drawer)
     window.updateCartCount = updateCartBadge;
 
     /**

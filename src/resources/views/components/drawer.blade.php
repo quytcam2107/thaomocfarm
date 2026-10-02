@@ -66,12 +66,15 @@
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Danh mục sản phẩm">
     <div class="drawer__overlay" data-drawer-close></div>
     <div class="drawer__panel">
-        {{-- Header: logo + tên thương hiệu + nút đóng (giữ nguyên contract JS) --}}
+        {{-- Header mới: logo + tên thương hiệu + tagline + nút đóng (đã bỏ cart-count khỏi head) --}}
         <div class="drawer__head">
             <span class="drawer__brand">
-                <img src="{{ asset('assets/images/logo_thao_moc_farm.png') }}" alt="Logo Mộc Xanh" width="34"
-                    height="34">
-                <b>Mộc Xanh</b><small>Thảo mộc &amp; Đặc sản Tây Bắc</small>
+                <img src="{{ asset('assets/images/logo_thao_moc_farm.png') }}" alt="Logo Mộc Xanh" width="40"
+                    height="40">
+                <span class="drawer__brand-text">
+                    <b>Mộc Xanh</b>
+                    <small>Thảo mộc &amp; Đặc sản Tây Bắc</small>
+                </span>
             </span>
             <button class="drawer__close" type="button" data-drawer-close aria-label="Đóng danh mục">✕</button>
         </div>
@@ -114,13 +117,13 @@
                 </ul>
             @endif
 
-            {{-- ===== Tiện ích nhanh ===== --}}
+            {{-- ===== Tiện ích nhanh — badge giỏ hàng đặt tại dòng "Giỏ hàng" ===== --}}
             <p class="drawer__section-title">Tiện ích</p>
             <ul class="drawer__util">
                 <li>
                     <a href="{{ route('web.cart.index') }}">
-                        <span class="drawer__link-icon" aria-hidden="true">🛒</span> Giỏ hàng
-                        <b class="cart-count" hidden>0</b>
+                        <span class="drawer__link-icon" aria-hidden="true">🛒</span>
+                        <span class="drawer__util-label">Giỏ hàng</span>
                     </a>
                 </li>
                 <li>

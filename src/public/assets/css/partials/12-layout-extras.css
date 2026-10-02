@@ -238,37 +238,81 @@
     padding: 16px;
 }
 
-/* ============ DRAWER MENU MOBILE — thiết kế lại drawer__panel (#drawer) ============
-   Chỉ áp dụng cho #drawer (menu chính); filterDrawer dùng .drawer__filter nên
-   không bị ảnh hưởng. Các rule cũ .drawer__head/.drawer__nav bên trên vẫn giữ
-   cho filter drawer; phần dưới ghi đè có chọn lọc qua scope #drawer. */
+/* ============ DRAWER MENU MOBILE (#drawer) — thiết kế lại head + tiện ích ============
+   Chỉ áp dụng cho #drawer (menu chính); filterDrawer vẫn dùng rule .drawer__head/.drawer__nav
+   chung bên trên (dòng "⚙ Bộ lọc") nên không bị ảnh hưởng. */
 
-/* Header: logo + tên + tagline (ghi đè .drawer__head cho #drawer) */
-#drawer .drawer__head {
-    padding: 14px 16px;
-    gap: 10px;
+@media (min-width: 1024px) {
+    .drawer#drawer {
+        display: none;
+    }
 }
 
+/* Header drawer: nền gradient lá + bo góc dưới, chữ trắng rõ ràng (khắc phục lỗi text chồng nền) */
+#drawer .drawer__head {
+    background: linear-gradient(135deg, var(--leaf) 0%, var(--leaf-deep) 100%);
+    color: #fff;
+    padding: 14px 12px 14px 16px;
+    gap: 10px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    box-shadow: 0 4px 14px rgb(18 41 30 / .18);
+}
+
+/* Nút đóng: tròn, trong suốt trên nền gradient, viền mờ dễ nhìn */
+#drawer .drawer__close {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: 999px;
+    background: rgb(255 255 255 / .14);
+    border: 1px solid rgb(255 255 255 / .35);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    transition: background .2s;
+}
+
+#drawer .drawer__close:hover {
+    background: rgb(255 255 255 / .28);
+}
+
+/* Brand block: logo + cụm chữ chiếm phần còn lại, tagline luôn xuống dòng, cắt ellipsis an toàn */
 .drawer__brand {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 0;
 }
 
 .drawer__brand img {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
+    flex: none;
     border-radius: 50%;
     background: #fff;
     object-fit: contain;
-    flex: none;
+    padding: 3px;
+    box-shadow: 0 2px 6px rgb(0 0 0 / .18);
+}
+
+.drawer__brand-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .drawer__brand b {
     display: block;
-    font-size: 16px;
-    line-height: 1.2;
+    font-size: 15.5px;
+    line-height: 1.25;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .drawer__brand small {
@@ -276,6 +320,8 @@
     font-size: 11px;
     font-weight: 400;
     opacity: .85;
+    line-height: 1.35;
+    margin-top: 1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -421,16 +467,26 @@
     border-radius: 10px;
 }
 
-/* Badge giỏ hàng trong drawer — cart.js cập nhật qua selector .cart-count */
+/* Nhãn chữ trong dòng tiện ích (để badge "Giỏ hàng" đẩy sát mép phải qua margin-left:auto) */
+.drawer__util-label {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Badge giỏ hàng ở dòng "Giỏ hàng" trong Tiện ích — cart.js cập nhật qua selector
+   .js-cart-count/.cart-count (mặc định ẩn tới khi /gio-hang/count trả số liệu) */
 .drawer__util .cart-count {
     margin-left: auto;
-    min-width: 20px;
-    height: 18px;
-    padding: 0 5px;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 6px;
     border-radius: 999px;
     background: var(--clay);
     color: #fff;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
     display: grid;
     place-items: center;
@@ -452,12 +508,6 @@
     display: block;
     text-align: center;
     font-weight: 700;
-}
-
-@media (min-width: 1024px) {
-    .drawer#drawer {
-        display: none;
-    }
 }
 
 /* ============ TOAST ============ */
