@@ -30,7 +30,7 @@ TRANG TĨNH: GIỚI THIỆU (nhóm "Về chúng tôi" — footer)
             <h2 class="sec-title" id="a1">1. Sứ mệnh của chúng tôi</h2>
             <ul class="sp-bullets">
                 <li><b>Làm cầu nối tin cậy</b> giữa vùng nguyên liệu núi cao và căn bếp phố thị: mỗi sản phẩm đều truy
-                    xuất được nguồn gốc vùng trồng.</li>
+                    xuất được nguồn gốc xuất xứ.</li>
                 <li><b>Giữ trọn hương vị bản địa</b> — công thức truyền thống của đồng bào được bảo
                     tồn gần như nguyên vẹn.</li>
                 <li><b>Sinh kế bền vững cho bà con</b>: thu mua giá công bằng, bao tiêu dài hạn theo mùa vụ, ưu tiên

@@ -29,7 +29,7 @@
                             stroke-linejoin="round" />
                         <circle cx="18" cy="5" r="2" fill="#FFA000" />
                     </svg>
-                    <span>Nguồn gốc vùng trồng</span>
+                    <span>Nguồn gốc xuất xứ rõ ràng</span>
                 </li>
                 <li>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
