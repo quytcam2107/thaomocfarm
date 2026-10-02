@@ -1,11 +1,11 @@
 # Bảng `stock_movements`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-01T04:24:23+00:00
+> Bản cập nhật lúc: 2026-10-02T10:14:54+00:00
 
 ## Thông tin chung
 
-- Số bản ghi: **7**
+- Số bản ghi: **13**
 - Dữ liệu đầy đủ (JSON Lines, 1 dòng = 1 bản ghi): `data/stock_movements.jsonl`
 
 ## Cấu trúc (columns)
@@ -35,15 +35,15 @@
 
 ## Thống kê dữ liệu
 
-- `id`: min = 1, max = 7 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `4` (1), `5` (1), `6` (1), `7` (1)
-- `product_variant_id`: min = 1, max = 10 — giá trị phổ biến: `5` (2), `1` (1), `2` (1), `3` (1), `6` (1), `10` (1)
-- `type`: giá trị phổ biến: `export` (7)
-- `qty`: min = -2, max = -1 — giá trị phổ biến: `-1` (6), `-2` (1)
-- `ref_type`: giá trị phổ biến: `order` (7)
-- `ref_id`: min = 1, max = 3 — giá trị phổ biến: `1` (3), `3` (3), `2` (1)
-- `note`: giá trị phổ biến: `Đặt hàng thành công` (7)
-- `created_at`: min = 2026-09-25 04:15:13, max = 2026-09-26 09:40:05 — giá trị phổ biến: `2026-09-25 04:15:13` (3), `2026-09-26 09:40:05` (3), `2026-09-25 04:24:20` (1)
-- `updated_at`: min = 2026-09-25 04:15:13, max = 2026-09-26 09:40:05 — giá trị phổ biến: `2026-09-25 04:15:13` (3), `2026-09-26 09:40:05` (3), `2026-09-25 04:24:20` (1)
+- `id`: min = 1, max = 13 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `4` (1), `5` (1), `6` (1), `7` (1), `8` (1), `9` (1), `10` (1), `11` (1), `12` (1), `13` (1)
+- `product_variant_id`: min = 1, max = 10 — giá trị phổ biến: `2` (3), `1` (2), `3` (2), `4` (2), `5` (2), `6` (1), `10` (1)
+- `type`: giá trị phổ biến: `export` (13)
+- `qty`: min = -3, max = -1 — giá trị phổ biến: `-1` (11), `-2` (1), `-3` (1)
+- `ref_type`: giá trị phổ biến: `order` (13)
+- `ref_id`: min = 1, max = 5 — giá trị phổ biến: `1` (3), `3` (3), `4` (3), `5` (3), `2` (1)
+- `note`: giá trị phổ biến: `Đặt hàng thành công` (13)
+- `created_at`: min = 2026-09-25 04:15:13, max = 2026-10-01 09:02:58 — giá trị phổ biến: `2026-09-25 04:15:13` (3), `2026-10-01 08:38:38` (3), `2026-09-26 09:40:05` (3), `2026-10-01 09:02:58` (3), `2026-09-25 04:24:20` (1)
+- `updated_at`: min = 2026-09-25 04:15:13, max = 2026-10-01 09:02:58 — giá trị phổ biến: `2026-09-25 04:15:13` (3), `2026-09-26 09:40:05` (3), `2026-10-01 08:38:38` (3), `2026-10-01 09:02:58` (3), `2026-09-25 04:24:20` (1)
 
 ## Mẫu dữ liệu
 
@@ -56,3 +56,9 @@
 | 5 | 2 | export | -1 | order | 3 | Đặt hàng thành công | NULL | 2026-09-26 09:40:05 | 2026-09-26 09:40:05
 | 6 | 5 | export | -1 | order | 3 | Đặt hàng thành công | NULL | 2026-09-26 09:40:05 | 2026-09-26 09:40:05
 | 7 | 10 | export | -1 | order | 3 | Đặt hàng thành công | NULL | 2026-09-26 09:40:05 | 2026-09-26 09:40:05
+| 8 | 1 | export | -3 | order | 4 | Đặt hàng thành công | NULL | 2026-10-01 08:38:38 | 2026-10-01 08:38:38
+| 9 | 2 | export | -1 | order | 4 | Đặt hàng thành công | NULL | 2026-10-01 08:38:38 | 2026-10-01 08:38:38
+| 10 | 4 | export | -1 | order | 4 | Đặt hàng thành công | NULL | 2026-10-01 08:38:38 | 2026-10-01 08:38:38
+| 11 | 2 | export | -1 | order | 5 | Đặt hàng thành công | NULL | 2026-10-01 09:02:58 | 2026-10-01 09:02:58
+| 12 | 3 | export | -1 | order | 5 | Đặt hàng thành công | NULL | 2026-10-01 09:02:58 | 2026-10-01 09:02:58
+| 13 | 4 | export | -1 | order | 5 | Đặt hàng thành công | NULL | 2026-10-01 09:02:58 | 2026-10-01 09:02:58

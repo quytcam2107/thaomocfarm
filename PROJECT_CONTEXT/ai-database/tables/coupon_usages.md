@@ -1,11 +1,11 @@
 # Bảng `coupon_usages`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-01T04:24:22+00:00
+> Bản cập nhật lúc: 2026-10-02T10:14:53+00:00
 
 ## Thông tin chung
 
-- Số bản ghi: **1**
+- Số bản ghi: **2**
 - Dữ liệu đầy đủ (JSON Lines, 1 dòng = 1 bản ghi): `data/coupon_usages.jsonl`
 
 ## Cấu trúc (columns)
@@ -32,15 +32,16 @@
 
 ## Thống kê dữ liệu
 
-- `id`: min = 1, max = 1 — giá trị phổ biến: `1` (1)
-- `coupon_id`: min = 1, max = 1 — giá trị phổ biến: `1` (1)
-- `order_id`: min = 3, max = 3 — giá trị phổ biến: `3` (1)
-- `discount_amount`: min = 56000, max = 56000 — giá trị phổ biến: `56000` (1)
-- `created_at`: min = 2026-09-26 09:40:05, max = 2026-09-26 09:40:05 — giá trị phổ biến: `2026-09-26 09:40:05` (1)
-- `updated_at`: min = 2026-09-26 09:40:05, max = 2026-09-26 09:40:05 — giá trị phổ biến: `2026-09-26 09:40:05` (1)
+- `id`: min = 1, max = 2 — giá trị phổ biến: `1` (1), `2` (1)
+- `coupon_id`: min = 1, max = 4 — giá trị phổ biến: `1` (1), `4` (1)
+- `order_id`: min = 3, max = 5 — giá trị phổ biến: `3` (1), `5` (1)
+- `discount_amount`: min = 30000, max = 56000 — giá trị phổ biến: `56000` (1), `30000` (1)
+- `created_at`: min = 2026-09-26 09:40:05, max = 2026-10-01 09:02:58 — giá trị phổ biến: `2026-09-26 09:40:05` (1), `2026-10-01 09:02:58` (1)
+- `updated_at`: min = 2026-09-26 09:40:05, max = 2026-10-01 09:02:58 — giá trị phổ biến: `2026-09-26 09:40:05` (1), `2026-10-01 09:02:58` (1)
 
 ## Mẫu dữ liệu
 
 | id | coupon_id | user_id | order_id | discount_amount | created_at | updated_at
 |---|---|---|---|---|---|---|
 | 1 | 1 | NULL | 3 | 56000 | 2026-09-26 09:40:05 | 2026-09-26 09:40:05
+| 2 | 4 | NULL | 5 | 30000 | 2026-10-01 09:02:58 | 2026-10-01 09:02:58

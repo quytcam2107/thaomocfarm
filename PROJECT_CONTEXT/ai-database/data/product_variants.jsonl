@@ -1,7 +1,7 @@
-{"id":1,"product_id":1,"sku":"TMF-TT-001-500G","label":"Túi 500g","price":1000000,"compare_price":1150000,"stock":58,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-09-25 04:15:13"}
-{"id":2,"product_id":2,"sku":"TMF-TT-002-500G","label":"Túi 500g","price":230000,"compare_price":265000,"stock":99,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-09-26 09:40:05"}
-{"id":3,"product_id":3,"sku":"TMF-TGB-001-500G","label":"Túi 500g","price":145000,"compare_price":165000,"stock":79,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-09-25 04:24:20"}
-{"id":4,"product_id":4,"sku":"TMF-TD-001-500G","label":"Túi 500g","price":225000,"compare_price":255000,"stock":90,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-09-22 11:21:09"}
+{"id":1,"product_id":1,"sku":"TMF-TT-001-500G","label":"Túi 500g","price":1000000,"compare_price":1150000,"stock":55,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-01 08:38:38"}
+{"id":2,"product_id":2,"sku":"TMF-TT-002-500G","label":"Túi 500g","price":230000,"compare_price":265000,"stock":97,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-01 09:02:58"}
+{"id":3,"product_id":3,"sku":"TMF-TGB-001-500G","label":"Túi 500g","price":145000,"compare_price":165000,"stock":78,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-01 09:02:58"}
+{"id":4,"product_id":4,"sku":"TMF-TD-001-500G","label":"Túi 500g","price":225000,"compare_price":255000,"stock":88,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-01 09:02:58"}
 {"id":5,"product_id":5,"sku":"TMF-GCL-001-DEF","label":"500g","price":180000,"compare_price":220000,"stock":198,"is_default":1,"sort_order":0,"created_at":"2026-09-22 21:37:05","updated_at":"2026-09-26 09:40:05"}
 {"id":6,"product_id":6,"sku":"TMF-MK-001-DEF","label":"200g","price":85000,"compare_price":95000,"stock":299,"is_default":1,"sort_order":0,"created_at":"2026-09-22 21:37:05","updated_at":"2026-09-25 04:15:13"}
 {"id":7,"product_id":7,"sku":"TMF-MO-001-DEF","label":"1 lít","price":450000,"compare_price":520000,"stock":100,"is_default":1,"sort_order":0,"created_at":"2026-09-22 21:37:05","updated_at":"2026-09-22 21:37:05"}

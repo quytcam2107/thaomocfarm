@@ -1,7 +1,7 @@
 # Bảng `settings`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-01T04:24:23+00:00
+> Bản cập nhật lúc: 2026-10-02T10:14:54+00:00
 
 ## Thông tin chung
 

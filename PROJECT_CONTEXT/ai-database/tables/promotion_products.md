@@ -1,7 +1,7 @@
 # Bảng `promotion_products`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-01T04:24:23+00:00
+> Bản cập nhật lúc: 2026-10-02T10:14:54+00:00
 
 ## Thông tin chung
 
@@ -41,7 +41,7 @@
 - `promotion_id`: min = 1, max = 1 — giá trị phổ biến: `1` (4)
 - `product_id`: min = 1, max = 4 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `4` (1)
 - `flash_price`: min = 115000, max = 800000 — giá trị phổ biến: `115000` (2), `800000` (1), `150000` (1)
-- `discount_percent`: min = 18, max = 35 — giá trị phổ biến: `22` (1), `35` (1), `20` (1), `18` (1)
+- `discount_percent`: min = 18, max = 35 — giá trị phổ biến: `29` (1), `35` (1), `21` (1), `18` (1)
 - `qty_total`: min = 300, max = 300 — giá trị phổ biến: `300` (4)
 - `qty_sold`: min = 135, max = 242 — giá trị phổ biến: `242` (1), `163` (1), `135` (1), `151` (1)
 - `per_user_limit`: min = 2, max = 3 — giá trị phổ biến: `2` (3), `3` (1)
@@ -53,7 +53,7 @@
 
 | id | promotion_id | product_id | product_variant_id | flash_price | discount_percent | qty_total | qty_sold | per_user_limit | sort_order | created_at | updated_at
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 1 | 1 | NULL | 800000 | 22 | 300 | 242 | 2 | 1 | 2026-09-22 11:21:09 | 2026-09-22 11:21:09
+| 1 | 1 | 1 | NULL | 800000 | 29 | 300 | 242 | 2 | 1 | 2026-09-22 11:21:09 | 2026-09-22 11:21:09
 | 2 | 1 | 2 | NULL | 150000 | 35 | 300 | 163 | 3 | 2 | 2026-09-22 11:21:09 | 2026-09-22 11:21:09
-| 3 | 1 | 4 | NULL | 115000 | 20 | 300 | 135 | 2 | 3 | 2026-09-22 11:21:09 | 2026-09-22 11:21:09
+| 3 | 1 | 4 | NULL | 115000 | 21 | 300 | 135 | 2 | 3 | 2026-09-22 11:21:09 | 2026-09-22 11:21:09
 | 4 | 1 | 3 | NULL | 115000 | 18 | 300 | 151 | 2 | 4 | 2026-09-22 11:21:09 | 2026-09-22 11:21:09
