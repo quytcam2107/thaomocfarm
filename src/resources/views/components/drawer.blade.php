@@ -24,31 +24,32 @@
     };
 
     // 4 nhóm liên kết chính — tất cả trỏ tới route/page THẬT đã tồn tại
+    // 'icon' giờ là đường dẫn file SVG (tự thêm vào public/assets/images/svg/)
     $mainLinks = [
         [
             'label' => 'Trang chủ',
-            'icon' => '🏠',
+            'icon' => 'assets/images/svg/icon-home.svg',
             'url' => route('web.home'),
             'desc' => 'Ưu đãi & sản phẩm nổi bật',
             'match' => fn() => request()->is('/'),
         ],
         [
             'label' => 'Giới thiệu',
-            'icon' => '🌱',
+            'icon' => 'assets/images/svg/icon-about.svg',
             'url' => route('web.page.about'), // /gioi-thieu
             'desc' => 'Câu chuyện Mộc Xanh',
             'match' => fn() => request()->is('gioi-thieu'),
         ],
         [
             'label' => 'Về chúng tôi',
-            'icon' => '📍',
+            'icon' => 'assets/images/svg/icon-contact.svg',
             'url' => route('web.page.contact'), // /lien-he — thông tin cửa hàng, hotline, địa chỉ thật
             'desc' => 'Cửa hàng & liên hệ',
             'match' => fn() => request()->is('lien-he'),
         ],
         [
             'label' => 'Hỗ trợ',
-            'icon' => '🧭',
+            'icon' => 'assets/images/svg/icon-support.svg',
             'url' => route('web.page.order-guide'), // /huong-dan-dat-hang
             'desc' => 'Đặt hàng, đổi trả, bảo mật',
             'match' => fn() => request()->is('huong-dan-dat-hang', 'chinh-sach-doi-tra', 'chinh-sach-bao-mat', 'dieu-khoan-su-dung'),
@@ -79,7 +80,10 @@
                 @foreach($mainLinks as $link)
                     <li>
                         <a href="{{ $link['url'] }}" class="{{ $link['match']() ? 'is-active' : '' }}">
-                            <span class="drawer__link-icon" aria-hidden="true">{{ $link['icon'] }}</span>
+                            {{-- Icon SVG từ file (thay cho emoji trước đây) --}}
+                            <span class="drawer__link-icon" aria-hidden="true">
+                                <img src="{{ asset($link['icon']) }}" alt="" width="20" height="20" loading="lazy">
+                            </span>
                             <span class="drawer__link-text">
                                 <b>{{ $link['label'] }}</b>
                                 <small>{{ $link['desc'] }}</small>
