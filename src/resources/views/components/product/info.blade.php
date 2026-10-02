@@ -44,12 +44,18 @@
 
     <div class="pd-actions">
         <button class="btn btn--leaf add-cart" data-name="{{ $product->name }}" data-product-id="{{ $product->id }}">
-            🛒 Thêm vào giỏ
+            Thêm vào giỏ
         </button>
         {{-- Buy Now: JS (app.js) đọc data-product-id + radio variant_id:checked + input[name=qty] rồi POST
         /gio-hang/mua-ngay --}}
+        {{-- NEW: thêm dòng phụ "Gọi điện và giao tận nơi" dưới text "Mua ngay".
+        app.js lưu/khôi phục button.innerHTML nên span con không phá logic buyNow(). --}}
         <button class="btn btn--clay" id="buyNow" type="button" data-product-id="{{ $product->id }}"
-            data-name="{{ $product->name }}">⚡ Mua ngay</button>
+            data-name="{{ $product->name }}">
+            <span class="btn__main">Mua ngay</span>
+            <a class="btn__sub" href="#" onclick="event.stopPropagation()"
+                aria-label="Gọi điện và giao tận nơi qua hotline 0362 795 897">Gọi điện xác nhận và giao tận nơi</a>
+        </button>
         {{-- <button class="btn btn--ghost pcard__fav--lg" aria-label="Thêm vào yêu thích" aria-pressed="false"
             data-product-id="{{ $product->id }}">♡ Yêu thích</button> --}}
     </div>

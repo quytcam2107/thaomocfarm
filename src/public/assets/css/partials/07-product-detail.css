@@ -497,3 +497,49 @@ body.has-buybar .floatnav {
     outline: 3px solid var(--gold);
     outline-offset: 2px;
 }
+
+/* ============ NÚT MUA NGAY: 2 DÒNG (chỉ scope trong PDP + buybar) ============
+   NEW: ".btn--clay" trong pd-actions/buybar chuyển thành cột flex:
+   - .btn__main : dòng chữ chính "Mua ngay" (giữ font/button style của .btn)
+   - .btn__sub  : dòng phụ "Gọi điện và giao tận nơi" — là <a href="tel:...">
+     phủ toàn vùng dòng dưới, tự mở bàn phím gọi trên mobile.
+   Không định nghĩa lại .btn/.btn--clay toàn cục => không ảnh hưởng nút clay
+   ở cart / checkout / hero. */
+.pd-actions .btn--clay,
+.buybar .btn--clay {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 8px 18px;
+}
+
+.pd-actions .btn--clay .btn__main,
+.buybar .btn--clay .btn__main {
+    display: block;
+    line-height: 1.3;
+}
+
+.pd-actions .btn--clay .btn__sub,
+.buybar .btn--clay .btn__sub {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #fff;
+    opacity: .92;
+    text-decoration: none;
+    padding: 2px 0 1px;
+}
+
+.pd-actions .btn--clay .btn__sub:hover,
+.buybar .btn--clay .btn__sub:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.pd-actions .btn--clay .btn__sub:focus-visible,
+.buybar .btn--clay .btn__sub:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
