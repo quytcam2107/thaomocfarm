@@ -7,9 +7,6 @@
     border-radius: var(--r);
     padding: 16px;
     margin-top: 8px;
-    /* FIX khoảng trắng thừa dưới .pd-thumbs khi SP có flash sale: mặc định grid
-       là stretch -> cột gallery bị kéo giãn theo cột info (cao hơn vì block
-       pd-flash). Cho 2 cột tự nhiên theo nội dung (start) là hết phần thừa. */
     align-items: start;
 }
 
@@ -60,9 +57,6 @@
     object-fit: cover;
 }
 
-/* ============ NÚT CHIA SẺ PDP (mới — chỉ render khi SP có flash sale) =======
-   Nằm ngay dưới .pd-thumbs để lấp khoảng trống vốn bị "thừa" khi block
-   pd-flash làm cột info cao hơn. Mobile-first: wrap dòng, tối giản. */
 .pd-share {
     display: flex;
     flex-wrap: wrap;
@@ -128,7 +122,6 @@
     background: var(--leaf-soft);
 }
 
-/* Copy link giữ màu trung tính (kế thừa .pd-share__btn) — hover đồng bộ với nút native */
 .pd-share__btn--copy:hover,
 .pd-share__btn--native:hover {
     background: #f3efe4;
@@ -414,9 +407,6 @@ body.has-buybar .floatnav {
     }
 }
 
-/* ============ FLASH SALE TRÊN PDP (mới — chỉ render khi SP thuộc deal) ============
-   Nền sáng nhẹ tách khỏi nền trắng card; countdown bên trong tái dùng
-   .countdown + .cd của 04-home.css nên style ô số vàng đồng nhất trang chủ. */
 .pd-flash {
     background: linear-gradient(135deg, #fff4ec, #fdf0f2);
     border: 1px solid var(--rose);
@@ -425,7 +415,6 @@ body.has-buybar .floatnav {
     margin: 4px 0 14px;
 }
 
-/* JS thêm khi phiên kết thúc giữa lúc đang xem trang */
 .pd-flash.is-ended {
     display: none;
 }
@@ -466,7 +455,6 @@ body.has-buybar .floatnav {
     color: var(--leaf-deep);
 }
 
-/* Countdown PDP: bám layout home nhưng đẩy sang phải trên desktop */
 .pd-flash__cd {
     color: #40514a;
 }
@@ -490,4 +478,22 @@ body.has-buybar .floatnav {
 
 .pd-flash__facts b {
     color: var(--rose);
+}
+
+.pd-actions .add-cart.btn--leaf,
+.buybar .add-cart.btn--leaf {
+    background: transparent;
+    color: var(--leaf);
+    border: 1.5px solid var(--leaf);
+}
+
+.pd-actions .add-cart.btn--leaf:hover,
+.buybar .add-cart.btn--leaf:hover {
+    background: var(--leaf-soft);
+}
+
+.pd-actions .add-cart.btn--leaf:focus-visible,
+.buybar .add-cart.btn--leaf:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
 }
