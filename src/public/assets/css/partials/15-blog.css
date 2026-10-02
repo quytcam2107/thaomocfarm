@@ -660,14 +660,13 @@
         grid-column: 1 / -1;
     }
 
+    /* Bỏ scroll + sticky: sidebar hiển thị FULL nội dung, FIX CỨNG tại cột phải
+       (thả theo dòng chảy trang, không có thanh cuộn riêng, không dính theo viewport) */
     .bs-side {
         margin-top: 0;
-        position: sticky;
-        top: 16px;
-        /* Sidebar dài không vượt quá viewport khi sticky */
-        max-height: calc(100vh - 32px);
-        overflow: auto;
-        scrollbar-width: thin;
+        position: static;
+        max-height: none;
+        overflow: visible;
     }
 }
 
