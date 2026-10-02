@@ -5,6 +5,9 @@
    - XÓA rule .flash__all (đã xóa link "Xem tất cả ưu đãi →" trong Blade)
    - .flash__head dùng space-between: [tiêu đề] ..... [countdown]
    - .flash__stats nằm giữa head và rail, siết khoảng cách hợp lý
+   - FIX MOBILE: flash__title + countdown LUÔN ngang hàng trên mọi
+     responsive (bỏ flex-wrap, siết cỡ chữ/padding block đếm giờ ở
+     màn hẹp) — hết cảnh hai thành phần chồng/dồn cục giữa màn hình
    Lưu ý: các selector .flash__prog* / .flash__save* cũng được PDP dùng
    chung (components/product/flash-block.blade.php) — KHÔNG đổi tên.
    ===================================================================== */
@@ -17,22 +20,25 @@
     scroll-margin-top: 200px;
 }
 
-/* HEAD mới: [tiêu đề] ..... [countdown] — countdown tự đẩy sang phải trên desktop,
-   mobile hẹp thì flex-wrap tự xếp xuống dòng dưới tiêu đề */
+/* HEAD: [tiêu đề] ..... [countdown] — BỎ flex-wrap để 2 thành phần luôn
+   ngang hàng kể cả trên điện thoại; title co trước (min-width:0),
+   countdown là cụm "không phá vỡ" (nowrap + shrink:0) luôn nguyên khối
+   bên phải, không bao giờ rơi xuống dòng chồng lên tiêu đề */
 .flash__head {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
-    /* thay cho margin-left:auto của .flash__all đã xóa */
-    gap: 8px 16px;
+    gap: 8px 10px;
     margin-bottom: 10px;
     /* siết lại vì stats đã tách xuống dưới */
 }
 
 .flash__title {
-    font-size: clamp(18px, 3vw, 26px);
+    font-size: clamp(16px, 4.2vw, 26px);
     color: #fff;
+    min-width: 0;
+    /* cho phép co lại trên màn hẹp thay vì đẩy countdown tràn/wrap */
 }
 
 .countdown {
@@ -50,6 +56,57 @@
     padding: 4px 8px;
     font-size: 15px;
     font-weight: 700;
+}
+
+/* ---- Mobile-first: ép title + countdown NGANG HÀNG trên điện thoại ----
+   Chỉ áp cho countdown HOME (selector có tiền tố .flash__head) — countdown
+   PDP (.pd-flash__cd trong flash-block) dùng class "countdown" toàn cục nên
+   KHÔNG bị ảnh hưởng, giữ đúng layout riêng .pd-flash__head của nó. */
+@media (max-width: 767px) {
+
+    /* cụm đếm giờ luôn đứng yên 1 chỗ, không bị label dài làm méo */
+    .flash__head .countdown {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    /* ô số GIỜ:PHÚT:GIÂY nhỏ lại để vừa chiều rộng cùng tiêu đề */
+    .flash__head .cd {
+        padding: 3px 6px;
+        font-size: 13px;
+        border-radius: 6px;
+    }
+}
+
+/* Màn rất hẹp (<360px): rút gọn label "Kết thúc sau" → "Còn" để một hàng
+   chứa nổi [tiêu đề] + [Còn 23:59:59]; JS chỉ ghi textContent vào #cdH/M/S
+   nên phần label static này đổi chữ an toàn, không phá contract countdown */
+@media (max-width: 359px) {
+    .flash__head .countdown {
+        font-size: 11.5px;
+    }
+
+    .flash__head .cd {
+        padding: 2px 5px;
+        font-size: 12px;
+    }
+
+    .flash__head .cd-label--full {
+        display: none;
+    }
+}
+
+/* Từ tablet+: nhả cỡ chữ về mức cũ cho thoáng */
+@media (min-width: 768px) {
+    .flash__head {
+        gap: 8px 16px;
+    }
+
+    .flash__title {
+        font-size: clamp(18px, 3vw, 26px);
+    }
 }
 
 /* ---- Dải social proof flash sale: nằm giữa head và rail deal ---- */
