@@ -2,6 +2,7 @@
 TRANG CHI TIẾT BÀI VIẾT CẨM NANG (/cam-nang/{slug}).
 SEO: Article JSON-LD + BreadcrumbList + canonical (layout) + og article.
 Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import SQL/seeder), render {} !!}.
+Sidebar: 3 widget theo thứ tự — Bài viết mới / Có thể bạn sẽ thích (sản phẩm) / Chuyên mục.
 ===================================================================== --}}
 @php
     use Illuminate\Support\Str;
@@ -10,7 +11,7 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
 
     $coverUrl = $post->cover
         ? (Str::startsWith($post->cover, ['http://', 'https://']) ? $post->cover : asset($post->cover))
-        : asset('assets/images/default-blog-cover.jpg');
+        : asset('assets/images/placeholder.svg');
     // JSON-LD Article theo schema.org
     $articleSchema = [
         '@context' => 'https://schema.org',
@@ -33,6 +34,11 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
         ],
         'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $shareUrl],
     ];
+
+    // Ảnh đại diện bài viết cho sidebar (dùng chung $coverUrl đã resolve ở trên)
+    $thumbUrl = static fn(array $lp): string => !empty($lp['cover'])
+        ? (Str::startsWith($lp['cover'], ['http://', 'https://']) ? $lp['cover'] : asset($lp['cover']))
+        : asset('assets/images/placeholder.svg');
 @endphp
 
 <x-layouts.app :title="$post->title . ' | Cẩm nang Mộc Xanh'" :seoDescription="Str::limit(strip_tags((string) $post->excerpt ?: $post->title), 155)" ogType="article" :ogImage="$coverUrl" :hide-catnav="true">
@@ -44,8 +50,11 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
             type="application/ld+json">{!! json_encode($breadcrumb_schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     </x-slot>
 
-    <div class="container">
-        <x-ui.breadcrumb :items="$breadcrumbs" />
+    {{-- Wrapper 2 cột desktop: breadcrumb full-width, article + aside là 2 item của grid --}}
+    <div class="container bs-wrap">
+        <div class="bs-wrap__top">
+            <x-ui.breadcrumb :items="$breadcrumbs" />
+        </div>
 
         <article class="bs-article reveal">
             <header class="bs-head">
@@ -91,31 +100,50 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
             </footer>
         </article>
 
-        {{-- Sidebar: chuyên mục + bài mới nhất (tự ẩn từng khối khi rỗng) --}}
+        {{-- Sidebar: thứ tự mới — Bài viết mới / Có thể bạn sẽ thích / Chuyên mục (mỗi khối tự ẩn khi rỗng) --}}
         <aside class="bs-side reveal" aria-label="Liên quan">
-            @if (count($categories))
+            @if (count($latestPosts))
                 <section class="bs-widget">
-                    <h2>Chuyên mục</h2>
-                    <ul>
-                        @foreach ($categories as $cat)
+                    <h2 class="bs-widget__title"><span aria-hidden="true">🕐</span> Bài viết mới</h2>
+                    <ul class="bs-latest">
+                        @foreach ($latestPosts as $lp)
                             <li>
-                                <a href="{{ $cat['url'] }}">{{ $cat['name'] }}
-                                    <small>({{ $cat['posts_count'] }})</small></a>
+                                <a href="{{ $lp['url'] }}">
+                                    <span class="bs-latest__thumb">
+                                        <img src="{{ asset($thumbUrl($lp)) }}" alt="" width="64" height="64" loading="lazy">
+                                    </span>
+                                    <span class="bs-latest__body">
+                                        <b>{{ $lp['title'] }}</b>
+                                        <small>{{ $lp['published_at'] }} · {{ $lp['reading_minutes'] }} phút đọc</small>
+                                    </span>
+                                </a>
                             </li>
                         @endforeach
                     </ul>
                 </section>
             @endif
 
-            @if (count($latestPosts))
+            @if (!empty($suggestedProducts))
+                <section class="bs-widget bs-widget--products">
+                    <h2 class="bs-widget__title"><span aria-hidden="true">🌿</span> Có thể bạn sẽ thích</h2>
+                    <div class="bsp-list">
+                        @foreach ($suggestedProducts as $sp)
+                            <x-blog.suggest-product :product="$sp" />
+                        @endforeach
+                    </div>
+                    <a class="bs-widget__more" href="{{ route('web.products.index') }}">Xem tất cả sản phẩm →</a>
+                </section>
+            @endif
+
+            @if (count($categories))
                 <section class="bs-widget">
-                    <h2>Bài viết mới</h2>
-                    <ul class="bs-widget__list">
-                        @foreach ($latestPosts as $lp)
+                    <h2 class="bs-widget__title"><span aria-hidden="true">📚</span> Chuyên mục</h2>
+                    <ul class="bs-cats">
+                        @foreach ($categories as $cat)
                             <li>
-                                <a href="{{ $lp['url'] }}">
-                                    <b>{{ $lp['title'] }}</b>
-                                    <small>{{ $lp['published_at'] }} · {{ $lp['reading_minutes'] }} phút đọc</small>
+                                <a href="{{ $cat['url'] }}">
+                                    <span class="bs-cats__name">{{ $cat['name'] }}</span>
+                                    <span class="bs-cats__count">{{ $cat['posts_count'] }}</span>
                                 </a>
                             </li>
                         @endforeach
@@ -126,17 +154,18 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
             <a class="btn btn--leaf bs-widget__cta" href="{{ route('web.products.index') }}">🛍️ Xem sản phẩm Mộc
                 Xanh</a>
         </aside>
+    </div>
 
-        {{-- Bài liên quan --}}
-        @if (count($relatedPosts))
-        
+    {{-- Bài liên quan: ra ngoài .bs-wrap để luôn full-width (không bị grid 2 cột bó hẹp) --}}
+    @if (count($relatedPosts))
+        <div class="container">
             <section class="sp-section reveal" aria-labelledby="relTitle">
                 <h2 class="sec-title" id="relTitle">Bài viết liên quan</h2>
                 <div class="bl-grid bl-grid--4">
                     @foreach ($relatedPosts as $rp)
                         <article class="bl-card">
                             <a class="bl-card__media" href="{{ $rp['url'] }}" tabindex="-1" aria-hidden="true">
-                                <img src="{{ asset($rp['cover']) }}" alt="Ảnh bìa: {{ $rp['title'] }}" width="640" height="400"
+                                <img src="{{ $thumbUrl($rp) }}" alt="Ảnh bìa: {{ $rp['title'] }}" width="640" height="400"
                                     loading="lazy">
                             </a>
                             <div class="bl-card__body">
@@ -147,6 +176,6 @@ Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import
                     @endforeach
                 </div>
             </section>
-        @endif
-    </div>
+        </div>
+    @endif
 </x-layouts.app>

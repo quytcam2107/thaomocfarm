@@ -349,12 +349,32 @@
     padding: 16px;
 }
 
-.bs-widget h2 {
-    font-size: 14px;
-    letter-spacing: .04em;
-    text-transform: uppercase;
+/* Title widget: chữ Lora + gạch chân lá ngắn (đồng bộ phong cách sec-title) */
+.bs-widget h2,
+.bs-widget__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Lora", serif;
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
     color: var(--leaf-deep);
-    margin: 0 0 10px;
+    margin: 0 0 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+
+.bs-widget__title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 42px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--leaf);
 }
 
 .bs-widget ul {
@@ -392,12 +412,228 @@
     line-height: 1.45;
 }
 
+/* ---- Widget "Bài viết mới": thumb vuông + tiêu đề 2 dòng + meta ---- */
+.bs-latest {
+    gap: 12px !important;
+}
+
+.bs-latest li a {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 6px;
+    margin: -6px;
+    border-radius: 12px;
+    transition: background .15s ease;
+}
+
+.bs-latest li a:hover {
+    background: var(--leaf-soft);
+}
+
+.bs-latest__thumb {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--leaf-soft);
+    border: 1px solid var(--line);
+}
+
+.bs-latest__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bs-latest__body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.bs-latest__body b {
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bs-latest__body small {
+    color: var(--muted);
+    font-size: 11.5px;
+}
+
+/* ---- Widget "Chuyên mục": pill đếm số bài căn phải ---- */
+.bs-cats {
+    gap: 4px !important;
+}
+
+.bs-cats li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    margin: 0 -10px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    transition: background .15s ease, color .15s ease;
+}
+
+.bs-cats li a:hover {
+    background: var(--leaf-soft);
+    color: var(--leaf-deep);
+}
+
+.bs-cats__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bs-cats__count {
+    flex: 0 0 auto;
+    min-width: 26px;
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--leaf-deep);
+    background: var(--leaf-soft);
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+
+.bs-cats li a:hover .bs-cats__count {
+    background: var(--leaf);
+    color: #fff;
+}
+
+/* ---- Widget "Có thể bạn sẽ thích" (sản phẩm: ảnh + giá gốc + giá giảm) ---- */
+.bs-widget--products {
+    background: linear-gradient(180deg, var(--card), #f4faf5);
+}
+
+.bsp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bsp {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.bsp:hover {
+    border-color: var(--leaf);
+    box-shadow: 0 8px 20px rgb(30 60 45 / .10);
+    transform: translateY(-1px);
+}
+
+.bsp__media {
+    position: relative;
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+}
+
+.bsp__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bsp__off {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    background: var(--clay);
+    border-radius: 999px;
+    padding: 2px 6px;
+    line-height: 1.3;
+}
+
+.bsp__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.bsp__name {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bsp:hover .bsp__name {
+    color: var(--leaf-deep);
+}
+
+.bsp__prices {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.bsp__price {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--clay);
+}
+
+.bsp__old {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.bs-widget__more {
+    display: block;
+    margin-top: 12px;
+    text-align: right;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--leaf);
+}
+
+.bs-widget__more:hover {
+    text-decoration: underline;
+}
+
 .bs-widget__cta {
     width: 100%;
     text-align: center;
 }
 
-/* ---- Desktop ≥ 768px: 2 cột + grid 3 card ---- */
+/* ---- Desktop ≥ 768px: wrapper 2 cột (breadcrumb full-width) + grid 3 card ---- */
 @media (min-width: 768px) {
     .bl-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -411,16 +647,16 @@
         font-size: 30px;
     }
 
-    /* article + side dùng grid chung trong .container */
-    .container:has(.bs-article) {
+    /* Thay cơ chế .container:has(.bs-article) cũ (giòn, dễ vỡ):
+       wrapper BS-WRAP chủ động grid 2 cột; breadcrumb spans, article + aside là 2 item. */
+    .container.bs-wrap {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 300px;
+        grid-template-columns: minmax(0, 1fr) 320px;
         gap: 28px;
         align-items: start;
     }
 
-    .container:has(.bs-article) .breadcrumb,
-    .container:has(.bs-article) .sp-section[aria-labelledby="relTitle"] {
+    .bs-wrap__top {
         grid-column: 1 / -1;
     }
 
@@ -428,6 +664,10 @@
         margin-top: 0;
         position: sticky;
         top: 16px;
+        /* Sidebar dài không vượt quá viewport khi sticky */
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+        scrollbar-width: thin;
     }
 }
 

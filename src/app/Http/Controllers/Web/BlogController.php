@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\BlogService;
+use App\Services\HomeService;
 use Illuminate\Contracts\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -17,6 +18,8 @@ class BlogController extends Controller
 {
     public function __construct(
         private readonly BlogService $blogService,
+        // HomeService: nguồn gợi ý sản phẩm (đã cache group 'home' + đã áp giá flash sale)
+        private readonly HomeService $homeService,
     ) {
     }
 
@@ -55,7 +58,7 @@ class BlogController extends Controller
     public function show(string $slug): View
     {
         $data = $this->blogService->show($slug);
-
+        
         if ($data === null) {
             throw new NotFoundHttpException();
         }
@@ -63,6 +66,11 @@ class BlogController extends Controller
         // Tăng view_count trực tiếp bằng SQL — không đụng model cache
         $data['post']->incrementViews();
 
+        // Widget "Có thể bạn sẽ thích": 3 sản phẩm bán chạy (array thuần từ cache 'home').
+        // buildListingItem đã gồm: url PDP, image, price (giá sau giảm), old_price (giá gốc), discount_percent.
+        // Rỗng/DB lỗi => mảng rỗng => widget tự ẩn (rule component).
+        $data['suggestedProducts'] = array_slice($this->homeService->bestSellers(), 0, 3);
+        
         return view('web.blog.show', $data);
     }
 }

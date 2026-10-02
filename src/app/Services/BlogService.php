@@ -158,7 +158,7 @@ class BlogService
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->limit(5)
-            ->get(['id', 'title', 'slug', 'published_at', 'reading_minutes']);
+            ->get(['id', 'title', 'slug', 'excerpt', 'cover', 'published_at', 'reading_minutes']);
 
         // Breadcrumb: Trang chủ / Cẩm nang / [Chuyên mục] / Tên bài
         $crumbs = [
@@ -172,7 +172,6 @@ class BlogService
             ];
         }
         $crumbs[] = ['label' => $post->title, 'url' => null];
-
         return [
             'post' => $post,
             'relatedPosts' => $related->map(fn(Post $p): array => $this->cardData($p))->all(),
