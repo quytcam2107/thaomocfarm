@@ -3,9 +3,14 @@
     margin-bottom: 20px;
 }
 
+.collections .sec-title {
+    margin-top: 14px;
+    margin-bottom: 10px;
+}
+
 .col-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
 }
 
@@ -13,7 +18,7 @@
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     transition: transform .2s, box-shadow .2s;
 }
@@ -25,7 +30,8 @@
 
 .col-card__img {
     width: 100%;
-    aspect-ratio: 1;
+    aspect-ratio: 3 / 3;
+    height: auto;
     object-fit: cover;
     border-radius: 10px;
     background: #f3efe4;
@@ -33,8 +39,9 @@
 
 .col-card b {
     display: block;
-    margin-top: 8px;
+    margin-top: 6px;
     font-size: 13px;
+    line-height: 1.3;
 }
 
 .col-card small {
@@ -42,23 +49,35 @@
     font-size: 11px;
 }
 
+/* Tablet (>=768px): 3 cột cho hàng cân đối, ảnh cao hơn chút nhưng vẫn có trần */
 @media (min-width: 768px) {
     .col-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .col-card {
+        padding: 10px;
+    }
+
+    .col-card__img {
+        max-height: none;
     }
 }
 
+/* Desktop (>=1280px): trở lại đúng thiết kế gốc — 4 cột, ảnh vuông 1:1 */
 @media (min-width: 1280px) {
     .col-grid {
         grid-template-columns: repeat(4, 1fr);
     }
+
+    .col-card__img {
+        aspect-ratio: 1;
+        max-height: none;
+    }
 }
 
 /* ============ FLASH ============ */
-/* Đã TÁCH toàn bộ khối FLASH SALE (.flash*, .countdown, .cd, keyframes flashUrgentPulse...)
-   sang partials/14-flash-sale.css để file này gọn.
-   Đồng thời ĐÃ XÓA rule .flash__all vì link "Xem tất cả ưu đãi →" đã gỡ khỏi Blade.
-   Thứ tự import trong style.css đặt 14-flash-sale.css SAU file này nên không đổi cascade. */
 
 /* ============ REGION (vùng Tây Bắc) ============ */
 .region {
