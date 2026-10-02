@@ -51,7 +51,8 @@
 
 <article class="pcard pcard--flash">
     <div class="pcard__media">
-        {{-- Badge hook: luôn hiển thị, nằm trên CÙNG và CHÍNH GIỮA thẻ --}}
+        {{-- Badge hook: nằm CHÍNH GIỮA mép trên ảnh; flag "-X%" ở góc trái
+        (xử lý responsive bằng container query trong 14-flash-sale.css) --}}
         @if($urgentText)
             <span class="flash__urgent {{ $toneClass }}">{{ $urgentText }}</span>
         @endif
@@ -61,7 +62,6 @@
         </a>
 
         @if($discount)
-            {{-- Flag % giảm giá: giữ đúng selector .pcard__flag của card gốc --}}
             <span class="pcard__flag pcard__flag--hot">-{{ $discount }}%</span>
         @endif
     </div>

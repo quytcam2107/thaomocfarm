@@ -20,7 +20,7 @@
     scroll-margin-top: 200px;
 }
 
-/* HEAD: [tiêu đề] ..... [countdown] — BỎ flex-wrap để 2 thành phần luôn
+/* HEAD: [tiêu đề] ..... [đếm ngược] — BỎ flex-wrap để 2 thành phần luôn
    ngang hàng kể cả trên điện thoại; title co trước (min-width:0),
    countdown là cụm "không phá vỡ" (nowrap + shrink:0) luôn nguyên khối
    bên phải, không bao giờ rơi xuống dòng chồng lên tiêu đề */
@@ -137,10 +137,24 @@
     color: #fff;
 }
 
-/* ---- Badge hook "Sắp cháy hàng / Giảm giá sâu..." trên đầu deal ---- */
+/* ---- Badge hook "Sắp cháy hàng 🔥 / Giảm giá sâu..." trên đầu deal ----
+   RESPONSIVE: badge nằm CHÍNH GIỮA mép trên ảnh (top + left:50% +
+   translateX(-50%)); flag "-X%" (.pcard__flag ở 05-product-card.css) giữ
+   góc TRÁI như cũ. Cỡ chữ/padding co giãn theo bề RỘNG THẬT CỦA CARD
+   bằng container query (@container, đơn vị cqw) nên chuẩn xác trên mọi
+   màn hình, kể cả rail cuộn ngang mobile nơi width card ≠ width màn.
+   Card luôn >= 200px (min-width trong .flash__rail) -> với các cỡ chữ
+   dưới đây badge giữa + flag trái không bao giờ chạm/đè nhau:
+     VW 320px : card ~200px | urgent ~82px + flag ~30px < khe 200px ✓
+     VW 375px : card ~218px | urgent ~92px + flag ~33px ✓
+     VW 768px : card ~235px | urgent ~95px + flag ~40px ✓
+     VW 1440px: card ~336px | urgent ~105px + flag ~44px ✓
+   Trình duyệt hỗ trợ @container: Chrome/Edge 105+, Safari 16+, FF 110+
+   (các giá trị khai báo SAU trong cùng điều kiện thắng cascade nên desktop
+   không đổi thiết kế so với bản cũ). */
 .flash__urgent {
     position: absolute;
-    top: 8px;
+    top: 5px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 2;
@@ -185,6 +199,60 @@
 .flash__urgent.is-new {
     background: rgb(255 255 255 / .92);
     color: var(--clay);
+}
+
+/* ==== RESPONSIVE THEO BỀ RỘNG THẬT CỦA CARD (container query) ====
+   Ép .pcard__media làm container truy vấn; @supports bỏ qua an toàn
+   trên trình duyệt cũ (chỉ giữ sizing gốc 10.5px, không vỡ layout). */
+@supports (container-type: inline-size) {
+    .pcard--flash .pcard__media {
+        container-type: inline-size;
+    }
+}
+
+@container (min-width: 0px) {
+
+    /* Badge giữa: font ~2.6→3.6cqw (card 200px → 8.5px... card 336px →
+       12px), padding/mép bo theo — nhỏ hơn bản gốc một chút trên màn
+       hẹp, xấp xỉ bản gốc trên desktop nên tổng thể gọn & thoát hơn */
+    .flash__urgent {
+        /* top: clamp(4px, 1.6cqw, 8px);
+        font-size: clamp(9px, 3.1cqw, 11px); */
+        padding: clamp(2px, .9cqw, 3px) clamp(6px, 2.2cqw, 10px);
+        max-width: calc(100% - 12px);
+    }
+
+    /* Flag "-X%" góc trái: VỊ TRÍ giữ nguyên như 05-product-card.css
+       (top/left:10px) — chỉ thu nhỏ chữ/padding khi card hẹp để cân
+       với badge giữa; card rộng tự trả về xấp xỉ giá trị gốc */
+    .pcard--flash .pcard__flag {
+        top: clamp(6px, 2.2cqw, 10px);
+        left: clamp(6px, 2.2cqw, 10px);
+        font-size: clamp(9px, 2.9cqw, 11px);
+        padding: clamp(2px, .9cqw, 3px) clamp(5px, 2cqw, 9px);
+    }
+}
+
+/* Fallback trình duyệt cũ không có @container (Safari <16, Chrome <105):
+   thu nhỏ dần theo VIEWPORT để vẫn không đè nhau */
+@supports not (container-type: inline-size) {
+    @media (max-width: 767px) {
+
+        .flash__urgent,
+        .pcard--flash .pcard__flag {
+            font-size: 9.5px;
+            padding: 2px 7px;
+        }
+    }
+
+    @media (max-width: 375px) {
+
+        .flash__urgent,
+        .pcard--flash .pcard__flag {
+            font-size: 8.5px;
+            padding: 2px 5px;
+        }
+    }
 }
 
 /* ---- Thanh tiến độ % đã bán trong card flash (PDP dùng chung) ---- */
