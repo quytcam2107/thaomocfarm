@@ -5,6 +5,13 @@
             <p class="footer__desc">Đặc sản Tây Bắc & trà hoa thảo mộc nguyên chất, thu mua trực tiếp từ vùng trồng Sơn
                 La, Điện Biên, Lào Cai.</p>
         </div>
+        {{-- Cột "Về chúng tôi": HTML tĩnh, liên kết điều hướng chính của site --}}
+        <nav aria-label="Về chúng tôi">
+            <h4>Về chúng tôi</h4>
+            <a href="{{ route('web.home') }}">Trang chủ</a>
+            <a href="{{ route('web.page.about') }}">Giới thiệu</a>
+            <a href="{{ route('web.page.contact') }}">Liên hệ</a>
+        </nav>
         <nav aria-label="Hỗ trợ khách hàng">
             <h4>Hỗ trợ</h4>
             <a href="{{ route('web.page.order-guide') }}">Hướng dẫn đặt hàng</a>

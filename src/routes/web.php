@@ -56,11 +56,15 @@ Route::get('/san-pham/{slug}', [ProductController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('web.product.show');
 
-// 6b. 4 trang tinh "Ho tro" (footer) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} bên dưới
+// 6b. Cac trang tinh "Ho tro" (footer) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} bên dưới
 Route::get('/huong-dan-dat-hang', [PageController::class, 'orderGuide'])->name('web.page.order-guide');
 Route::get('/chinh-sach-doi-tra', [PageController::class, 'returnPolicy'])->name('web.page.return-policy');
 Route::get('/chinh-sach-bao-mat', [PageController::class, 'privacyPolicy'])->name('web.page.privacy');
 Route::get('/dieu-khoan-su-dung', [PageController::class, 'terms'])->name('web.page.terms');
+
+// 6c. Cac trang tinh "Ve chung toi" (footer moi): Gioi thieu + Lien he — cung phai dat TRƯỚC catch-all /{slug}
+Route::get('/gioi-thieu', [PageController::class, 'about'])->name('web.page.about');
+Route::get('/lien-he', [PageController::class, 'contact'])->name('web.page.contact');
 
 // 7. Alias pretty-url /{slug} — BẮT BUỘC ở cuối cùng
 Route::get('/{slug}', [CategoryController::class, 'show'])

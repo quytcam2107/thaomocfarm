@@ -47,6 +47,11 @@
     color: var(--gold);
 }
 
+/* Sửa: cho phép link trong cột phi-nav (Liên hệ) hover giống nav */
+.footer div p a:hover {
+    color: var(--gold);
+}
+
 .footer__bottom {
     border-top: 1px solid rgb(255 255 255 / .12);
     padding-block: 14px;
@@ -54,6 +59,8 @@
     text-align: center;
 }
 
+/* Mobile-first: 1 cột; tablet: 2 cột; desktop >=1024px: 5 cột
+   (Brand | Về chúng tôi | Hỗ trợ | Danh mục | Liên hệ) */
 @media (min-width: 768px) {
     .footer__grid {
         grid-template-columns: repeat(2, 1fr);
@@ -62,7 +69,7 @@
 
 @media (min-width: 1024px) {
     .footer__grid {
-        grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr;
     }
 }
 
