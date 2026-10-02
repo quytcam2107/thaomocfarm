@@ -261,10 +261,12 @@
 }
 
 .pd-actions {
-    display: flex;
+    display: grid;
+    /* FIX: 2 nút "Thêm vào giỏ" và "Mua ngay" bằng nhau tuyệt đối —
+       grid 2 cột đều (1fr 1fr) thay vì flex vốn chia width theo nội dung text. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin-top: 18px;
-    flex-wrap: wrap;
 }
 
 .pcard__fav--lg[aria-pressed="true"] {
@@ -485,6 +487,8 @@ body.has-buybar .floatnav {
     background: transparent;
     color: var(--leaf);
     border: 1.5px solid var(--leaf);
+    /* NEW: chuyển màu nền mượt khi hover vào nút "Thêm vào giỏ" */
+    transition: transform .15s, box-shadow .15s, background .2s, color .2s;
 }
 
 .pd-actions .add-cart.btn--leaf:hover,
@@ -498,11 +502,30 @@ body.has-buybar .floatnav {
     outline-offset: 2px;
 }
 
+/* ============ FIX: HAI NÚT pd-actions BẰNG NHAU (không phụ thuộc độ dài text) ============
+   - Grid 2 cột 1fr ở .pd-actions đã đảm bảo 2 khung nút rộng bằng nhau.
+   - Cho cả 2 nút stretch full chiều rộng cột + căn giữa nội dung.
+   - add-cart là <button> thuần nên cần white-space: nowrap để dòng chữ
+     "Thêm vào giỏ" không bị ngắt khi cột hẹp (btn--clay đã có .btn__sub
+     wrap sẵn 2 dòng nên không cần).
+   - min-height: 100% đồng đều chiều cao tối thiểu cho cả 2 nút.
+   Scope riêng trong .pd-actions => không ảnh hưởng .buybar, cart, checkout. */
+.pd-actions > .btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 100%;
+    justify-content: center;
+}
+
+.pd-actions .add-cart.btn--leaf {
+    white-space: nowrap;
+}
+
 /* ============ NÚT MUA NGAY: 2 DÒNG (chỉ scope trong PDP + buybar) ============
    NEW: ".btn--clay" trong pd-actions/buybar chuyển thành cột flex:
    - .btn__main : dòng chữ chính "Mua ngay" (giữ font/button style của .btn)
-   - .btn__sub  : dòng phụ "Gọi điện và giao tận nơi" — là <a href="tel:...">
-     phủ toàn vùng dòng dưới, tự mở bàn phím gọi trên mobile.
+   - .btn__sub  : dòng phụ "Gọi điện xác nhận và giao tận nơi" — phủ toàn vùng
+     dòng dưới, KHÔNG gạch chân (kể cả khi hover).
    Không định nghĩa lại .btn/.btn--clay toàn cục => không ảnh hưởng nút clay
    ở cart / checkout / hero. */
 .pd-actions .btn--clay,
@@ -511,6 +534,19 @@ body.has-buybar .floatnav {
     align-items: stretch;
     gap: 2px;
     padding: 8px 18px;
+    /* FIX: đổi nền nút "Mua ngay" từ cam (--clay) sang xanh #2e7d4f */
+    background: #2e7d4f;
+    color: #fff;
+    /* NEW: hiệu ứng hover mượt (nền sáng hơn + nâng nhẹ + bóng) */
+    transition: transform .15s, box-shadow .15s, background .2s;
+}
+
+/* FIX: hover vào nút "Mua ngay" — nền sáng lên 1 bậc + nâng nhẹ */
+.pd-actions .btn--clay:hover,
+.buybar .btn--clay:hover {
+    background: #35915c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgb(46 125 79 / .35);
 }
 
 .pd-actions .btn--clay .btn__main,
@@ -527,14 +563,23 @@ body.has-buybar .floatnav {
     line-height: 1.35;
     color: #fff;
     opacity: .92;
-    text-decoration: none;
+    /* FIX: bỏ hoàn toàn gạch chân của thẻ a, kể cả hover/focus/visited */
+    text-decoration: none !important;
     padding: 2px 0 1px;
 }
 
 .pd-actions .btn--clay .btn__sub:hover,
 .buybar .btn--clay .btn__sub:hover {
     opacity: 1;
-    text-decoration: underline;
+    text-decoration: none !important;
+}
+
+.pd-actions .btn--clay .btn__sub:visited,
+.pd-actions .btn--clay .btn__sub:active,
+.buybar .btn--clay .btn__sub:visited,
+.buybar .btn--clay .btn__sub:active {
+    text-decoration: none !important;
+    color: #fff;
 }
 
 .pd-actions .btn--clay .btn__sub:focus-visible,
@@ -542,4 +587,5 @@ body.has-buybar .floatnav {
     outline: 2px solid var(--gold);
     outline-offset: 2px;
     border-radius: 6px;
+    text-decoration: none !important;
 }
