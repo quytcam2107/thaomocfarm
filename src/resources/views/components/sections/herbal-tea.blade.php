@@ -6,8 +6,8 @@
             @foreach($products as $product)
                 {{-- FIX: service trả giá là SỐ RAW (đã gồm flash sale) => format tại view --}}
                 <x-ui.product-card :url="$product['url']" :image="$product['image']" :name="$product['name']"
-                    :price="$product['price'] ? number_format((int) $product['price'], 0, ',', '.') . '₫' : null"
-                    :oldPrice="$product['old_price'] ? number_format((int) $product['old_price'], 0, ',', '.') . '₫' : null"
+                    :price="$product['price'] ?? null"
+                    :oldPrice="$product['old_price'] ?? null"
                     :discount="$product['discount_percent']"
                     :rating="$product['rating_avg']" :sold="$product['sold_count']"
                     :productId="$product['product_id']" :variantId="$product['variant_id']" />
