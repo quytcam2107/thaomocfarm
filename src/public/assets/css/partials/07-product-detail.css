@@ -788,3 +788,27 @@ rule display phía trên, kể cả cascade sau này */
         transform: none;
     }
 }
+
+/* ============ NEW: TRẠNG THÁI DISABLED CỦA NÚT prev/next Ở 2 BIÊN ============
+   app-product.js set thuộc tính disabled lên nút prev khi đang xem ảnh đầu và
+   nút next khi đang xem ảnh cuối (Blade cũng render sẵn prev disabled cho lần
+   mở trang đầu tiên). Style mờ + con trỏ không cho phép để người dùng nhận ra
+   nút không dùng được; hover/focus bị vô hiệu hóa ở trạng thái này. */
+.pd-nav:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+    pointer-events: none;
+    /* đã disabled -> không bắt click/hover, vuốt xuyên qua ảnh */
+}
+
+.pd-nav:disabled:hover {
+    background: rgba(255, 255, 255, .92);
+    transform: translateY(-50%);
+    /* giữ nguyên vị trí, không scale khi hover */
+}
+
+/* Bản nhỏ cạnh hàng thumbs: position:static nên không được kế thừa transform
+   của rule hover chung (.pd-nav--sm:hover scale 1.06) khi disabled */
+.pd-nav--sm:disabled:hover {
+    transform: none;
+}

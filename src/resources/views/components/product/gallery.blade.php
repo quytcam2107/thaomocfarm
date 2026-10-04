@@ -14,18 +14,22 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
             height="800" fetchpriority="high" draggable="false" unselectable="on">
 
         {{-- Nút prev/next TRÊN ẢNH TO: overlay 2 mép, chỉ hiện khi có >1 ảnh.
-        NEW data-pd-nav-zone="stage": JS bỏ qua setPointerCapture khi pointerdown
-        rơi vào nút này, nhờ vậy button nhận được click bình thường. --}}
+        data-pd-nav-zone="stage": JS bỏ qua setPointerCapture khi pointerdown
+        rơi vào nút này, nhờ vậy button nhận được click bình thường.
+        NEW data-pd-edge="first|last": JS disabled nút prev khi đang xem ẢNH ĐẦU
+        và disabled nút next khi đang xem ẢNH CUỐI (không còn wrap-around ở nút).
+        Trạng thái đầu trang do server render sẵn (ảnh 1 -> prev disabled);
+        app-product.js cập nhật lại sau mỗi lần đổi ảnh. --}}
         @if(count($images) > 1)
-            <button type="button" class="pd-nav pd-nav--prev" data-pd-nav="-1" data-pd-nav-zone="stage"
-                aria-label="Ảnh trước" draggable="false">
+            <button type="button" class="pd-nav pd-nav--prev" data-pd-nav="-1" data-pd-nav-zone="stage" data-pd-edge="first"
+                aria-label="Ảnh trước" draggable="false" disabled>
                 <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                     <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />
                 </svg>
             </button>
-            <button type="button" class="pd-nav pd-nav--next" data-pd-nav="1" data-pd-nav-zone="stage" aria-label="Ảnh sau"
-                draggable="false">
+            <button type="button" class="pd-nav pd-nav--next" data-pd-nav="1" data-pd-nav-zone="stage" data-pd-edge="last"
+                aria-label="Ảnh sau" draggable="false">
                 <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                     <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />
@@ -47,8 +51,9 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
     <div class="pd-thumbs-wrap">
         {{-- data-thumbs-nav: danh dau cap nut cua rieng hang thumbs de JS notate --}}
         <span class="pd-thumbs-nav" data-thumbs-nav hidden>
+            {{-- data-pd-edge="first": prev hàng thumbs cũng disabled khi đang ở ảnh đầu --}}
             <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-prev" data-pd-nav="-1" data-pd-nav-zone="thumbs"
-                aria-label="Ảnh trước" draggable="false">
+                data-pd-edge="first" aria-label="Ảnh trước" draggable="false" disabled>
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                     <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />
@@ -72,7 +77,7 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
 
         <span class="pd-thumbs-nav" data-thumbs-nav hidden>
             <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-next" data-pd-nav="1" data-pd-nav-zone="thumbs"
-                aria-label="Ảnh sau" draggable="false">
+                data-pd-edge="last" aria-label="Ảnh sau" draggable="false">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                     <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />

@@ -61,7 +61,13 @@ if (pdBox) {
       để chuột kéo trên ảnh không bị HTML5 image-drag cắt mất pointermove.
    3) Chặn click "dư" sau vuốt bằng flag suppressClick + capture-phase click
       listener (chỉ chặn khi quãng di chuyển >= ngưỡng thật sự là vuốt).
-   - Wrap-around: ảnh cuối bấm next/vuốt trái -> về ảnh đầu (giữ logic cũ).
+   - Wrap-around: ẢNH CUỐI vuốt trái -> về ảnh ĐẦU, ẢNH ĐẦU vuốt phải -> ra
+     ảnh cuối (chỉ áp dụng cho VUỐT; NÚT prev/next thì stop ở biên — xem
+     updateNavState bên dưới).
+   - NEW DISABLED Ở BIÊN: nút prev disabled khi đang xem ảnh đầu, nút next
+     disabled khi đang xem ảnh cuối. Blade render sẵn prev disabled (trang
+     luôn mở đầu ở ảnh 1) để đúng cả trước khi JS chạy; updateNavState()
+     đồng bộ lại sau MỌI lần đổi ảnh (nút / thumb / vuốt).
    - Hiệu ứng chuyển ảnh MƯỢT: CSS 07-product-detail.css keyframes pdImgIn,
      JS bật lại animation mỗi lần đổi src bằng remove -> reflow -> add.
    - Cuốn thumb đang chọn vào tầm nhìn khi hàng thumbs tràn ngang.
@@ -114,6 +120,24 @@ if (stage && thumbs.length) {
     /* Ảnh thumb lazy-load làm chiều rộng nội dung đổi -> đo lại vài nhịp */
     [50, 300, 800].forEach(ms => setTimeout(updateThumbsNav, ms));
 
+    /* =================================================================
+       DISABLED NÚT prev/next Ở 2 BIÊN (mới):
+       - prev (data-pd-edge="first") disabled khi current === 0 (đang xem ảnh đầu)
+       - next (data-pd-edge="last")  disabled khi current === n-1 (đang xem ảnh cuối)
+       - Áp cho CẢ 4 nút: 2 nút overlay trên ảnh to + 2 nút nhỏ cạnh hàng thumbs.
+       - Gọi ngay khi module chạy + sau MỌI lần goTo() để trạng thái luôn đúng;
+         vì disabled nên trình duyệt tự không phát click -> không cần chặn thêm.
+       ================================================================= */
+    const navBtns = qa('[data-pd-nav]');
+    function updateNavState() {
+        const n = thumbs.length;
+        navBtns.forEach(btn => {
+            const edge = btn.dataset.pdEdge; // 'first' | 'last' | undefined
+            if (edge === 'first') btn.disabled = current <= 0;
+            else if (edge === 'last') btn.disabled = current >= n - 1;
+        });
+    }
+
     const goTo = (idx) => {
         const n = thumbs.length;
         const i = ((idx % n) + n) % n; // wrap-around, an toàn cả số âm
@@ -124,6 +148,8 @@ if (stage && thumbs.length) {
         stage.dataset.index = String(i);
         thumbs.forEach(b => b.setAttribute('aria-current', String(b === btn)));
         if (counter) counter.textContent = `${i + 1}/${n}`;
+        /* NEW: bật/tắt 2 nút prev/next theo vị trí ảnh hiện tại */
+        updateNavState();
         /* Phát lại hiệu ứng chuyển ảnh mượt (CSS keyframes pdImgIn):
            remove -> reflow -> add để animation chạy lại từ đầu mỗi lần đổi src */
         stage.classList.remove('is-swipe');
@@ -141,10 +167,14 @@ if (stage && thumbs.length) {
 
     /* Nút prev/next (overlay trên ảnh to + 2 nút nhỏ cạnh hàng thumbs).
        Dùng click + stopPropagation: nếu là hệ quả của vuốt thì đã bị
-       suppressClick chặn ở capture phase bên dưới. */
+       suppressClick chặn ở capture phase bên dưới.
+       NEW: guard btn.disabled — khi đang ở biên (prev: ảnh đầu, next: ảnh cuối)
+       trình duyệt đã không phát click; guard này chặn thêm cả trường hợp
+       sự kiện tổng hợp (keyboard/JS) lọt tới -> hết wrap-around qua NÚT. */
     qa('[data-pd-nav]').forEach(btn => btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (btn.disabled) return; // đã ở biên -> không đổi ảnh, không wrap
         if (suppressClick) return; // vừa vuốt xong -> bỏ qua click dư
         goTo(current + (parseInt(btn.dataset.pdNav, 10) || 0));
     }));
@@ -200,6 +230,9 @@ if (stage && thumbs.length) {
     }
 
     stage.dataset.index = String(current);
+    /* NEW: đồng bộ disabled prev/next ngay lần render đầu (ảnh 1 -> prev disabled,
+       ảnh cuối -> next disabled) — phòng hờ JS chạy sau khi đã có data-index */
+    updateNavState();
 }
 
 /* =====================================================================
