@@ -1,7 +1,7 @@
 # Bảng `categories`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-02T10:14:53+00:00
+> Bản cập nhật lúc: 2026-10-04T08:23:26+00:00
 
 ## Thông tin chung
 
@@ -37,9 +37,9 @@
 ## Thống kê dữ liệu
 
 - `id`: min = 1, max = 5 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `4` (1), `5` (1)
-- `name`: giá trị phổ biến: `Thảo mộc & Dược liệu` (1), `Thịt gác bếp` (1), `Gia vị Tây Bắc` (1), `Mật ong` (1), `Trà hoa Thảo Mộc` (1)
-- `slug`: giá trị phổ biến: `gia-vi-tay-bac` (1), `mat-ong` (1), `thao-moc` (1), `thit-gac-bep` (1), `tra-hoa-thao-moc` (1)
-- `icon`: giá trị phổ biến: `thao-moc.png` (1), `thit-gac-bep.png` (1), `gia-vi-tay-bac.png` (1), `mat-ong.png` (1), `tra-hoa-thao-moc.png` (1)
+- `name`: giá trị phổ biến: `Thảo mộc & Dược liệu` (1), `Thảo mộc ngâm rượu` (1), `Đặc sản Tây Bắc` (1), `Mật ong` (1), `Trà hoa Thảo Mộc` (1)
+- `slug`: giá trị phổ biến: `dac-san-tay-bac` (1), `mat-ong` (1), `thao-moc` (1), `thao-moc-ngam-ruou` (1), `tra-hoa-thao-moc` (1)
+- `icon`: giá trị phổ biến: `category-thao-moc-va-duoc-lieu.png` (1), `category-thao-moc-ngam-ruou.png` (1), `category-dac-san-tay-bac.png` (1), `mat-ong.png` (1), `category-tra-hoa-thao-moc.png` (1)
 - `description`: giá trị phổ biến: `Đương quy, đẳng sâm, hà thủ ô, chè dây... thảo mộc quý vùng núi cao.` (1), `Thịt trâu, thịt lợn gác bếp chuẩn vị bản địa Tây Bắc.` (1), `Mắc khén, hạt dổi, thảo quả – linh hồn của món ăn vùng cao.` (1), `Mật ong rừng nguyên chất, sáp ong, phấn hoa.` (1), `NULL` (1)
 - `sort_order`: min = 1, max = 5 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `5` (1), `4` (1)
 - `is_featured`: min = 1, max = 1 — giá trị phổ biến: `1` (5)
@@ -51,8 +51,8 @@
 
 | id | parent_id | name | slug | icon | description | sort_order | is_featured | status | created_at | updated_at
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | NULL | Thảo mộc & Dược liệu | thao-moc | thao-moc.png | Đương quy, đẳng sâm, hà thủ ô, chè dây... thảo mộc quý vùng núi cao. | 1 | 1 | active | 2026-09-21 21:13:21 | 2026-09-21 21:13:21
-| 2 | NULL | Thịt gác bếp | thit-gac-bep | thit-gac-bep.png | Thịt trâu, thịt lợn gác bếp chuẩn vị bản địa Tây Bắc. | 5 | 1 | active | 2026-09-21 21:13:21 | 2026-09-21 21:13:21
-| 3 | NULL | Gia vị Tây Bắc | gia-vi-tay-bac | gia-vi-tay-bac.png | Mắc khén, hạt dổi, thảo quả – linh hồn của món ăn vùng cao. | 3 | 1 | active | 2026-09-21 21:13:21 | 2026-09-21 21:13:21
+| 1 | NULL | Thảo mộc & Dược liệu | thao-moc | category-thao-moc-va-duoc-lieu.png | Đương quy, đẳng sâm, hà thủ ô, chè dây... thảo mộc quý vùng núi cao. | 1 | 1 | active | 2026-09-21 21:13:21 | 2026-09-21 21:13:21
+| 2 | NULL | Thảo mộc ngâm rượu | thao-moc-ngam-ruou | category-thao-moc-ngam-ruou.png | Thịt trâu, thịt lợn gác bếp chuẩn vị bản địa Tây Bắc. | 3 | 1 | active | 2026-09-21 21:13:21 | 2026-09-21 21:13:21
+| 3 | NULL | Đặc sản Tây Bắc | dac-san-tay-bac | category-dac-san-tay-bac.png | Mắc khén, hạt dổi, thảo quả – linh hồn của món ăn vùng cao. | 5 | 1 | active | 2026-09-21 21:13:21 | 2026-09-21 21:13:21
 | 4 | NULL | Mật ong | mat-ong | mat-ong.png | Mật ong rừng nguyên chất, sáp ong, phấn hoa. | 4 | 1 | hidden | 2026-09-21 21:13:21 | 2026-09-21 21:13:21
-| 5 | NULL | Trà hoa Thảo Mộc | tra-hoa-thao-moc | tra-hoa-thao-moc.png | NULL | 2 | 1 | active | NULL | NULL
+| 5 | NULL | Trà hoa Thảo Mộc | tra-hoa-thao-moc | category-tra-hoa-thao-moc.png | NULL | 2 | 1 | active | NULL | NULL
