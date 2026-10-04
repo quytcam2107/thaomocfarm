@@ -73,12 +73,6 @@
     padding-bottom: 2px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .pd-thumbs {
-        scroll-behavior: auto;
-    }
-}
-
 /* Gộp 2 rule .pd-thumbs button từng tách rời thành 1 khối duy nhất
    (flex: 0 0 64px + scroll-snap-align) — tránh nhầm cascade khi sửa sau này */
 .pd-thumbs button {
@@ -491,12 +485,6 @@ body.has-buybar .floatnav {
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .pd-flash__badge {
-        animation: none;
-    }
-}
-
 .pd-flash__name {
     font-size: 13px;
     color: var(--leaf-deep);
@@ -719,34 +707,34 @@ trong phần tử .pd-thumbs cũ (mọi rule .pd-thumbs bên trên giữ nguyên
     transform: scale(1.06);
 }
 
-/* ===== NEW: quy tắc hiện/ẩn + disabled cho 2 cặp nút prev/next =====
-   - .hidden: mặc định của 2 nút nhỏ hàng thumbs (Blade luôn render nhưng ẩn);
-     app-product.js thêm .is-visible khi hàng thumbs TRÀN NGANG thật (> đủ ảnh).
-     .is-visible thắng .hidden nhờ specificity cao hơn.
-   - [data-pd-edge]: app-product.js gắn khi nút chạm biên (start/end) -> xám,
-     con trỏ thường, không hover-phóng-to, JS cũng chặn click. */
-.pd-nav--sm.hidden {
-    display: none;
+/* ============ NEW: VUỐT ĐỔI ẢNH + HIỆU ỨNG CHUYỂN ẢNH MƯỢT ============
+   - .pd-stage { touch-action: pan-y }: cho phép vuốt dọc cuộn trang bình
+     thường, đồng thời trả quyền vuốt NGANG về cho JS (Pointer Events trong
+     app-product.js) -> không bị trình duyệt coi là kéo-select/chuột phải.
+   - .pd-stage { user-select: none }: hết hiện block chọn văn bản/ảnh khi vuốt.
+   - Keyframes pdImgIn: fade + trượt nhẹ 14px + scale 0.985 -> 1 (0.3s ease).
+     app-product.js gắn class .is-swipe lên #pdStageImg mỗi lần đổi src
+     (remove -> reflow -> add) nên animation chạy lại từ đầu ở MỌI cách đổi
+     ảnh: vuốt, bấm nút prev/next, bấm thumb. KHÔNG có media query
+     prefers-reduced-motion nào chặn nữa (đã xóa theo yêu cầu). */
+.pd-stage {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-.pd-nav--sm.is-visible {
-    display: inline-flex;
+#pdStageImg.is-swipe {
+    animation: pdImgIn .3s ease;
 }
 
-.pd-nav[data-pd-edge] {
-    opacity: .4;
-    cursor: default;
-    box-shadow: none;
-}
+@keyframes pdImgIn {
+    from {
+        opacity: 0;
+        transform: translateX(14px) scale(.985);
+    }
 
-.pd-nav[data-pd-edge]:hover {
-    transform: translateY(-50%) scale(1);
-}
-
-.pd-nav--sm[data-pd-edge]:hover {
-    transform: scale(1);
-}
-
-.pd-nav[data-pd-edge]:focus-visible {
-    outline: none;
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }

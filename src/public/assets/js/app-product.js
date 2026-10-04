@@ -1,6 +1,6 @@
 /**
- * APP PRODUCT — countdown flash sale (home + PDP), gallery thumbs, nút chia sẻ,
- * tabs ARIA, Buy Now. Loader chỉ nạp khi có một trong các marker:
+ * APP PRODUCT — countdown flash sale (home + PDP), gallery thumbs + vuốt ảnh,
+ * nút chia sẻ, tabs ARIA, Buy Now. Loader chỉ nạp khi có một trong các marker:
  * .countdown[data-ends] / [data-pd-flash] / .pd-thumbs / [role="tab"] / #buyNow,#buyNowMobile.
  */
 import { q, qa, toast } from '@tm/core';
@@ -51,62 +51,28 @@ if (pdBox) {
 }
 
 /* =====================================================================
-   GALLERY PDP: thumb click + nút prev/next.
-   QUY TẮC HIỆN/ẨN NÚT (theo yêu cầu nghiệp vụ):
-   - Nút trên ẢNH TO (#pdStageImg): LUÔN hiện khi sản phẩm có >1 ảnh
-     (Blade render sẵn); có đúng 1 ảnh thì Blade không render -> ẩn.
-   - Nút nhỏ hai bên HÀNG THUMBS (.pd-thumbs-wrap): chỉ hiện khi hàng
-     thumbs ĐÃ ĐẦY ảnh, tức tràn ngang thật sự (scrollWidth > clientWidth
-     + 1px dung sai). JS đo và bật/tắt class .is-visible trên 2 nút
-     [data-pd-thumbs-nav]; mặc định chúng mang class .hidden.
-   - DISABLED: bấm tới ảnh ĐẦU TIÊN -> nút prev xám + không tác dụng;
-     tới ảnh CUỐI -> nút next xám + không tác dụng (không wrap-around nữa).
-     JS đánh dấu bằng data-pd-edge="start"/"end"/"both", CSS dùng
-     .pd-nav.is-disabled. Ảnh bìa (index 0) cũng được xử ngay khi tải.
-   Cuốn thumb đang chọn vào tầm nhìn khi hàng thumbs bị tràn ngang.
+   GALLERY PDP: thumb click + nút prev/next + VUỐT ĐỂ CHUYỂN ẢNH.
+   - Vuốt hoạt động trên MỌI màn hình (mobile touch + desktop chuột):
+     listener đặt trên khung .pd-stage bằng Pointer Events (gộp chung
+     touch/mouse/pen). Ngưỡng 28px + trục ngang thắng trục dọc (x1.4) để
+     vuốt dọc đọc trang không bị hiểu nhầm sang đổi ảnh.
+   - Hiệu ứng chuyển ảnh MƯỢT: CSS 07-product-detail.css cho #pdStageImg
+     animation fade + trượt nhẹ. JS bật lại animation mỗi lần đổi src bằng
+     cách classList.remove('is-swipe') -> void offsetWidth (reflow) -> add.
+     KHÔNG check prefers-reduced-motion (theo yêu cầu).
+   - Wrap-around: ảnh cuối bấm next/vuốt trái -> về ảnh đầu (giữ nguyên logic cũ).
+   - Cuốn thumb đang chọn vào tầm nhìn khi hàng thumbs tràn ngang.
    ===================================================================== */
 const stage = q('#pdStageImg');
 const thumbs = qa('.pd-thumbs button');
 if (stage && thumbs.length) {
     const counter = q('#pdCounter');
-    const track = q('.pd-thumbs');                       // hàng thumbs để đo tràn
-    const navAll = qa('[data-pd-nav]');                  // cả 4 nút (to + nhỏ)
-    const navBigPrev = q('.pd-stage .pd-nav--prev');     // 2 nút overlay ảnh to
-    const navBigNext = q('.pd-stage .pd-nav--next');
-    const navSmPrev = q('.pd-nav--sm-prev');             // 2 nút nhỏ hàng thumbs
-    const navSmNext = q('.pd-nav--sm-next');
+    const stageBox = q('.pd-stage');
     let current = parseInt(stage.dataset.index || '0', 10) || 0;
-
-    /* Bật/tắt 2 nút nhỏ theo trạng thái tràn ngang của hàng thumbs */
-    const syncThumbsNavVisibility = () => {
-        const overflowing = !!track && track.scrollWidth - track.clientWidth > 1;
-        [navSmPrev, navSmNext].forEach(btn => {
-            if (btn) btn.classList.toggle('is-visible', overflowing);
-        });
-    };
-
-    /* Đồng bộ lớp disabled cho cả 4 nút theo vị trí current */
-    const syncNavState = () => {
-        const n = thumbs.length;
-        const atStart = current <= 0;
-        const atEnd = current >= n - 1;
-        // n<=1: không bao giờ có chuyện "đã tới cuối" theo nghĩa chặn nút
-        const edgeOf = (dir) => {
-            if (n <= 1) return 'none';
-            if (dir < 0) return atStart ? 'start' : 'none';
-            return atEnd ? 'end' : 'none';
-        };
-        [[navBigPrev, -1], [navBigNext, 1], [navSmPrev, -1], [navSmNext, 1]].forEach(([btn, dir]) => {
-            if (!btn) return;
-            const edge = edgeOf(dir);
-            if (edge === 'none') btn.removeAttribute('data-pd-edge');
-            else btn.setAttribute('data-pd-edge', edge);
-        });
-    };
 
     const goTo = (idx) => {
         const n = thumbs.length;
-        const i = Math.max(0, Math.min(n - 1, idx)); // CLAMP: hết ảnh thì dừng, không lặp vòng
+        const i = ((idx % n) + n) % n; // wrap-around, an toàn cả số âm
         const btn = thumbs[i];
         if (!btn) return;
         current = i;
@@ -114,37 +80,63 @@ if (stage && thumbs.length) {
         stage.dataset.index = String(i);
         thumbs.forEach(b => b.setAttribute('aria-current', String(b === btn)));
         if (counter) counter.textContent = `${i + 1}/${n}`;
+        /* NEW: phát lại hiệu ứng chuyển ảnh mượt (CSS keyframes pdImgIn)
+           remove -> reflow -> add để animation chạy lại từ đầu mỗi lần đổi src */
+        stage.classList.remove('is-swipe');
+        void stage.offsetWidth;
+        stage.classList.add('is-swipe');
         btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        syncNavState();
     };
 
     thumbs.forEach((btn, i) => {
         btn.dataset.index = String(i);
-        btn.addEventListener('click', () => {
-            // Nút tương ứng đang disabled (đầu/cuối danh sách) -> bỏ qua
-            if (btn.closest('[data-pd-edge]')) return;
-            goTo(i);
-        });
+        btn.addEventListener('click', () => goTo(i));
     });
 
-    navAll.forEach(btn => btn.addEventListener('click', () => {
-        if (btn.hasAttribute('data-pd-edge')) return; // nút đang xám -> không làm gì
+    qa('[data-pd-nav]').forEach(btn => btn.addEventListener('click', () => {
         goTo(current + (parseInt(btn.dataset.pdNav, 10) || 0));
     }));
 
-    stage.dataset.index = String(current);
-    syncNavState();          // gán disabled ngay từ ảnh đầu tiên
-    syncThumbsNavVisibility();
+    /* ===== NEW: VUỐT TRÁI/PHẢI ĐỔI ẢNH — mọi màn hình (Pointer Events) =====
+       - setPointerCapture: giữ dòng sự kiện kể cả khi ngón tay/trỏ rời khỏi
+         khung ảnh giữa chừng -> luôn nhận được pointerup/pointercancel.
+       - Chặn click "dư" sau khi vuốt thật (bấm nhanh < 10px không bị chặn).
+       - stopPropagation khi đổi ảnh thành công: tránh xung đột handler khác. */
+    if (stageBox) {
+        const SWIPE_MIN_X = 28;   // quãng ngang tối thiểu để tính là vuốt
+        const AXIS_RATIO = 1.4;   // hệ số: phải "ngang hơn" mức này mới là vuốt ngang
+        let sx = 0, sy = 0, swiping = false, pid = null;
 
-    // Đo lại khi ảnh thumb tải xong / đổi khổ cửa sổ -> cập nhật hiện-ẩn nút nhỏ
-    if (track) {
-        window.addEventListener('load', syncThumbsNavVisibility);
-        if ('ResizeObserver' in window) {
-            new ResizeObserver(syncThumbsNavVisibility).observe(track);
-        } else {
-            window.addEventListener('resize', syncThumbsNavVisibility);
-        }
+        stageBox.addEventListener('pointerdown', e => {
+            swiping = true;
+            sx = e.clientX;
+            sy = e.clientY;
+            pid = e.pointerId;
+            try { stageBox.setPointerCapture(pid); } catch (_) { /* browser cũ: bỏ qua */ }
+        });
+
+        stageBox.addEventListener('pointermove', e => {
+            if (!swiping || e.pointerId !== pid) return;
+            const dx = e.clientX - sx;
+            const dy = e.clientY - sy;
+            if (Math.abs(dx) < SWIPE_MIN_X) return;
+            if (Math.abs(dx) < Math.abs(dy) * AXIS_RATIO) return; // vuốt dọc -> để trang cuộn
+            swiping = false;
+            goTo(current + (dx < 0 ? 1 : -1)); // vuốt trái = ảnh sau, vuốt phải = ảnh trước
+            if (pid !== null) { try { stageBox.releasePointerCapture(pid); } catch (_) { } }
+        });
+
+        const endSwipe = e => {
+            if (!swiping) return;
+            const moved = Math.abs(e.clientX - sx) >= 10 || Math.abs(e.clientY - sy) >= 10;
+            swiping = false;
+            if (moved && typeof e.stopPropagation === 'function') e.stopPropagation();
+        };
+        stageBox.addEventListener('pointerup', endSwipe);
+        stageBox.addEventListener('pointercancel', endSwipe);
     }
+
+    stage.dataset.index = String(current);
 }
 
 /* =====================================================================
