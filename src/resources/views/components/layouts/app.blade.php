@@ -36,6 +36,21 @@
         type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
+    {{-- Import map: cho phép module con import bằng tên định danh @tm/... thay vì đường dẫn tương đối --}}
+    <script type="importmap">
+    {
+        "imports": {
+            "@tm/core": "{{ asset('assets/js/app-core.js') }}",
+            "@tm/ui": "{{ asset('assets/js/app-ui.js') }}",
+            "@tm/backtotop": "{{ asset('assets/js/app-backtotop.js') }}",
+            "@tm/product": "{{ asset('assets/js/app-product.js') }}",
+            "@tm/search": "{{ asset('assets/js/app-search.js') }}",
+            "@tm/cart-badge": "{{ asset('assets/js/cart-badge.js') }}",
+            "@tm/cart-add": "{{ asset('assets/js/cart-add.js') }}"
+        }
+    }
+    </script>
+
     {{ $schema ?? '' }}
     @stack('styles')
 </head>
@@ -61,8 +76,9 @@
     {{ $extra ?? '' }}
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="{{ asset('assets/js/app.js') }}"></script>
-    <script src="{{ asset('assets/js/cart.js') }}"></script>
+    {{-- JS tách module: app.js là loader dispatch theo DOM; cart.js là shim tương thích ngược --}}
+    <script type="module" src="{{ asset('assets/js/app.js') }}"></script>
+    <script type="module" src="{{ asset('assets/js/cart.js') }}"></script>
     @stack('scripts')
 </body>
 
