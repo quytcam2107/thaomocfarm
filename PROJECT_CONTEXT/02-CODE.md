@@ -461,8 +461,8 @@ Bao gồm:
 
 - `meta[name="csrf-token"]`
 - `style.css`
-- `app.js`
-- `cart.js`
+- `app.js` (loader module, xem mục 11)
+- `cart.js` (loader module, xem mục 11)
 
 ### Pages
 
@@ -582,7 +582,32 @@ Quy tắc:
 
 **Thư mục:** `public/assets/js`
 
-### `app.js`
+### Kiến trúc module (đã tách file — cập nhật 10/2026)
+
+`app.js` và `cart.js` trước đây là 2 file IIFE lớn (563 + 237 dòng). Nay đã tách thành các **ES modules** nhỏ, giữ nguyên 100% logic cũ:
+
+- Layout (`components/layouts/app.blade.php`) khai báo **`<script type="importmap">`** ánh xạ tên module → đường dẫn `asset()` (duy nhất một lần), rồi nạp 2 loader:
+  - `<script type="module" src="assets/js/app.js">`
+  - `<script type="module" src="assets/js/cart.js">`
+- `app.js` / `cart.js` giờ chỉ là **loader mỏng**: dùng **dynamic `import()` theo điều kiện DOM** (vd: chỉ import `app-search` khi có `#searchForm`, `app-backtotop` khi có `#backToTop`, `app-product` khi có `.countdown[data-ends]`/`[data-pd-flash]`). Module không cần đến sẽ KHÔNG được tải → giảm dung lượng JS mỗi trang, không chặn render, không ảnh hưởng SEO (HTML vẫn render server-side).
+- Mọi hàm dùng chung đặt trong `app-core.js` (`q`, `qa`, `money`, `reduceMotion`, `toast`, `pad`).
+
+| Module | Vai trò | Tự kích hoạt khi trang có |
+|---|---|---|
+| `app-core.js` | Helpers dùng chung: `q()`, `qa()`, `money()`, `reduceMotion`, `toast()` (`#toast` + class `show`), `pad()`; chặn click `a[href="#"]` | Luôn được import (nền tảng) |
+| `app-ui.js` | Reveal cuộn (`.reveal` → `is-in`), count-up `[data-count]`, drawer (`[data-drawer-open]`/`[data-drawer-close]` → `is-open`, Esc đóng), clone `#filterGroups` → `#filterDrawerBody` | Luôn (hành vi toàn cục) |
+| `app-backtotop.js` | Nút back-to-top `#backToTop`: hiện/ẩn 2 ngưỡng 160/60px, cuộn mượt rAF easeInOutCubic ~1s, hủy khi user can thiệp | `#backToTop` (hiện chỉ ở home, flag `:show-back-to-top`) |
+| `app-product.js` | Countdown flash sale H:M:S engine dùng chung home + PDP (`data-ends` unix giây server clamp ≤ 24h), gallery thumb `#pdStageImg`, share/copy link (`[data-share-native]`/`[data-copy-url]`), tabs ARIA, Buy Now (`#buyNow`/`#buyNowMobile` → `POST /gio-hang/mua-ngay`) | `.countdown[data-ends]` hoặc `[data-pd-flash]` |
+| `app-search.js` | Gõ ≥2 ký tự → debounce 300ms → `GET /tim-kiem/goi-y` dropdown gợi ý, spotlight `is-spotlight`, typing placeholder, điều hướng phím ↑↓/Enter/Esc | `#searchForm` + `#searchInput` + `#searchSuggest` |
+| `cart-badge.js` | Badge giỏ hàng: chọn `.js-cart-count, .cart-count`, `updateCartBadge()` (+pulse), API toàn cục `window.updateCartCount(n)`, `fetchCartCount()` gọi `GET /gio-hang/count` lúc khởi tạo | Được `cart.js` import trước tiên |
+| `cart-add.js` | Event delegation `.add-cart` → đọc variant (`input[name="variant_id"]:checked` fallback `variant`), qty (`input[name="qty"]`) → `POST /gio-hang/them` kèm `X-CSRF-TOKEN`; bỏ qua nút trong `.product-grid` không có variant để script inline trang đó xử lý | Có `.add-cart` trên trang |
+
+**Bẫy khi sửa JS:**
+- Tên importmap (`app-core`, `app-ui`, ...) phải khớp chính xác với `import '...'` trong các module — thêm module mới phải khai cả trong importmap của layout.
+- `window.updateCartCount` là contract mà `app-product.js` (Buy Now) và script inline các trang products/category/search đang dùng → không đổi tên.
+- Loader chạy `type="module"` (mặc định defer) — DOM đã sẵn sàng khi code chạy, không cần `DOMContentLoaded` ngoại trừ init badge trong `cart.js`.
+
+### `app.js` (loader) + `app-core.js` / `app-ui.js` / `app-backtotop.js` / `app-product.js` / `app-search.js`
 
 Drawer sử dụng:
 
@@ -609,7 +634,7 @@ Counter:
 
 - `data-count`
 
-### `cart.js`
+### `cart.js` (loader) + `cart-badge.js` / `cart-add.js`
 
 Nút thêm giỏ hàng:
 
@@ -903,6 +928,15 @@ Nếu đổi tên bất kỳ selector nào:
 > Phải cập nhật đồng bộ toàn bộ Blade/JS liên quan.
 
 ---
+## 15.6b. JS Module Architecture (sau khi tách app.js/cart.js)
+
+Sau khi tách `app.js`/`cart.js` thành ES modules (mục 11), bổ sung thêm các "contract" không được phá:
+
+- Tên key trong `<script type="importmap">` của layout (`app-core`, `app-ui`, `app-backtotop`, `app-product`, `app-search`, `cart-badge`, `cart-add`) phải khớp chính xác với câu `import '...'` trong các module — thêm/xóa module phải sửa cả importmap.
+- `window.updateCartCount(n)` vẫn là API toàn cục (định nghĩa trong `cart-badge.js`) mà Buy Now + script inline trang products/category/search gọi → không đổi tên, không chuyển sang export thuần.
+- Hai file entry `assets/js/app.js` và `assets/js/cart.js` phải giữ nguyên đường dẫn vì layout tham chiếu qua `asset()`; nội dung chỉ nên là loader mỏng.
+
+---
 
 ## 15.7. Money
 
@@ -971,6 +1005,8 @@ Các contract quan trọng nhất cần giữ nguyên:
 | Frontend | `meta[name="csrf-token"]` là contract. |
 | Frontend | `[data-drawer-open]` / `[data-drawer-close]` là contract. |
 | JavaScript | Khi set `input.value` bằng JS phải `dispatchEvent(new Event('change'))`. |
+| JavaScript | Importmap key ↔ tên module trong `import '...'` phải khớp; `window.updateCartCount` là API toàn cục. |
+| JavaScript | `assets/js/app.js` + `assets/js/cart.js` là loader module, giữ nguyên đường dẫn. |
 | Database Export | Dùng `php artisan ai:export-database`. |
 | Database Export | Output tại `src/PROJECT_CONTEXT/`. |
 

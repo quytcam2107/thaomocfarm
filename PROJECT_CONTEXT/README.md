@@ -5,7 +5,7 @@ Mục đích: dán kèm vào prompt khi yêu cầu AI sửa/tính năng mới, �
 | File | Nội dung |
 |---|---|
 | `01-DATABASE.md` | Tổng quan 34 bảng nghiệp vụ + 7 bảng framework: quy ước, quan hệ giữa bảng, bẫy thiết kế (maintain tay) |
-| `02-CODE.md` | Models/scopes/relations, 11 Enums, 4 DTOs, 5 Services + method công khai, Controllers, 5 FormRequests (rules thật), routes/web.php theo thứ tự, views/components Blade, cấu trúc CSS partials, contract JS, config/thaomoc.php, helpers, lệnh Artisan (`ai:export-database`), danh sách "bẫy đã biết" |
+| `02-CODE.md` | Models/scopes/relations, 11 Enums, 4 DTOs, 5 Services + method công khai, Controllers, 5 FormRequests (rules thật), routes/web.php theo thứ tự, views/components Blade, cấu trúc CSS partials, kiến trúc JS module (app.js/cart.js loader + importmap + các module ES), contract JS, config/thaomoc.php, helpers, lệnh Artisan (`ai:export-database`), danh sách "bẫy đã biết" |
 | `INDEX.md` *(auto)* | Bản xuất database: danh sách toàn bộ bảng + số bản ghi + link tới file chi tiết — do `php artisan ai:export-database` sinh |
 | `tables/<bảng>.md` *(auto)* | Cấu trúc thật từng bảng (cột, kiểu, null, default, index, FK, comment) + thống kê min/max/top values + 50 dòng mẫu dữ liệu |
 | `data/<bảng>.jsonl` *(auto)* | TOÀN BỘ dữ liệu từng bảng, mỗi dòng = 1 bản ghi JSON (không giới hạn record) |
@@ -33,7 +33,7 @@ Mục đích: dán kèm vào prompt khi yêu cầu AI sửa/tính năng mới, �
 
 ### 2. Bám sát code & database hiện có
 - Luôn viết theo ĐÚNG code và database đang có: tên route, tên bảng/cột, class, component, biến... lấy từ thực tế dự án, KHÔNG bịa đặt, KHÔNG giả định.
-- Giữ tương thích ngược: nếu nơi khác đang tham chiếu selector/id/class nào thì không được phá vỡ nó (đặc biệt các contract JS: `#cartBadge`, `.add-cart`, `#toast`, `meta[name="csrf-token"]`, `[data-drawer-open]`/`[data-drawer-close]`).
+- Giữ tương thích ngược: nếu nơi khác đang tham chiếu selector/id/class nào thì không được phá vỡ nó (đặc biệt các contract JS: `#cartBadge`, `.add-cart`, `#toast`, `meta[name="csrf-token"]`, `[data-drawer-open]`/`[data-drawer-close]`, `window.updateCartCount`).
 - Không làm ảnh hưởng các phần đang chạy ổn: chỉ đụng đúng phạm vi chức năng được yêu cầu. Không refactor, không đổi tên, không thêm tính năng ngoài yêu cầu.
 
 ### 3. Cách xuất code (BẮT BUỘC)
@@ -76,7 +76,7 @@ Mục đích: dán kèm vào prompt khi yêu cầu AI sửa/tính năng mới, �
 ### Frontend
 - Mobile-first; CSS chia 12 partials trong `public/assets/css/partials/`, `style.css` @import theo thứ tự cascade — KHÔNG đảo thứ tự, sửa style phải mở đúng partial.
 - Component Blade tự ẩn khi data rỗng — không render thông báo "không có dữ liệu".
-- JS tĩnh: `app.js` (drawer/reveal/count) + `cart.js` (add-cart fetch, badge, toast). Set `input.value` bằng JS phải `dispatchEvent(new Event('change'))`.
+- JS tĩnh: `app.js` + `cart.js` là 2 loader `type="module"` mỏng; code thật tách thành các module ES trong `public/assets/js/` (`app-core`, `app-ui`, `app-backtotop`, `app-product`, `app-search`, `cart-badge`, `cart-add`) nạp qua `importmap` + dynamic import theo điều kiện DOM. Chi tiết mục 11 của 02-CODE.md. Set `input.value` bằng JS phải `dispatchEvent(new Event('change'))`.
 
 ### Bảo mật & Config
 - CSRF: form Blade có `@csrf`; fetch POST gắn header `X-CSRF-TOKEN` đọc từ `meta[name="csrf-token"]`.
@@ -90,4 +90,4 @@ Mục đích: dán kèm vào prompt khi yêu cầu AI sửa/tính năng mới, �
 
 ## CẬP NHẬT TÀI LIỆU
 - **Database (cấu trúc + dữ liệu)**: chạy lại `php artisan ai:export-database` (trong thư mục `src/`) — tự ghi đè `INDEX.md`, `tables/`, `data/`; không cần làm gì thêm, chỉ đọc được cập nhật ngay.
-- **Code**: khi thêm migration/model/route/CSS partial/component mới, cập nhật tay 01-DATABASE.md / 02-CODE.md cho khớp thực tế, rồi commit kèm.
+- **Code**: khi thêm migration/model/route/CSS partial/component/JS module mới, cập nhật tay 01-DATABASE.md / 02-CODE.md cho khớp thực tế (module JS mới phải khai thêm trong importmap của layout + bảng ở mục 11), rồi commit kèm.
