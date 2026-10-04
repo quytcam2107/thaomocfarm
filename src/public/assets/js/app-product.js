@@ -51,20 +51,62 @@ if (pdBox) {
 }
 
 /* =====================================================================
-   GALLERY PDP: thumb click + nút prev/next (cả ảnh to .pd-stage lẫn
-   hàng thumbs). Trạng thái index nằm trong dataset của #pdStageImg;
-   wrap-around (ảnh cuối -> bấm next về ảnh đầu). Cuốn thumb đang chọn
-   vào tầm nhìn khi hàng thumbs bị tràn ngang.
+   GALLERY PDP: thumb click + nút prev/next.
+   QUY TẮC HIỆN/ẨN NÚT (theo yêu cầu nghiệp vụ):
+   - Nút trên ẢNH TO (#pdStageImg): LUÔN hiện khi sản phẩm có >1 ảnh
+     (Blade render sẵn); có đúng 1 ảnh thì Blade không render -> ẩn.
+   - Nút nhỏ hai bên HÀNG THUMBS (.pd-thumbs-wrap): chỉ hiện khi hàng
+     thumbs ĐÃ ĐẦY ảnh, tức tràn ngang thật sự (scrollWidth > clientWidth
+     + 1px dung sai). JS đo và bật/tắt class .is-visible trên 2 nút
+     [data-pd-thumbs-nav]; mặc định chúng mang class .hidden.
+   - DISABLED: bấm tới ảnh ĐẦU TIÊN -> nút prev xám + không tác dụng;
+     tới ảnh CUỐI -> nút next xám + không tác dụng (không wrap-around nữa).
+     JS đánh dấu bằng data-pd-edge="start"/"end"/"both", CSS dùng
+     .pd-nav.is-disabled. Ảnh bìa (index 0) cũng được xử ngay khi tải.
+   Cuốn thumb đang chọn vào tầm nhìn khi hàng thumbs bị tràn ngang.
    ===================================================================== */
 const stage = q('#pdStageImg');
 const thumbs = qa('.pd-thumbs button');
 if (stage && thumbs.length) {
     const counter = q('#pdCounter');
+    const track = q('.pd-thumbs');                       // hàng thumbs để đo tràn
+    const navAll = qa('[data-pd-nav]');                  // cả 4 nút (to + nhỏ)
+    const navBigPrev = q('.pd-stage .pd-nav--prev');     // 2 nút overlay ảnh to
+    const navBigNext = q('.pd-stage .pd-nav--next');
+    const navSmPrev = q('.pd-nav--sm-prev');             // 2 nút nhỏ hàng thumbs
+    const navSmNext = q('.pd-nav--sm-next');
     let current = parseInt(stage.dataset.index || '0', 10) || 0;
+
+    /* Bật/tắt 2 nút nhỏ theo trạng thái tràn ngang của hàng thumbs */
+    const syncThumbsNavVisibility = () => {
+        const overflowing = !!track && track.scrollWidth - track.clientWidth > 1;
+        [navSmPrev, navSmNext].forEach(btn => {
+            if (btn) btn.classList.toggle('is-visible', overflowing);
+        });
+    };
+
+    /* Đồng bộ lớp disabled cho cả 4 nút theo vị trí current */
+    const syncNavState = () => {
+        const n = thumbs.length;
+        const atStart = current <= 0;
+        const atEnd = current >= n - 1;
+        // n<=1: không bao giờ có chuyện "đã tới cuối" theo nghĩa chặn nút
+        const edgeOf = (dir) => {
+            if (n <= 1) return 'none';
+            if (dir < 0) return atStart ? 'start' : 'none';
+            return atEnd ? 'end' : 'none';
+        };
+        [[navBigPrev, -1], [navBigNext, 1], [navSmPrev, -1], [navSmNext, 1]].forEach(([btn, dir]) => {
+            if (!btn) return;
+            const edge = edgeOf(dir);
+            if (edge === 'none') btn.removeAttribute('data-pd-edge');
+            else btn.setAttribute('data-pd-edge', edge);
+        });
+    };
 
     const goTo = (idx) => {
         const n = thumbs.length;
-        const i = ((idx % n) + n) % n; // wrap-around, an toàn cả số âm
+        const i = Math.max(0, Math.min(n - 1, idx)); // CLAMP: hết ảnh thì dừng, không lặp vòng
         const btn = thumbs[i];
         if (!btn) return;
         current = i;
@@ -73,18 +115,36 @@ if (stage && thumbs.length) {
         thumbs.forEach(b => b.setAttribute('aria-current', String(b === btn)));
         if (counter) counter.textContent = `${i + 1}/${n}`;
         btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        syncNavState();
     };
 
     thumbs.forEach((btn, i) => {
         btn.dataset.index = String(i);
-        btn.addEventListener('click', () => goTo(i));
+        btn.addEventListener('click', () => {
+            // Nút tương ứng đang disabled (đầu/cuối danh sách) -> bỏ qua
+            if (btn.closest('[data-pd-edge]')) return;
+            goTo(i);
+        });
     });
 
-    qa('[data-pd-nav]').forEach(btn => btn.addEventListener('click', () => {
+    navAll.forEach(btn => btn.addEventListener('click', () => {
+        if (btn.hasAttribute('data-pd-edge')) return; // nút đang xám -> không làm gì
         goTo(current + (parseInt(btn.dataset.pdNav, 10) || 0));
     }));
 
     stage.dataset.index = String(current);
+    syncNavState();          // gán disabled ngay từ ảnh đầu tiên
+    syncThumbsNavVisibility();
+
+    // Đo lại khi ảnh thumb tải xong / đổi khổ cửa sổ -> cập nhật hiện-ẩn nút nhỏ
+    if (track) {
+        window.addEventListener('load', syncThumbsNavVisibility);
+        if ('ResizeObserver' in window) {
+            new ResizeObserver(syncThumbsNavVisibility).observe(track);
+        } else {
+            window.addEventListener('resize', syncThumbsNavVisibility);
+        }
+    }
 }
 
 /* =====================================================================

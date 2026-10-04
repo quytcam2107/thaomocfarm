@@ -718,3 +718,35 @@ trong phần tử .pd-thumbs cũ (mọi rule .pd-thumbs bên trên giữ nguyên
 .pd-nav--sm:hover {
     transform: scale(1.06);
 }
+
+/* ===== NEW: quy tắc hiện/ẩn + disabled cho 2 cặp nút prev/next =====
+   - .hidden: mặc định của 2 nút nhỏ hàng thumbs (Blade luôn render nhưng ẩn);
+     app-product.js thêm .is-visible khi hàng thumbs TRÀN NGANG thật (> đủ ảnh).
+     .is-visible thắng .hidden nhờ specificity cao hơn.
+   - [data-pd-edge]: app-product.js gắn khi nút chạm biên (start/end) -> xám,
+     con trỏ thường, không hover-phóng-to, JS cũng chặn click. */
+.pd-nav--sm.hidden {
+    display: none;
+}
+
+.pd-nav--sm.is-visible {
+    display: inline-flex;
+}
+
+.pd-nav[data-pd-edge] {
+    opacity: .4;
+    cursor: default;
+    box-shadow: none;
+}
+
+.pd-nav[data-pd-edge]:hover {
+    transform: translateY(-50%) scale(1);
+}
+
+.pd-nav--sm[data-pd-edge]:hover {
+    transform: scale(1);
+}
+
+.pd-nav[data-pd-edge]:focus-visible {
+    outline: none;
+}

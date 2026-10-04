@@ -7,7 +7,9 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
         <img id="pdStageImg" src="{{ $images[0] ?? asset('images/placeholder.svg') }}" alt="{{ $alt }}" width="800"
             height="800" fetchpriority="high">
 
-        {{-- Nút prev/next TRÊN ẢNH TO: overlay 2 mép, chỉ hiện khi có >1 ảnh --}}
+        {{-- Nút prev/next TRÊN ẢNH TO: LUÔN hiện khi có >1 ảnh (Blade render sẵn),
+        ẩn hoàn toàn khi chỉ có 1 ảnh. Trạng thái disabled ở ảnh đầu/cuối do
+        app-product.js gắn [data-pd-edge] + CSS .is-disabled xử lý. --}}
         @if(count($images) > 1)
             <button type="button" class="pd-nav pd-nav--prev" data-pd-nav="-1" aria-label="Ảnh trước">
                 <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -30,16 +32,17 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
     da chot: .pd-thumbs { overflow-x:auto + max-width:100% } va
     .pd-gallery / .pd-info { min-width:0 }. Class no-scrollbar (token san co
     trong 01-base.css) an thanh scroll xau xi; cuon bang cam ung/chu bi.
-    NEW: 2 nut prev/next nho hai ben hang thumbs (data-pd-nav), chi hien khi >1 anh --}}
+    doi voi 2 nut nho hai ben: chi hien khi hang THUMBS DA DAY (tran ngang that)
+    -> app-product.js do scrollWidth/clientWidth roi gan .is-visible; mac dinh
+    .hidden de Blot khong nhay nut khi JS chua kip chay. --}}
     <div class="pd-thumbs-wrap">
-        @if(count($images) > 1)
-            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-prev" data-pd-nav="-1" aria-label="Ảnh trước">
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                    <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-            </button>
-        @endif
+        <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-prev hidden" data-pd-nav="-1" data-pd-thumbs-nav
+            aria-label="Ảnh trước">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </button>
 
         <div class="pd-thumbs no-scrollbar" role="group" aria-label="Ảnh thu nhỏ sản phẩm">
             @forelse($images as $i => $img)
@@ -54,14 +57,13 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
             @endforelse
         </div>
 
-        @if(count($images) > 1)
-            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-next" data-pd-nav="1" aria-label="Ảnh sau">
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                    <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-            </button>
-        @endif
+        <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-next hidden" data-pd-nav="1" data-pd-thumbs-nav
+            aria-label="Ảnh sau">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </button>
     </div>
 
     <div class="pd-share" role="group" aria-label="Chia sẻ sản phẩm">
