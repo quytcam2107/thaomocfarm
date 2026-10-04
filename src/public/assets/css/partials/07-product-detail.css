@@ -857,7 +857,7 @@ rule display phía trên, kể cả cascade sau này */
 
 .pd-stage__fx--back.is-animating {
     visibility: visible;
-    animation: pdImgOut .4s cubic-bezier(.22, .61, .36, 1);
+    animation: pdImgOut .6s cubic-bezier(.22, .61, .36, 1);
 }
 
 /* Lớp ảnh MỚI: nghỉ = ẩn; khi chuyển = trượt vào từ mép tương ứng + fade in */
@@ -870,11 +870,11 @@ rule display phía trên, kể cả cascade sau này */
 }
 
 .pd-stage__fx--front.pd-in-left.is-animating {
-    animation: pdImgInFromLeft .4s cubic-bezier(.22, .61, .36, 1);
+    animation: pdImgInFromLeft .6s cubic-bezier(.22, .61, .36, 1);
 }
 
 .pd-stage__fx--front.pd-in-right.is-animating {
-    animation: pdImgInFromRight .4s cubic-bezier(.22, .61, .36, 1);
+    animation: pdImgInFromRight .6s cubic-bezier(.22, .61, .36, 1);
 }
 
 @keyframes pdImgOut {
