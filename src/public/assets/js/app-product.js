@@ -52,15 +52,18 @@ if (pdBox) {
 
 /* =====================================================================
    GALLERY PDP: thumb click + nút prev/next + VUỐT ĐỂ CHUYỂN ẢNH.
-   - Vuốt hoạt động trên MỌI màn hình (mobile touch + desktop chuột):
-     listener đặt trên khung .pd-stage bằng Pointer Events (gộp chung
-     touch/mouse/pen). Ngưỡng 28px + trục ngang thắng trục dọc (x1.4) để
-     vuốt dọc đọc trang không bị hiểu nhầm sang đổi ảnh.
-   - Hiệu ứng chuyển ảnh MƯỢT: CSS 07-product-detail.css cho #pdStageImg
-     animation fade + trượt nhẹ. JS bật lại animation mỗi lần đổi src bằng
-     cách classList.remove('is-swipe') -> void offsetWidth (reflow) -> add.
-     KHÔNG check prefers-reduced-motion (theo yêu cầu).
-   - Wrap-around: ảnh cuối bấm next/vuốt trái -> về ảnh đầu (giữ nguyên logic cũ).
+
+   FIX LỖI "vuốt chuột / click nút trên ảnh to không chuyển ảnh" (3 mắt xích):
+   1) Không setPointerCapture khi pointerdown rơi vào [data-pd-nav]: capture
+      làm pointerup/truy vết click dồn về .pd-stage -> button con không bao giờ
+      nhận click. Nay nút prev/next overlay hoạt động bình thường.
+   2) Ngưỡng vuốt hạ 28px -> 12px + cancel native drag (dragstart.preventDefault)
+      để chuột kéo trên ảnh không bị HTML5 image-drag cắt mất pointermove.
+   3) Chặn click "dư" sau vuốt bằng flag suppressClick + capture-phase click
+      listener (chỉ chặn khi quãng di chuyển >= ngưỡng thật sự là vuốt).
+   - Wrap-around: ảnh cuối bấm next/vuốt trái -> về ảnh đầu (giữ logic cũ).
+   - Hiệu ứng chuyển ảnh MƯỢT: CSS 07-product-detail.css keyframes pdImgIn,
+     JS bật lại animation mỗi lần đổi src bằng remove -> reflow -> add.
    - Cuốn thumb đang chọn vào tầm nhìn khi hàng thumbs tràn ngang.
    ===================================================================== */
 const stage = q('#pdStageImg');
@@ -69,6 +72,8 @@ if (stage && thumbs.length) {
     const counter = q('#pdCounter');
     const stageBox = q('.pd-stage');
     let current = parseInt(stage.dataset.index || '0', 10) || 0;
+    /* Flag chặn click "dư" phát ra sau một cú vuốt thật (desktop + mobile) */
+    let suppressClick = false;
 
     const goTo = (idx) => {
         const n = thumbs.length;
@@ -80,7 +85,7 @@ if (stage && thumbs.length) {
         stage.dataset.index = String(i);
         thumbs.forEach(b => b.setAttribute('aria-current', String(b === btn)));
         if (counter) counter.textContent = `${i + 1}/${n}`;
-        /* NEW: phát lại hiệu ứng chuyển ảnh mượt (CSS keyframes pdImgIn)
+        /* Phát lại hiệu ứng chuyển ảnh mượt (CSS keyframes pdImgIn):
            remove -> reflow -> add để animation chạy lại từ đầu mỗi lần đổi src */
         stage.classList.remove('is-swipe');
         void stage.offsetWidth;
@@ -93,26 +98,37 @@ if (stage && thumbs.length) {
         btn.addEventListener('click', () => goTo(i));
     });
 
-    qa('[data-pd-nav]').forEach(btn => btn.addEventListener('click', () => {
+    /* Nút prev/next (overlay trên ảnh to + 2 nút nhỏ cạnh hàng thumbs).
+       Dùng click + stopPropagation: nếu là hệ quả của vuốt thì đã bị
+       suppressClick chặn ở capture phase bên dưới. */
+    qa('[data-pd-nav]').forEach(btn => btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (suppressClick) return; // vừa vuốt xong -> bỏ qua click dư
         goTo(current + (parseInt(btn.dataset.pdNav, 10) || 0));
     }));
 
-    /* ===== NEW: VUỐT TRÁI/PHẢI ĐỔI ẢNH — mọi màn hình (Pointer Events) =====
-       - setPointerCapture: giữ dòng sự kiện kể cả khi ngón tay/trỏ rời khỏi
-         khung ảnh giữa chừng -> luôn nhận được pointerup/pointercancel.
-       - Chặn click "dư" sau khi vuốt thật (bấm nhanh < 10px không bị chặn).
-       - stopPropagation khi đổi ảnh thành công: tránh xung đột handler khác. */
+    /* ===== VUỐT TRÁI/PHẢI ĐỔI ẢNH — mọi màn hình (Pointer Events) =====
+       Listener đặt trên khung .pd-stage (gộp touch/mouse/pen). */
     if (stageBox) {
-        const SWIPE_MIN_X = 28;   // quãng ngang tối thiểu để tính là vuốt
-        const AXIS_RATIO = 1.4;   // hệ số: phải "ngang hơn" mức này mới là vuốt ngang
-        let sx = 0, sy = 0, swiping = false, pid = null;
+        const SWIPE_MIN_X = 12;   // FIX: hạ ngưỡng 28 -> 12px để chuột vuốt ngắn cũng ăn
+        const AXIS_RATIO = 1.4;   // trục ngang phải thắng trục dọc mức này
+        let sx = 0, sy = 0, swiping = false, pid = null, captured = false;
 
         stageBox.addEventListener('pointerdown', e => {
             swiping = true;
             sx = e.clientX;
             sy = e.clientY;
             pid = e.pointerId;
-            try { stageBox.setPointerCapture(pid); } catch (_) { /* browser cũ: bỏ qua */ }
+            captured = false;
+            /* FIX #1: KHÔNG capture khi bấm vào nút prev/next overlay —
+               capture sẽ cướp click của button (nguyên nhân "bấm nút không đổi ảnh").
+               Với pointer chuột trên ảnh: capture giúp theo dõi cả khi con trỏ
+               rời khỏi khung giữa chừng. */
+            const onNavBtn = !!e.target.closest('[data-pd-nav]');
+            if (!onNavBtn) {
+                try { stageBox.setPointerCapture(pid); captured = true; } catch (_) { /* browser cũ: bỏ qua */ }
+            }
         });
 
         stageBox.addEventListener('pointermove', e => {
@@ -122,18 +138,24 @@ if (stage && thumbs.length) {
             if (Math.abs(dx) < SWIPE_MIN_X) return;
             if (Math.abs(dx) < Math.abs(dy) * AXIS_RATIO) return; // vuốt dọc -> để trang cuộn
             swiping = false;
+            suppressClick = true;
             goTo(current + (dx < 0 ? 1 : -1)); // vuốt trái = ảnh sau, vuốt phải = ảnh trước
-            if (pid !== null) { try { stageBox.releasePointerCapture(pid); } catch (_) { } }
+            if (captured && pid !== null) { try { stageBox.releasePointerCapture(pid); } catch (_) { } captured = false; }
+            /* Tự nhả flag sau 1 tick — click "dư" (nếu có) luôn fire ngay sau pointerup */
+            setTimeout(() => { suppressClick = false; }, 350);
         });
 
         const endSwipe = e => {
             if (!swiping) return;
-            const moved = Math.abs(e.clientX - sx) >= 10 || Math.abs(e.clientY - sy) >= 10;
             swiping = false;
-            if (moved && typeof e.stopPropagation === 'function') e.stopPropagation();
+            if (captured && pid !== null) { try { stageBox.releasePointerCapture(pid); } catch (_) { } captured = false; }
         };
         stageBox.addEventListener('pointerup', endSwipe);
         stageBox.addEventListener('pointercancel', endSwipe);
+
+        /* FIX #2: chặn HTML5 native image drag trong khung ảnh — native drag
+           cắt stream pointermove giữa chừng khiến vuốt bằng chuột không đạt ngưỡng. */
+        stageBox.addEventListener('dragstart', e => e.preventDefault());
     }
 
     stage.dataset.index = String(current);

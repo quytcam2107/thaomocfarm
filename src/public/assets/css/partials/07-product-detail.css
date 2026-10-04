@@ -633,7 +633,12 @@ body.has-buybar .floatnav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 2;
+    z-index: 3;
+    /* FIX: nút nằm TRÊN lớp nhận vuốt của .pd-stage -> phải tự nhận pointer
+       (pointer-events:auto) và NOT bị khung cha nuốt sự kiện nhờ JS bỏ
+       setPointerCapture khi pointerdown rơi vào [data-pd-nav]. */
+    pointer-events: auto;
+    touch-action: manipulation;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -677,6 +682,8 @@ body.has-buybar .floatnav {
     background: rgba(255, 255, 255, .85);
     border-radius: 999px;
     padding: 3px 10px;
+    /* FIX: label đếm ảnh không được chắn vùng vuốt/click */
+    pointer-events: none;
 }
 
 /* Hàng thumbs + 2 nút prev/next nhỏ hai bên: wrap flex, thumbs vẫn cuộn ngang
@@ -712,15 +719,21 @@ trong phần tử .pd-thumbs cũ (mọi rule .pd-thumbs bên trên giữ nguyên
      thường, đồng thời trả quyền vuốt NGANG về cho JS (Pointer Events trong
      app-product.js) -> không bị trình duyệt coi là kéo-select/chuột phải.
    - .pd-stage { user-select: none }: hết hiện block chọn văn bản/ảnh khi vuốt.
+   - FIX VUỐT BẰNG CHUỘT: -webkit-user-drag:none + draggable=false (Blade) +
+     JS preventDefault dragstart -> native image drag không còn cắt pointermove.
    - Keyframes pdImgIn: fade + trượt nhẹ 14px + scale 0.985 -> 1 (0.3s ease).
      app-product.js gắn class .is-swipe lên #pdStageImg mỗi lần đổi src
      (remove -> reflow -> add) nên animation chạy lại từ đầu ở MỌI cách đổi
-     ảnh: vuốt, bấm nút prev/next, bấm thumb. KHÔNG có media query
-     prefers-reduced-motion nào chặn nữa (đã xóa theo yêu cầu). */
+     ảnh: vuốt, bấm nút prev/next, bấm thumb. KHÔNG check prefers-reduced-motion. */
 .pd-stage {
     touch-action: pan-y;
     user-select: none;
     -webkit-user-select: none;
+}
+
+.pd-stage img {
+    -webkit-user-drag: none;
+    user-drag: none;
 }
 
 #pdStageImg.is-swipe {

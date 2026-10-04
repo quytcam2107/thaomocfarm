@@ -7,18 +7,25 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
     app-product.js (Pointer Events) và 07-product-detail.css (touch-action:pan-y,
     keyframes pdImgIn cho hiệu ứng chuyển mượt). --}}
     <div class="pd-stage">
+        {{-- FIX VUỐT BẰNG CHUỘT: draggable="false" + unselectable chặn HTML5 native
+        image drag — thủ phạm cắt pointermove giữa chừng khiến vuốt chuột không đủ
+        ngưỡng đổi ảnh (xem app-product.js SWIPE_MIN_X). --}}
         <img id="pdStageImg" src="{{ $images[0] ?? asset('images/placeholder.svg') }}" alt="{{ $alt }}" width="800"
-            height="800" fetchpriority="high">
+            height="800" fetchpriority="high" draggable="false" unselectable="on">
 
-        {{-- Nút prev/next TRÊN ẢNH TO: overlay 2 mép, chỉ hiện khi có >1 ảnh --}}
+        {{-- Nút prev/next TRÊN ẢNH TO: overlay 2 mép, chỉ hiện khi có >1 ảnh.
+        NEW data-pd-nav-zone="stage": JS bỏ qua setPointerCapture khi pointerdown
+        rơi vào nút này, nhờ vậy button nhận được click bình thường. --}}
         @if(count($images) > 1)
-            <button type="button" class="pd-nav pd-nav--prev" data-pd-nav="-1" aria-label="Ảnh trước">
+            <button type="button" class="pd-nav pd-nav--prev" data-pd-nav="-1" data-pd-nav-zone="stage"
+                aria-label="Ảnh trước" draggable="false">
                 <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                     <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />
                 </svg>
             </button>
-            <button type="button" class="pd-nav pd-nav--next" data-pd-nav="1" aria-label="Ảnh sau">
+            <button type="button" class="pd-nav pd-nav--next" data-pd-nav="1" data-pd-nav-zone="stage" aria-label="Ảnh sau"
+                draggable="false">
                 <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                     <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />
@@ -36,7 +43,8 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
     NEW: 2 nut prev/next nho hai ben hang thumbs (data-pd-nav), chi hien khi >1 anh --}}
     <div class="pd-thumbs-wrap">
         @if(count($images) > 1)
-            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-prev" data-pd-nav="-1" aria-label="Ảnh trước">
+            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-prev" data-pd-nav="-1" data-pd-nav-zone="thumbs"
+                aria-label="Ảnh trước" draggable="false">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                     <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />
@@ -48,17 +56,19 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
             @forelse($images as $i => $img)
                 <button type="button" data-full="{{ $img }}" data-index="{{ $i }}"
                     aria-current="{{ $i === 0 ? 'true' : 'false' }}" aria-label="Ảnh {{ $i + 1 }}">
-                    <img src="{{ $thumbs[$i] ?? $img }}" alt="" width="128" height="128" loading="lazy">
+                    <img src="{{ $thumbs[$i] ?? $img }}" alt="" width="128" height="128" loading="lazy" draggable="false">
                 </button>
             @empty
                 <button type="button" data-full="{{ asset('images/placeholder.svg') }}" data-index="0" aria-current="true">
-                    <img src="{{ asset('images/placeholder.svg') }}" alt="" width="128" height="128" loading="lazy">
+                    <img src="{{ asset('images/placeholder.svg') }}" alt="" width="128" height="128" loading="lazy"
+                        draggable="false">
                 </button>
             @endforelse
         </div>
 
         @if(count($images) > 1)
-            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-next" data-pd-nav="1" aria-label="Ảnh sau">
+            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-next" data-pd-nav="1" data-pd-nav-zone="thumbs"
+                aria-label="Ảnh sau" draggable="false">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                     <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
                         stroke-linejoin="round" />
