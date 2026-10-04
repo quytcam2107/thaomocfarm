@@ -71,9 +71,48 @@ const thumbs = qa('.pd-thumbs button');
 if (stage && thumbs.length) {
     const counter = q('#pdCounter');
     const stageBox = q('.pd-stage');
+    const thumbsRow = q('.pd-thumbs');       /* hàng thumbs cuộn ngang */
+    const thumbsWrap = q('.pd-thumbs-wrap'); /* cha flex chứa 2 nút prev/next nhỏ */
     let current = parseInt(stage.dataset.index || '0', 10) || 0;
     /* Flag chặn click "dư" phát ra sau một cú vuốt thật (desktop + mobile) */
     let suppressClick = false;
+
+    /* =================================================================
+       FIX NEW: 2 nút prev/next của HÀNG THUMBS chỉ hiện khi hàng thumbs
+       THỰC SỰ tràn ngang (còn ảnh ngoài tầm nhìn -> cần vuốt).
+       - Blade render sẵn 2 span [data-thumbs-nav] với attribute `hidden`
+         => mặc định ẩn trên MỌI màn hình, kể cả khi JS chưa kịp chạy.
+       - updateThumbsNav() đo scrollWidth > clientWidth (+2px dung sai):
+         * không tràn -> ẩn 2 nút + data-cols="auto": hàng thumbs co về
+           đúng khổ nội dung (không giữ 76px slot nút thừa -> khỏi lệch
+           tâm so với khung ảnh to).
+         * tràn -> hiện 2 nút + data-cols="fill": hàng thumbs chiếm phần
+           còn lại của cột và cuộn trong phạm vi đó.
+       - ResizeObserver (fallback: resize/load) => ĐÚNG TRÊN MỌI KÍCH
+         THƯỚC MÀN HÌNH: desktop/tablet/mobile, đổi orientation, zoom.
+       ================================================================= */
+    function updateThumbsNav() {
+        if (!thumbsRow || !thumbsWrap) return;
+        const overflow = thumbsRow.scrollWidth - thumbsRow.clientWidth > 2;
+        qa('[data-thumbs-nav]').forEach(el => el.hidden = !overflow);
+        thumbsWrap.dataset.cols = overflow ? 'fill' : 'auto';
+    }
+
+    /* Mặc định cols="auto" ngay khi module chạy (trước cả lần đo đầu) — đồng bộ
+       với chốt an toàn trong 07-product-detail.css để hàng thumbs không bao
+       giờ đẩy giãn cột grid gây scroll ngang toàn trang */
+    if (thumbsWrap) thumbsWrap.dataset.cols = 'auto';
+    updateThumbsNav();
+    if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(updateThumbsNav);
+        if (thumbsRow) ro.observe(thumbsRow);
+        if (thumbsWrap) ro.observe(thumbsWrap);
+    } else {
+        window.addEventListener('resize', updateThumbsNav);
+        window.addEventListener('load', updateThumbsNav);
+    }
+    /* Ảnh thumb lazy-load làm chiều rộng nội dung đổi -> đo lại vài nhịp */
+    [50, 300, 800].forEach(ms => setTimeout(updateThumbsNav, ms));
 
     const goTo = (idx) => {
         const n = thumbs.length;
@@ -91,6 +130,8 @@ if (stage && thumbs.length) {
         void stage.offsetWidth;
         stage.classList.add('is-swipe');
         btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        /* Cuốn thumb vào tầm nhìn có thể đổi layout -> đo lại trạng thái nút */
+        updateThumbsNav();
     };
 
     thumbs.forEach((btn, i) => {

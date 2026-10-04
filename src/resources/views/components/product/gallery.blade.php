@@ -40,9 +40,13 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
     da chot: .pd-thumbs { overflow-x:auto + max-width:100% } va
     .pd-gallery / .pd-info { min-width:0 }. Class no-scrollbar (token san co
     trong 01-base.css) an thanh scroll xau xi; cuon bang cam ung/chu bi.
-    NEW: 2 nut prev/next nho hai ben hang thumbs (data-pd-nav), chi hien khi >1 anh --}}
+    2 nut prev/next nho hai ben hang thumbs (data-pd-nav): render khi >1 anh
+    nhung MAC DINH AN (hidden). Chi hien khi hang thumbs THAT SU TRA NGANG
+    (scrollWidth > clientWidth) — app-product.js quyet dinh bang ResizeObserver,
+    dung duoc tren moi kich man hinh --}}
     <div class="pd-thumbs-wrap">
-        @if(count($images) > 1)
+        {{-- data-thumbs-nav: danh dau cap nut cua rieng hang thumbs de JS notate --}}
+        <span class="pd-thumbs-nav" data-thumbs-nav hidden>
             <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-prev" data-pd-nav="-1" data-pd-nav-zone="thumbs"
                 aria-label="Ảnh trước" draggable="false">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -50,7 +54,7 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
                         stroke-linejoin="round" />
                 </svg>
             </button>
-        @endif
+        </span>
 
         <div class="pd-thumbs no-scrollbar" role="group" aria-label="Ảnh thu nhỏ sản phẩm">
             @forelse($images as $i => $img)
@@ -66,7 +70,7 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
             @endforelse
         </div>
 
-        @if(count($images) > 1)
+        <span class="pd-thumbs-nav" data-thumbs-nav hidden>
             <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-next" data-pd-nav="1" data-pd-nav-zone="thumbs"
                 aria-label="Ảnh sau" draggable="false">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -74,7 +78,7 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
                         stroke-linejoin="round" />
                 </svg>
             </button>
-        @endif
+        </span>
     </div>
 
     <div class="pd-share" role="group" aria-label="Chia sẻ sản phẩm">
