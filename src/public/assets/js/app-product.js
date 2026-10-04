@@ -50,12 +50,42 @@ if (pdBox) {
     }
 }
 
-/* Gallery: đổi ảnh chính theo thumb */
-qa('.pd-thumbs button').forEach(btn => btn.addEventListener('click', () => {
-    const img = q('#pdStageImg');
-    if (img && btn.dataset.full) img.src = btn.dataset.full;
-    qa('.pd-thumbs button').forEach(b => b.setAttribute('aria-current', String(b === btn)));
-}));
+/* =====================================================================
+   GALLERY PDP: thumb click + nút prev/next (cả ảnh to .pd-stage lẫn
+   hàng thumbs). Trạng thái index nằm trong dataset của #pdStageImg;
+   wrap-around (ảnh cuối -> bấm next về ảnh đầu). Cuốn thumb đang chọn
+   vào tầm nhìn khi hàng thumbs bị tràn ngang.
+   ===================================================================== */
+const stage = q('#pdStageImg');
+const thumbs = qa('.pd-thumbs button');
+if (stage && thumbs.length) {
+    const counter = q('#pdCounter');
+    let current = parseInt(stage.dataset.index || '0', 10) || 0;
+
+    const goTo = (idx) => {
+        const n = thumbs.length;
+        const i = ((idx % n) + n) % n; // wrap-around, an toàn cả số âm
+        const btn = thumbs[i];
+        if (!btn) return;
+        current = i;
+        stage.src = btn.dataset.full;
+        stage.dataset.index = String(i);
+        thumbs.forEach(b => b.setAttribute('aria-current', String(b === btn)));
+        if (counter) counter.textContent = `${i + 1}/${n}`;
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    };
+
+    thumbs.forEach((btn, i) => {
+        btn.dataset.index = String(i);
+        btn.addEventListener('click', () => goTo(i));
+    });
+
+    qa('[data-pd-nav]').forEach(btn => btn.addEventListener('click', () => {
+        goTo(current + (parseInt(btn.dataset.pdNav, 10) || 0));
+    }));
+
+    stage.dataset.index = String(current);
+}
 
 /* =====================================================================
    PD SHARE: hàng nút chia sẻ dưới .pd-thumbs — chỉ render khi SP đang

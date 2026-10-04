@@ -1,27 +1,67 @@
-@props(['images' => [], 'alt' => '', 'shareUrl' => null, 'shareTitle' => '', 'hasFlashSale' => false])
+@props(['images' => [], 'thumbs' => [], 'alt' => '', 'shareUrl' => null, 'shareTitle' => '', 'hasFlashSale' => false])
 
+{{-- images/thumbs đã là URL tuyệt đối do ProductDetailHydrator chuẩn hóa (asset() 1 lần
+duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp http://host/http://... --}}
 <div class="pd-gallery">
     <div class="pd-stage">
-        <img id="pdStageImg" src="{{ asset($images[0] ?? 'images/placeholder.svg') }}" alt="{{ $alt }}" width="800"
+        <img id="pdStageImg" src="{{ $images[0] ?? asset('images/placeholder.svg') }}" alt="{{ $alt }}" width="800"
             height="800" fetchpriority="high">
+
+        {{-- Nút prev/next TRÊN ẢNH TO: overlay 2 mép, chỉ hiện khi có >1 ảnh --}}
+        @if(count($images) > 1)
+            <button type="button" class="pd-nav pd-nav--prev" data-pd-nav="-1" aria-label="Ảnh trước">
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                    <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </button>
+            <button type="button" class="pd-nav pd-nav--next" data-pd-nav="1" aria-label="Ảnh sau">
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                    <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </button>
+            <span class="pd-counter" id="pdCounter">1/{{ count($images) }}</span>
+        @endif
     </div>
 
     {{-- FIX tran ngang: hang thumbs nhieu anh (bang product_images max 6 anh/SP,
     co the tang them) KHONG duoc day giau cot grid. CSS 07-product-detail.css
     da chot: .pd-thumbs { overflow-x:auto + max-width:100% } va
     .pd-gallery / .pd-info { min-width:0 }. Class no-scrollbar (token san co
-    trong 01-base.css) an thanh scroll xau xi; cuon bang cam ung/chu bi --}}
-    <div class="pd-thumbs no-scrollbar" role="group" aria-label="Ảnh thu nhỏ sản phẩm">
-        @forelse($images as $i => $img)
-            <button data-full="{{ asset($img) }}" aria-current="{{ $i === 0 ? 'true' : 'false' }}"
-                aria-label="Ảnh {{ $i + 1 }}">
-                <img src="{{ asset($img) }}" alt="" width="128" height="128" loading="lazy">
+    trong 01-base.css) an thanh scroll xau xi; cuon bang cam ung/chu bi.
+    NEW: 2 nut prev/next nho hai ben hang thumbs (data-pd-nav), chi hien khi >1 anh --}}
+    <div class="pd-thumbs-wrap">
+        @if(count($images) > 1)
+            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-prev" data-pd-nav="-1" aria-label="Ảnh trước">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
             </button>
-        @empty
-            <button data-full="{{ asset('images/placeholder.svg') }}" aria-current="true">
-                <img src="{{ asset('images/placeholder.svg') }}" alt="" width="128" height="128" loading="lazy">
+        @endif
+
+        <div class="pd-thumbs no-scrollbar" role="group" aria-label="Ảnh thu nhỏ sản phẩm">
+            @forelse($images as $i => $img)
+                <button type="button" data-full="{{ $img }}" data-index="{{ $i }}"
+                    aria-current="{{ $i === 0 ? 'true' : 'false' }}" aria-label="Ảnh {{ $i + 1 }}">
+                    <img src="{{ $thumbs[$i] ?? $img }}" alt="" width="128" height="128" loading="lazy">
+                </button>
+            @empty
+                <button type="button" data-full="{{ asset('images/placeholder.svg') }}" data-index="0" aria-current="true">
+                    <img src="{{ asset('images/placeholder.svg') }}" alt="" width="128" height="128" loading="lazy">
+                </button>
+            @endforelse
+        </div>
+
+        @if(count($images) > 1)
+            <button type="button" class="pd-nav pd-nav--sm pd-nav--sm-next" data-pd-nav="1" aria-label="Ảnh sau">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
             </button>
-        @endforelse
+        @endif
     </div>
 
     <div class="pd-share" role="group" aria-label="Chia sẻ sản phẩm">

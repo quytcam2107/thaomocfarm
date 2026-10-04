@@ -634,3 +634,87 @@ body.has-buybar .floatnav {
     border-radius: 6px;
     text-decoration: none !important;
 }
+
+/* ===== Nút prev/next gallery (ảnh to + hàng thumbs) — xem components/product/gallery.blade.php =====
+   .pd-stage cần position:relative để 2 nút overlay bám vào khung ảnh to. */
+.pd-stage {
+    position: relative;
+}
+
+.pd-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .92);
+    color: #40514a;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: background .15s, transform .15s;
+}
+
+.pd-nav:hover {
+    background: #fff;
+    transform: translateY(-50%) scale(1.06);
+}
+
+.pd-nav:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+}
+
+.pd-nav--prev {
+    left: 10px;
+}
+
+.pd-nav--next {
+    right: 10px;
+}
+
+.pd-counter {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 2;
+    font-size: 12px;
+    font-weight: 700;
+    color: #40514a;
+    background: rgba(255, 255, 255, .85);
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+/* Hàng thumbs + 2 nút prev/next nhỏ hai bên: wrap flex, thumbs vẫn cuộn ngang
+trong phần tử .pd-thumbs cũ (mọi rule .pd-thumbs bên trên giữ nguyên cascade) */
+.pd-thumbs-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.pd-thumbs-wrap .pd-thumbs {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pd-nav--sm {
+    position: static;
+    transform: none;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    margin-top: 10px;
+    box-shadow: none;
+}
+
+.pd-nav--sm:hover {
+    transform: scale(1.06);
+}

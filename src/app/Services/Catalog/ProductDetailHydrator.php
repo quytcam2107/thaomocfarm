@@ -24,6 +24,22 @@ class ProductDetailHydrator
      */
     public static function hydrate(array $cached, array $reviewData, ?FlashSalePriceService $flashPricing = null): array
     {
+        /* Chuẩn hóa path/URL ảnh gallery ra URL tuyệt đối — idempotent, chạy an toàn
+           trên CẢ cache cũ lẫn cache mới (tránh lỗi "Undefined variable $imageThumbs"
+           khi cache 'catalog' còn giữ định dạng list string URL của deploy trước):
+           - Path tương đối (vd 'products/a.jpg') -> bọc assets/images/ như convention cũ.
+           - URL tuyệt đối (http(s):// hoặc bắt đầu bằng '/') -> giữ nguyên, KHÔNG bọc
+             đúp asset() (bọc đúp sẽ sinh URL sai kiểu http://host/http://host/...). */
+        $imageUrl = static function (string $p): string {
+            if ($p === '') {
+                return asset('images/placeholder.svg');
+            }
+            if (preg_match('#^https?://#i', $p) || str_starts_with($p, '/')) {
+                return $p;
+            }
+            return asset('assets/images/' . ltrim($p, '/'));
+        };
+
         $categoryDTO = $cached['category'] ? new CategoryViewDTO(
             name: $cached['category']['name'],
             url: $cached['category']['url'],
@@ -74,9 +90,35 @@ class ProductDetailHydrator
             is_verified: (bool) ($r['is_verified'] ?? false),
         ), $reviewData['reviews']);
 
+        /* Normalize ảnh gallery: list chứa object {full, thumb, alt} (bản mới) hoặc
+           list URL string trần (cache cũ còn TTL sau deploy). Tách riêng 2 list URL
+           tuyệt đối cho view. Fallback an toàn: nếu mục thiếu key 'thumb' -> thumb = full,
+           và nếu mọi mục đều không có thumb -> $galleryThumb = $galleryFull, đảm bảo
+           view KHÔNG BAO GIỜ nhận $imageThumbs rỗng (tránh Undefined/blank thumb). */
+        $galleryFull = [];
+        $galleryThumb = [];
+        foreach (($cached['images'] ?? []) as $img) {
+            if (is_array($img)) {
+                $full = (string) ($img['full'] ?? '');
+                $thumb = (string) ($img['thumb'] ?? $full);
+            } else {
+                $full = (string) $img;
+                $thumb = $full;
+            }
+            if ($full === '' && $thumb === '') {
+                continue; // ảnh thiếu path -> bỏ qua, tránh render src rỗng
+            }
+            $galleryFull[] = $imageUrl($full);
+            $galleryThumb[] = $imageUrl($thumb !== '' ? $thumb : $full);
+        }
+        if (count($galleryThumb) !== count($galleryFull)) {
+            $galleryThumb = $galleryFull; // chốt fallback 1-1 theo index
+        }
+
         return [
             'product' => $productDTO,
-            'images' => $cached['images'],
+            'images' => $galleryFull,
+            'imageThumbs' => $galleryThumb,
             'variants' => $cached['variants'],
             'breadcrumbs' => $cached['breadcrumbs'],
             'relatedProducts' => $relatedDTOs,
