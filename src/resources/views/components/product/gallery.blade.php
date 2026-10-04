@@ -6,7 +6,12 @@
             height="800" fetchpriority="high">
     </div>
 
-    <div class="pd-thumbs" role="group" aria-label="Ảnh thu nhỏ sản phẩm">
+    {{-- FIX tran ngang: hang thumbs nhieu anh (bang product_images max 6 anh/SP,
+    co the tang them) KHONG duoc day giau cot grid. CSS 07-product-detail.css
+    da chot: .pd-thumbs { overflow-x:auto + max-width:100% } va
+    .pd-gallery / .pd-info { min-width:0 }. Class no-scrollbar (token san co
+    trong 01-base.css) an thanh scroll xau xi; cuon bang cam ung/chu bi --}}
+    <div class="pd-thumbs no-scrollbar" role="group" aria-label="Ảnh thu nhỏ sản phẩm">
         @forelse($images as $i => $img)
             <button data-full="{{ asset($img) }}" aria-current="{{ $i === 0 ? 'true' : 'false' }}"
                 aria-label="Ảnh {{ $i + 1 }}">

@@ -31,22 +31,18 @@
         (data-ends = unix end_at của phiên) — KHÔNG nạp pdp-flash.js riêng nữa,
         vì 2 script đếm 2 kiểu khác nhau khiến Home và PDP lệch giờ. --}}
 
+        {{-- FIX TRAN NGANG PDP: XOA script inline trung lap truoc day (gallery thumbs,
+        variant, qty, tabs) vi no trung voi module ES public/assets/js/app-product.js
+        (duoc app.js loader nap khi DOM co .pd-thumbs / [role="tab"] / #buyNow).
+        Script cu chay bang DOMContentLoaded khong co scrollIntoView -> tranh chap
+        click handler voi module, khi nhieu anh thumb bi cuon vang kho tam nhin.
+        Module app-product.js giu nguyen toan bo logic cu + them cuon thumb vao tam
+        nhin, nen PDP van chay du thieu script inline nay. --}}
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const variants = @json($variants);
 
-                // 1. Gallery Thumbnail Switching
-                const thumbs = document.querySelectorAll('.pd-thumbs button');
-                const stageImg = document.getElementById('pdStageImg');
-                thumbs.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        stageImg.src = btn.dataset.full;
-                        thumbs.forEach(b => b.setAttribute('aria-current', 'false'))
-                        btn.setAttribute('aria-current', 'true');
-                    });
-                });
-
-                // 2. Variant Selection
+                // 2. Variant Selection (logic doc lap, giu lai tai day)
                 const radios = document.querySelectorAll('input[name="variant_id"]');
                 const priceEl = document.querySelector('.pd-price .price');
                 const oldPriceEl = document.querySelector('.pd-price s');
@@ -95,25 +91,6 @@
                         if (step === '-1' && val > 1) qtyInput.value = val - 1;
                     });
                 }
-
-                // 4. Tabs
-                const tabs = document.querySelectorAll('[role="tab"]');
-                const panels = document.querySelectorAll('[role="tabpanel"]');
-                tabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        tabs.forEach(t => {
-                            t.setAttribute('aria-selected', 'false');
-                            t.tabIndex = -1;
-                        });
-                        panels.forEach(p => p.hidden = true);
-
-                        tab.setAttribute('aria-selected', 'true');
-                        tab.tabIndex = 0;
-                        const panel = document.getElementById(tab.getAttribute('aria-controls'));
-                        if (panel) panel.hidden = false;
-                    });
-                });
-
             });
         </script>
     </x-slot>

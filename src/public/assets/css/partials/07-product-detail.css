@@ -1,4 +1,10 @@
 /* ============ CHI TIẾT SẢN PHẨM ============ */
+/* FIX TRÀN NGANG PDP:
+   - minmax(0, 1fr): cho phép cột grid co dưới kích thước nội dung — nếu giữ
+     "auto" (mặc định), hàng ảnh thumbnails dài sẽ đẩy cột gallery to ra và
+     tạo scroll ngang toàn trang.
+   - overflow-x: clip: chốt chặn cuối, không cho mọi nội dung vượt khung sinh
+     scrollbar ngang ở chân trang (clip thay hidden để không phá sticky). */
 .pd-layout {
     display: grid;
     gap: 18px;
@@ -8,11 +14,13 @@
     padding: 16px;
     margin-top: 8px;
     align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    overflow-x: clip;
 }
 
 @media (min-width: 1024px) {
     .pd-layout {
-        grid-template-columns: 420px 1fr;
+        grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
     }
 }
 
@@ -30,15 +38,52 @@
     object-fit: cover;
 }
 
+/* FIX #1: .pd-gallery là con trực tiếp của grid .pd-layout -> mặc định
+   min-width:auto (bằng nội dung bên trong). Đặt min-width:0 để khung ảnh
+   luôn co đúng bằng chiều rộng cột, không bị hàng thumbs dài đẩy giãn ra. */
+.pd-gallery {
+    min-width: 0;
+}
+
+/* FIX #1b: .pd-info cũng là con trực tiếp của grid — bắt buộc min-width:0.
+   Đây là mắt xích còn thiếu: thiếu nó thì tên sản dài / khối flash sale sẽ
+   đẩy CỘT PHẢI giãn quá khổ cột 1fr -> sinh scroll ngang toàn trang ở chân
+   trang và kéo .tabs / .related lệch theo. */
+.pd-info {
+    min-width: 0;
+}
+
+/* FIX #2: .pd-thumbs nhiều ảnh -> cuộn NGANG CHỈ TRONG HÀNG thumbs:
+   - max-width: 100% + min-width: 0: không bao giờ vượt khổ cột gallery
+   - overflow-x: auto: phần ảnh dư tràn vào trong, tự cuộn bằng chuột/cảm ứng
+   - no-scrollbar (đã có trong 01-base.css): ẩn thanh cuộn xấu xí
+   - scroll-behavior smooth + scroll-snap: JS cuốn thumb đang chọn vào tầm nhìn */
 .pd-thumbs {
     display: flex;
     gap: 8px;
     margin-top: 10px;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .pd-thumbs {
+        scroll-behavior: auto;
+    }
+}
+
+/* Gộp 2 rule .pd-thumbs button từng tách rời thành 1 khối duy nhất
+   (flex: 0 0 64px + scroll-snap-align) — tránh nhầm cascade khi sửa sau này */
 .pd-thumbs button {
     flex: 0 0 64px;
+    scroll-snap-align: start;
     aspect-ratio: 1 / 1;
     border-radius: 12px;
     overflow: hidden;
@@ -510,7 +555,7 @@ body.has-buybar .floatnav {
      wrap sẵn 2 dòng nên không cần).
    - min-height: 100% đồng đều chiều cao tối thiểu cho cả 2 nút.
    Scope riêng trong .pd-actions => không ảnh hưởng .buybar, cart, checkout. */
-.pd-actions > .btn {
+.pd-actions>.btn {
     width: 100%;
     min-width: 0;
     min-height: 100%;
