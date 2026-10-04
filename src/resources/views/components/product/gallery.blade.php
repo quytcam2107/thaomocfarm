@@ -5,13 +5,22 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
 <div class="pd-gallery">
     {{-- Khung .pd-stage là vùng NHẬN VUỐT (touch + chuột) để đổi ảnh — xem
     app-product.js (Pointer Events) và 07-product-detail.css (touch-action:pan-y,
-    keyframes pdImgIn cho hiệu ứng chuyển mượt). --}}
+    hiệu ứng chuyển mượt theo hướng chạy trên 2 lớp phủ .pd-stage__fx bên dưới). --}}
     <div class="pd-stage">
         {{-- FIX VUỐT BẰNG CHUỘT: draggable="false" + unselectable chặn HTML5 native
         image drag — thủ phạm cắt pointermove giữa chừng khiến vuốt chuột không đủ
         ngưỡng đổi ảnh (xem app-product.js SWIPE_MIN_X). --}}
         <img id="pdStageImg" src="{{ $images[0] ?? asset('images/placeholder.svg') }}" alt="{{ $alt }}" width="800"
             height="800" fetchpriority="high" draggable="false" unselectable="on">
+
+        {{-- NEW (chống giật + slide theo hướng): 2 lớp phủ hiệu ứng, CHỈ dùng khi có >1 ảnh.
+        .pd-stage__fx--back : app-product.js put ảnh CŨ vào đây rồi mờ dần ra (khung khỏi trống trắng)
+        .pd-stage__fx--front: app-product.js put ảnh MỚI vào đây, trượt vào từ mép trái/phải tùy hướng
+        pointer-events:none trong CSS => không chắn vùng vuốt/nút prev-next. --}}
+        @if(count($images) > 1)
+            <div class="pd-stage__fx pd-stage__fx--back" data-pd-fx="back" aria-hidden="true"></div>
+            <div class="pd-stage__fx pd-stage__fx--front" data-pd-fx="front" aria-hidden="true"></div>
+        @endif
 
         {{-- Nút prev/next TRÊN ẢNH TO: overlay 2 mép, chỉ hiện khi có >1 ảnh.
         data-pd-nav-zone="stage": JS bỏ qua setPointerCapture khi pointerdown

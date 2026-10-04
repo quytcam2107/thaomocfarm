@@ -68,8 +68,11 @@ if (pdBox) {
      disabled khi đang xem ảnh cuối. Blade render sẵn prev disabled (trang
      luôn mở đầu ở ảnh 1) để đúng cả trước khi JS chạy; updateNavState()
      đồng bộ lại sau MỌI lần đổi ảnh (nút / thumb / vuốt).
-   - Hiệu ứng chuyển ảnh MƯỢT: CSS 07-product-detail.css keyframes pdImgIn,
-     JS bật lại animation mỗi lần đổi src bằng remove -> reflow -> add.
+   - Hiệu ứng chuyển ảnh MƯỢT THEO HƯỚNG (FIX GIẬT HÌNH): không chạy animation
+     trên <img> thật nữa mà trên 2 lớp phủ .pd-stage__fx (Blade render khi >1
+     ảnh) — ảnh CŨ đứng lại + mờ dần, ảnh MỚI chờ load xong rồi slide vào từ
+     mép trái/phải tùy hướng; keyframes pdImgOut / pdImgInFromLeft/Right trong
+     07-product-detail.css. Chi tiết xem khối fxPlay bên dưới.
    - Cuốn thumb đang chọn vào tầm nhìn khi hàng thumbs tràn ngang.
    ===================================================================== */
 const stage = q('#pdStageImg');
@@ -138,11 +141,81 @@ if (stage && thumbs.length) {
         });
     }
 
-    const goTo = (idx) => {
+    /* =================================================================
+       NEW (CHỐNG GIẬT + SLIDE THEO HƯỚNG): hiệu ứng chuyển ảnh KHÔNG chạy
+       trên #pdStageImg nữa (đó chính là thủ phạm "giật đùng đùng": animation
+       bắt đầu ngay khi gán src -> ảnh chưa tải, khung nhảy trắng). Thay vào
+       đó dùng 2 lớp phủ .pd-stage__fx do Blade render sẵn khi có >1 ảnh:
+       - fxBack : đứng sau, chứa ảnh CŨ — hiện ra ngay tại chỗ rồi mờ dần
+                  => khung không bao giờ trống nền trong lúc chờ ảnh mới.
+       - fxFront: đứng trước, chứa ảnh MỚI — JS CHỜ img.onload (hoặc complete)
+                  rồi mới gắn class is-animating + pd-in-left/pd-in-right để
+                  slide vào đúng hướng chuyển (mũi tên trái/vuốt phải = từ mép
+                  trái; mũi tên phải/vuốt trái = từ mép phải).
+       - Fallback: thiếu layer (SP chỉ có 1 ảnh / CSS-Blade lệch bản) -> đổi
+         src trực tiếp như cũ, không animation.
+       ================================================================= */
+    const FX_MS = 400; // khớp duration keyframes pdImgOut / pdImgInFrom* trong CSS
+    const fxBack = q('[data-pd-fx="back"]');
+    const fxFront = q('[data-pd-fx="front"]');
+    let fxTimer = null;
+
+    /* Gỡ toàn bộ class/ảnh của 2 lớp phủ về trạng thái nghỉ */
+    function fxReset() {
+        if (!fxBack || !fxFront) return;
+        fxFront.classList.remove('is-animating', 'pd-in-left', 'pd-in-right');
+        fxBack.classList.remove('is-animating');
+        fxBack.replaceChildren();
+        fxFront.replaceChildren();
+    }
+
+    /* Tạo thẻ <img> trang trí (không SEO, alt rỗng) cho một lớp phủ */
+    function makeFxImg(src) {
+        const im = document.createElement('img');
+        im.src = src;
+        im.alt = '';
+        im.draggable = false;
+        im.setAttribute('unselectable', 'on');
+        return im;
+    }
+
+    /* Chạy hiệu ứng chuyển từ oldSrc -> newSrc theo dir ('next' sang phải | 'prev' sang trái) */
+    function fxPlay(oldSrc, newSrc, dir) {
+        if (!fxBack || !fxFront) return;
+        clearTimeout(fxTimer);
+        fxReset();
+
+        /* Bước 1: ảnh CŨ xuất hiện tức thì ở lớp dưới (khỏi thấy khoảng trắng) */
+        fxBack.appendChild(makeFxImg(oldSrc));
+        void fxBack.offsetWidth; // reflow nhẹ để chắc chắn lớp back đã render
+        fxBack.classList.add('is-animating');
+
+        /* Bước 2: nạp ảnh MỚI vào lớp trên nhưng chưa chạy animation */
+        const front = makeFxImg(newSrc);
+        fxFront.appendChild(front);
+
+        const play = () => {
+            /* Ảnh đã sẵn sàng -> bật slide đúng hướng + fade mềm (CSS keyframes) */
+            fxFront.classList.remove('pd-in-left', 'pd-in-right');
+            fxFront.classList.add(dir === 'prev' ? 'pd-in-left' : 'pd-in-right', 'is-animating');
+            /* Bước 3: hết duration -> dọn lớp phủ, ảnh thật bên dưới đã là ảnh mới */
+            fxTimer = setTimeout(fxReset, FX_MS + 60);
+        };
+
+        if (front.complete && front.naturalWidth > 0) {
+            play(); // cache nóng -> chạy ngay, không delay
+        } else {
+            front.addEventListener('load', play, { once: true });
+            front.addEventListener('error', () => fxTimer = setTimeout(fxReset, FX_MS), { once: true });
+        }
+    }
+
+    const goTo = (idx, dir = 'next') => {
         const n = thumbs.length;
         const i = ((idx % n) + n) % n; // wrap-around, an toàn cả số âm
         const btn = thumbs[i];
         if (!btn) return;
+        const oldSrc = stage.src; // ảnh đang hiển thị — giữ lại cho lớp back
         current = i;
         stage.src = btn.dataset.full;
         stage.dataset.index = String(i);
@@ -150,11 +223,14 @@ if (stage && thumbs.length) {
         if (counter) counter.textContent = `${i + 1}/${n}`;
         /* NEW: bật/tắt 2 nút prev/next theo vị trí ảnh hiện tại */
         updateNavState();
-        /* Phát lại hiệu ứng chuyển ảnh mượt (CSS keyframes pdImgIn):
-           remove -> reflow -> add để animation chạy lại từ đầu mỗi lần đổi src */
-        stage.classList.remove('is-swipe');
-        void stage.offsetWidth;
-        stage.classList.add('is-swipe');
+        /* FIX GIẬT HÌNH: hiệu ứng chuyển mượt THEO HƯỚNG chạy trên 2 lớp phủ
+           .pd-stage__fx (JS chờ ảnh mới load xong mới khởi động). dir='prev'
+           -> slide vào từ mép trái, dir='next' -> slide vào từ mép phải. */
+        if (fxBack && fxFront && oldSrc && oldSrc !== stage.src) {
+            fxPlay(oldSrc, stage.src, dir);
+        } else {
+            fxReset();
+        }
         btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         /* Cuốn thumb vào tầm nhìn có thể đổi layout -> đo lại trạng thái nút */
         updateThumbsNav();
@@ -162,7 +238,8 @@ if (stage && thumbs.length) {
 
     thumbs.forEach((btn, i) => {
         btn.dataset.index = String(i);
-        btn.addEventListener('click', () => goTo(i));
+        /* Bấm thumb: suy ra hướng slide từ vị trí thumb so với ảnh đang xem */
+        btn.addEventListener('click', () => goTo(i, i < current ? 'prev' : 'next'));
     });
 
     /* Nút prev/next (overlay trên ảnh to + 2 nút nhỏ cạnh hàng thumbs).
@@ -176,7 +253,10 @@ if (stage && thumbs.length) {
         e.stopPropagation();
         if (btn.disabled) return; // đã ở biên -> không đổi ảnh, không wrap
         if (suppressClick) return; // vừa vuốt xong -> bỏ qua click dư
-        goTo(current + (parseInt(btn.dataset.pdNav, 10) || 0));
+        const delta = parseInt(btn.dataset.pdNav, 10) || 0;
+        /* NEW: truyền hướng tương ứng ('prev' nếu lùi, 'next' nếu tới) để hiệu
+           ứng slide vào đúng chiều mũi tên bấm */
+        goTo(current + delta, delta < 0 ? 'prev' : 'next');
     }));
 
     /* ===== VUỐT TRÁI/PHẢI ĐỔI ẢNH — mọi màn hình (Pointer Events) =====
@@ -210,7 +290,9 @@ if (stage && thumbs.length) {
             if (Math.abs(dx) < Math.abs(dy) * AXIS_RATIO) return; // vuốt dọc -> để trang cuộn
             swiping = false;
             suppressClick = true;
-            goTo(current + (dx < 0 ? 1 : -1)); // vuốt trái = ảnh sau, vuốt phải = ảnh trước
+            /* Vuốt trái = ảnh sau (slide vào từ mép phải), vuốt phải = ảnh trước
+               (slide vào từ mép trái) — cùng chiều với tay người dùng */
+            goTo(current + (dx < 0 ? 1 : -1), dx < 0 ? 'next' : 'prev');
             if (captured && pid !== null) { try { stageBox.releasePointerCapture(pid); } catch (_) { } captured = false; }
             /* Tự nhả flag sau 1 tick — click "dư" (nếu có) luôn fire ngay sau pointerup */
             setTimeout(() => { suppressClick = false; }, 350);

@@ -629,6 +629,37 @@ body.has-buybar .floatnav {
     position: relative;
 }
 
+/* Kích thước + khoảng cách mép nút overlay — mobile-first: biến CSS dùng chung
+   cho KHUNG ẢNH TO và HÀNG THUMBS NHỎ, mỗi breakpoint chỉ việc đổi giá trị
+   => 2 loại nút luôn nhỏ theo đúng từng cỡ màn hình, không sửa rải rác. */
+.pd-gallery {
+    --pd-nav-size: 30px;
+    /* điện thoại (<480px): gọn lại, đỡ che ảnh */
+    --pd-nav-icon: 15px;
+    --pd-nav-sm-size: 26px;
+    --pd-nav-edge: 6px;
+    /* khoảng cách nút so với mép khung ảnh */
+}
+
+@media (min-width: 480px) {
+    .pd-gallery {
+        --pd-nav-size: 34px;
+        --pd-nav-icon: 17px;
+        --pd-nav-sm-size: 28px;
+        --pd-nav-edge: 8px;
+    }
+}
+
+@media (min-width: 768px) {
+    .pd-gallery {
+        --pd-nav-size: 40px;
+        /* tablet/desktop: giữ nguyên khổ cũ (vốn đã ổn) */
+        --pd-nav-icon: 22px;
+        --pd-nav-sm-size: 32px;
+        --pd-nav-edge: 10px;
+    }
+}
+
 .pd-nav {
     position: absolute;
     top: 50%;
@@ -642,8 +673,9 @@ body.has-buybar .floatnav {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    /* NEW responsive: size/icon đọc từ biến CSS theo breakpoint (.pd-gallery) */
+    width: var(--pd-nav-size, 40px);
+    height: var(--pd-nav-size, 40px);
     border-radius: 50%;
     border: 1px solid var(--line);
     background: rgba(255, 255, 255, .92);
@@ -651,6 +683,13 @@ body.has-buybar .floatnav {
     cursor: pointer;
     box-shadow: var(--shadow);
     transition: background .15s, transform .15s;
+}
+
+/* SVG mũi tên bên trong cũng co giãn theo breakpoint (kèm !important để thắng
+   attribute width/height="22" render sẵn trong Blade) */
+.pd-nav svg {
+    width: var(--pd-nav-icon, 22px) !important;
+    height: var(--pd-nav-icon, 22px) !important;
 }
 
 .pd-nav:hover {
@@ -664,11 +703,11 @@ body.has-buybar .floatnav {
 }
 
 .pd-nav--prev {
-    left: 10px;
+    left: var(--pd-nav-edge, 10px);
 }
 
 .pd-nav--next {
-    right: 10px;
+    right: var(--pd-nav-edge, 10px);
 }
 
 .pd-counter {
@@ -734,9 +773,11 @@ không cho phép bị nén/tràn (nút vốn flex:0 0 32px) */
 .pd-nav--sm {
     position: static;
     transform: none;
-    flex: 0 0 32px;
-    width: 32px;
-    height: 32px;
+    /* NEW responsive: nút nhỏ cạnh hàng thumbs dùng biến rieng --pd-nav-sm-size
+       (26px mobile -> 32px desktop), icon theo --pd-nav-icon */
+    flex: 0 0 var(--pd-nav-sm-size, 32px);
+    width: var(--pd-nav-sm-size, 32px);
+    height: var(--pd-nav-sm-size, 32px);
     margin-top: 10px;
     box-shadow: none;
 }
@@ -751,17 +792,27 @@ rule display phía trên, kể cả cascade sau này */
     display: none !important;
 }
 
-/* ============ NEW: VUỐT ĐỔI ẢNH + HIỆU ỨNG CHUYỂN ẢNH MƯỢT ============
+/* ============ NEW: VUỐT ĐỔI ẢNH + HIỆU ỨNG CHUYỂN ẢNH MƯỢT THEO HƯỚNG ============
    - .pd-stage { touch-action: pan-y }: cho phép vuốt dọc cuộn trang bình
      thường, đồng thời trả quyền vuốt NGANG về cho JS (Pointer Events trong
      app-product.js) -> không bị trình duyệt coi là kéo-select/chuột phải.
    - .pd-stage { user-select: none }: hết hiện block chọn văn bản/ảnh khi vuốt.
    - FIX VUỐT BẰNG CHUỘT: -webkit-user-drag:none + draggable=false (Blade) +
      JS preventDefault dragstart -> native image drag không còn cắt pointermove.
-   - Keyframes pdImgIn: fade + trượt nhẹ 14px + scale 0.985 -> 1 (0.3s ease).
-     app-product.js gắn class .is-swipe lên #pdStageImg mỗi lần đổi src
-     (remove -> reflow -> add) nên animation chạy lại từ đầu ở MỌI cách đổi
-     ảnh: vuốt, bấm nút prev/next, bấm thumb. KHÔNG check prefers-reduced-motion. */
+   - FIX GIẬT HÌNH: hiệu ứng cũ chạy animation TRÊN CHÍNH <img>, mà animation
+     chỉ bắt đầu ngay khi gán src mới => ảnh còn chưa tải xong, khung ảnh nhảy
+     "ảnh cũ -> trắng -> ảnh mới" trông như giật đùng đùng. Nay chuyển hiệu
+     ứng sang LỚP PHỦ .pd-stage__fx (khung 2 lớp):
+     * .pd-stage__fx--back : ảnh CŨ đứng nguyên tại chỗ suốt quá trình chuyển
+       (không còn khoảnh khắc trống nền -> hết giật).
+     * .pd-stage__fx--front: ảnh MỚI trượt vào theo HƯỚNG chuyển (class
+       pd-in-left / pd-in-right do app-product.js gắn; JS chờ img.onload rồi
+       mới khởi động nên ảnh đã load sẵn, chuyển mượt tuyệt đối).
+     * Kết hợp fade nhẹ + cubic-bezier ease-out mềm, 0.4s; mỗi lần đổi ảnh chỉ
+       remove/add class trên 2 layer (CSS tự reset từ khóa `to`) — không cần
+       trick reflow nữa. Layer back dùng visibility:hidden ở trạng thái nghỉ
+       để không che ảnh thật (#pdStageImg) và không chắn pointer sự kiện vuốt.
+     * KHÔNG check prefers-reduced-motion (giữ hành vi như tài liệu cũ). */
 .pd-stage {
     touch-action: pan-y;
     user-select: none;
@@ -773,14 +824,77 @@ rule display phía trên, kể cả cascade sau này */
     user-drag: none;
 }
 
+/* Ảnh thật: bỏ mọi animation trực tiếp (xử lý giật hình nằm ở 2 layer phủ) */
 #pdStageImg.is-swipe {
-    animation: pdImgIn .3s ease;
+    animation: none;
 }
 
-@keyframes pdImgIn {
+/* Hai lớp phủ hiệu ứng: nằm trên ảnh thật, không bắt sự kiện (pointer-events
+   none) để vuốt/click vẫn rơi đúng .pd-stage / nút prev-next bên dưới */
+.pd-stage__fx {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.pd-stage__fx img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+/* Lớp ảnh CŨ: nghỉ = ẩn hoàn toàn; khi chuyển = đứng yên tại chỗ, mờ dần ra
+   (visibility:hidden chứ không display:none -> giữ kích thước, không nhảy layout) */
+.pd-stage__fx--back {
+    visibility: hidden;
+}
+
+.pd-stage__fx--back.is-animating {
+    visibility: visible;
+    animation: pdImgOut .4s cubic-bezier(.22, .61, .36, 1);
+}
+
+/* Lớp ảnh MỚI: nghỉ = ẩn; khi chuyển = trượt vào từ mép tương ứng + fade in */
+.pd-stage__fx--front {
+    visibility: hidden;
+}
+
+.pd-stage__fx--front.is-animating {
+    visibility: visible;
+}
+
+.pd-stage__fx--front.pd-in-left.is-animating {
+    animation: pdImgInFromLeft .4s cubic-bezier(.22, .61, .36, 1);
+}
+
+.pd-stage__fx--front.pd-in-right.is-animating {
+    animation: pdImgInFromRight .4s cubic-bezier(.22, .61, .36, 1);
+}
+
+@keyframes pdImgOut {
+    from {
+        opacity: 1;
+        transform: none;
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(.985);
+    }
+}
+
+/* Quy ước hướng slide — ảnh mới vào từ mép TRÁI khi xem ẢNH TRƯỚC (mũi tên
+   trái / vuốt phải), vào từ mép PHẢI khi xem ẢNH SAU — cùng chiều thao tác. */
+@keyframes pdImgInFromLeft {
     from {
         opacity: 0;
-        transform: translateX(14px) scale(.985);
+        transform: translateX(-26px);
     }
 
     to {
@@ -788,6 +902,23 @@ rule display phía trên, kể cả cascade sau này */
         transform: none;
     }
 }
+
+@keyframes pdImgInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(26px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* (Keyframes pdImgIn cũ đã được thay thế hoàn toàn bằng pdImgOut +
+   pdImgInFromLeft/Right chạy trên 2 lớp phủ .pd-stage__fx — không còn rule
+   animation nào gắn trực tiếp lên #pdStageImg, nhờ vậy CSS/JS bản cũ-mới lệch
+   nhau cũng không sinh hiệu ứng giật.) */
 
 /* ============ NEW: TRẠNG THÁI DISABLED CỦA NÚT prev/next Ở 2 BIÊN ============
    app-product.js set thuộc tính disabled lên nút prev khi đang xem ảnh đầu và
