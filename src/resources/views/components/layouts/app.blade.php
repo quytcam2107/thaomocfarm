@@ -52,7 +52,8 @@
             "@tm/product": "{{ asset('assets/js/app-product.js') }}",
             "@tm/search": "{{ asset('assets/js/app-search.js') }}",
             "@tm/cart-badge": "{{ asset('assets/js/cart-badge.js') }}",
-            "@tm/cart-add": "{{ asset('assets/js/cart-add.js') }}"
+            "@tm/cart-add": "{{ asset('assets/js/cart-add.js') }}",
+            "@tm/review": "{{ asset('assets/js/app-review.js') }}"
         }
     }
     </script>

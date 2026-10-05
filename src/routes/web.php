@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\CheckoutController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
+use App\Http\Controllers\Web\ReviewController;
 use App\Http\Controllers\Web\SearchController;
 
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,14 @@ Route::get('/dat-hang-thanh-cong/{order_number}', [CheckoutController::class, 's
 Route::get('/san-pham/{slug}', [ProductController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('web.product.show');
+
+// 6a. Danh gia san pham (PDP) — NEW: dat TRONG nhom /san-pham/*, TRƯỚC catch-all /{slug}
+Route::post('/san-pham/{slug}/danh-gia', [ReviewController::class, 'store'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('web.product.reviews.store');
+Route::post('/danh-gia/{review}/huu-ich', [ReviewController::class, 'helpful'])
+    ->where('review', '[0-9]+')
+    ->name('web.review.helpful');
 
 // 6b. Cac trang tinh "Ho tro" (footer) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} bên dưới
 Route::get('/huong-dan-dat-hang', [PageController::class, 'orderGuide'])->name('web.page.order-guide');

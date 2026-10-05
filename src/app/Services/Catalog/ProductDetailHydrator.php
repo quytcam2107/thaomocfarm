@@ -88,6 +88,10 @@ class ProductDetailHydrator
             content: $r['content'],
             created_at: $r['created_at'],
             is_verified: (bool) ($r['is_verified'] ?? false),
+            // NEW: key mới — cache 'review' cũ còn TTL có thể thiếu -> fallback an toàn
+            id: (int) ($r['id'] ?? 0),
+            initials: (string) ($r['initials'] ?? '?'),
+            helpful_count: (int) ($r['helpful_count'] ?? 0),
         ), $reviewData['reviews']);
 
         /* Normalize ảnh gallery: list chứa object {full, thumb, alt} (bản mới) hoặc

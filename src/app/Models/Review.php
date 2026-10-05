@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[UseFactory(ReviewFactory::class)]
 class Review extends Model
@@ -22,6 +23,7 @@ class Review extends Model
         'product_id',
         'user_id',
         'order_id',
+        'ip_address',
         'rating',
         'content',
         'images',
@@ -37,6 +39,12 @@ class Review extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** NEW: lượt bấm "Hữu ích" (đếm qua withCount trong ReviewService) */
+    public function votes(): HasMany
+    {
+        return $this->hasMany(ReviewVote::class);
     }
 
     public function scopeApproved(Builder $query): Builder

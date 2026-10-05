@@ -13,6 +13,10 @@ class ReviewViewDTO
         public readonly string $created_at,
         // Cột THẬT của bảng reviews (tinyint(1) -> bool)
         public readonly bool $is_verified = false,
+        // NEW cho UI đánh giá: id (nút Hữu ích), avatar chữ cái, lượt helpful
+        public readonly int $id = 0,
+        public readonly string $initials = '?',
+        public readonly int $helpful_count = 0,
     ) {
     }
 

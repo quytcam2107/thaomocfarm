@@ -154,6 +154,10 @@ class ProductDetailFetcher
      * ai-database/tables/reviews.md). Tên khách hàng lấy qua quan hệ
      * reviews.user_id -> users.name, eager-load bằng BelongsTo để tránh N+1.
      *
+     * NEW (UI đánh giá chuẩn TMĐT): trả thêm id (nút Hữu ích), initials
+     * (avatar chữ cái thay ảnh vì DB không có cột avatar) và helpful_count
+     * (withCount review_votes — chống N+1).
+     *
      * @return array{reviews: list<array<string, mixed>>, stats: array<string, mixed>}
      */
     public static function fetchReviews(int $productId): array
@@ -167,6 +171,7 @@ class ProductDetailFetcher
                     $q->select(['users.id', 'users.name']);
                 },
             ])
+            ->withCount('votes') // NEW: số lượt "Hữu ích"
             ->orderByDesc('reviews.created_at')
             ->limit(20)
             ->get(['reviews.id', 'reviews.user_id', 'reviews.rating', 'reviews.content', 'reviews.is_verified', 'reviews.created_at']);
@@ -188,6 +193,9 @@ class ProductDetailFetcher
             'reviews' => $reviews->map(fn(Review $r): array => [
                 // 'customer' giữ key cũ cho ReviewViewDTO; ẩn danh khi user bị xóa
                 'customer' => $r->user?->name ?: 'Ẩn danh',
+                'id' => (int) $r->id,
+                'initials' => self::initials($r->user?->name ?: 'A'),
+                'helpful_count' => (int) ($r->votes_count ?? 0),
                 'rating' => (int) $r->rating,
                 'content' => (string) $r->content,
                 'is_verified' => (bool) $r->is_verified,
@@ -195,5 +203,24 @@ class ProductDetailFetcher
             ])->values()->all(),
             'stats' => $stats,
         ];
+    }
+
+    /**
+     * NEW: chữ cái đầu của 2 từ cuối trong tên (vd "Quyết Lưu" -> "QL")
+     * làm avatar text — DB không có cột avatar nên không dùng ảnh.
+     */
+    private static function initials(string $name): string
+    {
+        $parts = preg_split('/\s+/u', trim($name)) ?: [];
+        $parts = array_values(array_filter($parts));
+        if ($parts === []) {
+            return '?';
+        }
+        $take = array_slice($parts, -2);
+        $out = '';
+        foreach ($take as $p) {
+            $out .= mb_strtoupper(mb_substr($p, 0, 1));
+        }
+        return $out;
     }
 }

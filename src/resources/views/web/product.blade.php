@@ -13,8 +13,14 @@
     render nên không cần nạp. --}}
     @push('vendorStyles')
         <link rel="stylesheet" href="{{ asset('assets/vendor/lightgallery/lightgallery-bundle.min.css') }}">
+        {{-- NEW REVIEW: style widget sao rateyo (self-host, cùng convention lightgallery) --}}
+        <link rel="stylesheet" href="{{ asset('assets/vendor/rateyo/jquery.rateyo.min.css') }}">
     @endpush
 
+    {{-- NEW REVIEW: vendorScripts chạy TRƯỚC app.js (layout @stack). jQuery full
+    (bản slim thiếu hiệu ứng needed bởi rateyo) + jquery.rateyo.min.js. Chỉ PDP nạp.
+    FIX 404: rateyo dùng bản 2.3.4 path /min/ (npm không có 1.4.2/src); jQuery đặt
+    thẳng tại assets/vendor/jquery.min.js theo cấu trúc folder đã chốt. --}}
     @push('vendorScripts')
         <script src="{{ asset('assets/vendor/lightgallery/lightgallery.umd.min.js') }}" defer></script>
         <script src="{{ asset('assets/vendor/lightgallery/lg-zoom.umd.min.js') }}" defer></script>
@@ -23,6 +29,8 @@
         <script src="{{ asset('assets/vendor/lightgallery/lg-share.umd.min.js') }}" defer></script>
         <script src="{{ asset('assets/vendor/lightgallery/lg-fullscreen.umd.min.js') }}" defer></script>
         <script src="{{ asset('assets/vendor/lightgallery/lg-pager.umd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/jquery.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/rateyo/jquery.rateyo.min.js') }}" defer></script>
     @endpush
 
     <div class="container">
@@ -38,7 +46,10 @@
             <x-product.info :product="$product" :variants="$variants" />
         </div>
 
-        <x-product.tabs :description="$product->description" :reviews="$reviews" :ratingStats="$ratingStats" />
+        {{-- NEW REVIEW: truyền slug + tên SP để khối đánh giá gọi đúng route
+        web.product.reviews.store / web.review.helpful --}}
+        <x-product.tabs :description="$product->description" :reviews="$reviews" :ratingStats="$ratingStats"
+            :product-slug="$product->slug" :product-name="$product->name" />
 
         <x-product.related :products="$relatedProducts" />
     </div>

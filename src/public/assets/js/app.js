@@ -29,6 +29,11 @@ if (has('.countdown[data-ends]') || has('[data-pd-flash]') || has('.pd-thumbs')
     import('@tm/product');
 }
 
+// NEW REVIEW: khối đánh giá PDP — chỉ khi tab Đánh giá render .rv-zone
+if (has('.rv-zone')) {
+    import('@tm/review');
+}
+
 // Search suggest + spotlight: chỉ khi header có đủ bộ 3 element
 if (has('#searchForm') && has('#searchInput') && has('#searchSuggest')) {
     import('@tm/search');
