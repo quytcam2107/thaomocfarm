@@ -18,11 +18,7 @@ Code phải CHÍNH XÁC, ĐỦ, CHẠY NGAY để tôi copy ghi đè local, test
 1. Đọc code/db THỰC TẾ trước khi sửa; không đoán tên route/cột/class; không refactor ngoài phạm vi.
 2. Giữ contract JS (#cartBadge, .add-cart, #toast, csrf meta, drawer attrs, updateCartCount, importmap @tm/*); route mới đặt TRƯỚC catch-all /{slug}; prefix web..
 3. Mỗi file = MỘT code block TOÀN BỘ nội dung (dòng 1→cuối), đầu block ghi `### File: đường/dẫn/file`; KHÔNG diff/placeholder "..."; chỉ liệt kê file đổi.
-4. **Xử lý giới hạn dung lượng (Export theo Part):** Nếu tổng số file hoặc dung lượng code quá dài không thể render trọn vẹn trong 1 lần phản hồi, AI **BẮT BUỘC** phải chia ra render theo từng Part (lượt).
-   - Tự động thông báo danh sách các file sẽ export trong từng lượt (Ví dụ: `[Part 1/2]: Đang xuất file 1, 2, 3...`).
-   - Kết thúc Part bằng câu lệnh chờ: *"Dung lượng response có hạn, vui lòng gõ 'tiếp tục' hoặc 'part 2' để nhận toàn bộ code của các file còn lại."*
-   - Tuyệt đối không được cắt ngắn, không viết tắt `// ... keep existing code ...` trong bất kỳ file nào.
-5. Liệt kê đủ mắt xích Route↔Controller↔Service↔Blade↔CSS↔JS; comment tiếng Việt tại logic mới.
-6. Kết thúc (ở Part cuối cùng): tóm tắt luồng + checklist kiểm tra cụ thể trên trình duyệt/DB local.
+4. Liệt kê đủ mắt xích Route↔Controller↔Service↔Blade↔CSS↔JS; comment tiếng Việt tại logic mới.
+5. Kết thúc (ở Part cuối cùng): tóm tắt luồng + checklist kiểm tra cụ thể trên trình duyệt/DB local.
 
 # YÊU CẦU TIẾP THEO
