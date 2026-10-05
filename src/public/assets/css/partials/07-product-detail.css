@@ -249,13 +249,13 @@
 @media (min-width: 640px) { .rv-form__grid { grid-template-columns: 1fr 1fr; } }
 .rv-form__label { font-size: 13px; font-weight: 700; color: #40514a; }
 .rv-form__label em { color: var(--rose); font-style: normal; }
-.rv-form input[type="text"], .rv-form input[type="email"], .rv-form textarea {
+.rv-form input[type="text"], .rv-form input[type="email"], .rv-form input[type="tel"], .rv-form textarea {
     border: 1.5px solid var(--line); border-radius: var(--r-btn); padding: 10px 12px;
     font-size: 14px; background: #fdfcf8; width: 100%; min-width: 0;
 }
 .rv-form textarea { resize: vertical; }
 .rv-form input:focus-visible, .rv-form textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; border-color: var(--leaf); }
-.rv-rateyo { display: inline-flex; }
+.rv-rateyo { display: inline-flex; min-height: 30px; }
 .rv-form__score { font-size: 13px; color: var(--muted); }
 .rv-form__hint { color: var(--muted); font-size: 12px; }
 .rv-form__error { color: var(--rose); font-size: 13px; font-weight: 600; background: #fdf0f2; border: 1px solid var(--rose); border-radius: 8px; padding: 8px 10px; }
@@ -264,6 +264,17 @@
 .rv-form__actions .btn--clay { background: #2e7d4f; color: #fff; border-radius: var(--r-btn); padding: 10px 20px; font-weight: 700; }
 .rv-form__actions .btn--ghost { border: 1.5px solid var(--line); border-radius: var(--r-btn); padding: 10px 16px; color: var(--muted); }
 .rv-form__actions button:disabled { opacity: .6; cursor: wait; }
+
+/* NEW: chọn ảnh + preview (fix ảnh input mặc định xấu trên mobile) */
+.rv-img-input { font-size: 13px; color: #40514a; padding: 8px 10px; border: 1.5px dashed var(--line); border-radius: var(--r-btn); background: #fdfcf8; width: 100%; min-width: 0; }
+.rv-img-input:disabled { opacity: .55; cursor: not-allowed; }
+.rv-img-previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+.rv-img-previews:empty { display: none; }
+.rv-img-preview { position: relative; margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
+.rv-img-preview img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+.rv-img-preview figcaption { font-size: 10.5px; color: var(--muted); text-align: center; padding: 3px 4px; background: #fdfcf8; border-top: 1px solid var(--line); }
+.rv-img-preview__remove { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgb(15 20 17 / .65); color: #fff; font-size: 12px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.rv-img-preview__remove:hover { background: var(--rose); }
 
 /* Thanh lọc sao */
 .rv-filterbar { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #40514a; background: #fdf6e7; border: 1px dashed var(--gold); border-radius: 10px; padding: 8px 12px; }
@@ -284,11 +295,33 @@
 .review__verified { background: var(--leaf-soft); color: var(--leaf); border: 1px solid var(--leaf); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
 .review__date { color: var(--muted); font-size: 12px; }
 .review__content { margin-top: 8px; line-height: 1.7; }
-.review__foot { margin-top: 8px; }
+.review__foot { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
 .rv-helpful { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; color: var(--muted); transition: border-color .15s, color .15s; }
 .rv-helpful:hover { border-color: var(--leaf); color: var(--leaf); }
 .rv-helpful.is-voted { border-color: var(--leaf); color: var(--leaf); background: var(--leaf-soft); font-weight: 700; }
 .rv-helpful:disabled { opacity: .7; cursor: default; }
+
+/* NEW: lưới ảnh review (tối đa 5 — ảnh ngang đều, tap mở tab mới) */
+.review__images { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-top: 10px; }
+.review__img-link { display: block; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
+.review__img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; transition: transform .2s ease; }
+.review__img-link:hover .review__img { transform: scale(1.04); }
+
+/* NEW: khối phản hồi của Mộc Xanh + UI reply cho staff */
+.review__reply { margin-top: 10px; background: #fdf6e7; border: 1px solid var(--gold); border-left-width: 4px; border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+.review__reply b { color: var(--clay); font-size: 12.5px; }
+.review__reply p { margin-top: 4px; line-height: 1.65; white-space: pre-line; }
+.rv-reply-btn { border: 1px dashed var(--line); background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.rv-reply-btn:hover { border-color: var(--leaf); color: var(--leaf); }
+.rv-reply-box { flex-basis: 100%; display: grid; gap: 8px; margin-top: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #fdfcf8; }
+.rv-reply-box[hidden] { display: none; }
+.rv-reply-textarea { border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: #fff; resize: vertical; width: 100%; min-width: 0; }
+.rv-reply-textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; border-color: var(--leaf); }
+.rv-reply-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.rv-reply-actions .btn--sm { padding: 7px 14px; font-size: 12.5px; border-radius: var(--r-btn); font-weight: 700; }
+.rv-reply-actions .btn--clay { background: #2e7d4f; color: #fff; }
+.rv-reply-actions .btn--ghost { border: 1.5px solid var(--line); color: var(--muted); background: #fff; }
+.rv-reply-actions button:disabled { opacity: .6; cursor: wait; }
 
 /* Buybar */
 .buybar {

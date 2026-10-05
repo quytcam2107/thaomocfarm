@@ -24,6 +24,10 @@ class ReviewViewDTO implements \ArrayAccess
         public readonly int $id = 0,
         public readonly string $initials = '?',
         public readonly int $helpful_count = 0,
+        // NEW: ảnh đánh giá — list URL tuyệt đối (Fetcher đã bọc asset())
+        public readonly array $images = [],
+        // NEW: phản hồi công khai của Mộc Xanh (cột text admin_reply)
+        public readonly ?string $admin_reply = null,
     ) {
     }
 
@@ -65,6 +69,9 @@ class ReviewViewDTO implements \ArrayAccess
             id: (int) ($row['id'] ?? 0),
             initials: (string) ($row['initials'] ?? '?'),
             helpful_count: (int) ($row['helpful_count'] ?? 0),
+            // NEW: ảnh + phản hồi admin — cache cũ thiếu key -> mặc định rỗng/null
+            images: array_values((array) ($row['images'] ?? [])),
+            admin_reply: isset($row['admin_reply']) && $row['admin_reply'] !== '' ? (string) $row['admin_reply'] : null,
         );
     }
 

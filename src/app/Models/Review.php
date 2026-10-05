@@ -24,6 +24,9 @@ class Review extends Model
         'user_id',
         'order_id',
         'ip_address',
+        // NEW (migration 000002): danh tính khách — SĐT là nguồn đối chiếu "đã mua"
+        'customer_name',
+        'customer_phone',
         'rating',
         'content',
         'images',

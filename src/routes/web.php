@@ -65,6 +65,10 @@ Route::post('/san-pham/{slug}/danh-gia', [ReviewController::class, 'store'])
 Route::post('/danh-gia/{review}/huu-ich', [ReviewController::class, 'helpful'])
     ->where('review', '[0-9]+')
     ->name('web.review.helpful');
+// NEW: admin/staff phản hồi từng đánh giá — cùng nhóm /danh-gia/*, TRƯỚC catch-all /{slug}
+Route::post('/danh-gia/{review}/phan-hoi', [ReviewController::class, 'reply'])
+    ->where('review', '[0-9]+')
+    ->name('web.review.reply');
 
 // 6b. Cac trang tinh "Ho tro" (footer) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} bên dưới
 Route::get('/huong-dan-dat-hang', [PageController::class, 'orderGuide'])->name('web.page.order-guide');
@@ -88,4 +92,4 @@ Route::get('/cam-nang/{slug}', [BlogController::class, 'show'])
 // 7. Alias pretty-url /{slug} — BẮT BUỘC ở cuối cùng
 Route::get('/{slug}', [CategoryController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
-    ->name('web.category.pretty');
+    ->name('web.category.alias');

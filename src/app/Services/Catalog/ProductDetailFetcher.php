@@ -153,10 +153,14 @@ class ProductDetailFetcher
      * FIX LỖI 1054: bảng `reviews` KHÔNG có cột `customer_name` (xem
      * ai-database/tables/reviews.md). Tên khách hàng lấy qua quan hệ
      * reviews.user_id -> users.name, eager-load bằng BelongsTo để tránh N+1.
+     * UPDATE: migration 2026_10_05_000002 ĐÃ thêm cột customer_name/customer_phone
+     * (review guest không còn user_id) — tên hiển thị ưu tiên user.name,
+     * fallback customer_name tự khai trên form.
      *
      * NEW (UI đánh giá chuẩn TMĐT): trả thêm id (nút Hữu ích), initials
-     * (avatar chữ cái thay ảnh vì DB không có cột avatar) và helpful_count
-     * (withCount review_votes — chống N+1).
+     * (avatar chữ cái thay ảnh vì DB không có cột avatar), helpful_count
+     * (withCount review_votes — chống N+1), images (URL tuyệt đối từ cột json
+     * reviews.images), admin_reply (cột text thật — phản hồi của Mộc Xanh).
      *
      * @return array{reviews: list<array<string, mixed>>, stats: array<string, mixed>}
      */
@@ -174,7 +178,18 @@ class ProductDetailFetcher
             ->withCount('votes') // NEW: số lượt "Hữu ích"
             ->orderByDesc('reviews.created_at')
             ->limit(20)
-            ->get(['reviews.id', 'reviews.user_id', 'reviews.rating', 'reviews.content', 'reviews.is_verified', 'reviews.created_at']);
+            ->get([
+                'reviews.id',
+                'reviews.user_id',
+                'reviews.rating',
+                'reviews.content',
+                'reviews.is_verified',
+                'reviews.created_at',
+                // NEW: danh tính guest + ảnh + phản hồi admin (cột THẬT sau migrate)
+                'reviews.customer_name',
+                'reviews.images',
+                'reviews.admin_reply',
+            ]);
 
         $stats = [
             'avg' => $reviews->count() > 0 ? round((float) $reviews->avg('rating'), 1) : null,
@@ -191,15 +206,28 @@ class ProductDetailFetcher
 
         return [
             'reviews' => $reviews->map(fn(Review $r): array => [
-                // 'customer' giữ key cũ cho ReviewViewDTO; ẩn danh khi user bị xóa
-                'customer' => $r->user?->name ?: 'Ẩn danh',
+                // 'customer' giữ key cũ cho ReviewViewDTO; thứ tự ưu tiên:
+                // user login -> customer_name tự khai -> ẩn danh khi dữ liệu bị xóa
+                'customer' => $r->user?->name ?: ($r->customer_name ?: 'Ẩn danh'),
                 'id' => (int) $r->id,
-                'initials' => self::initials($r->user?->name ?: 'A'),
+                'initials' => self::initials($r->user?->name ?: ($r->customer_name ?: 'A')),
                 'helpful_count' => (int) ($r->votes_count ?? 0),
                 'rating' => (int) $r->rating,
                 'content' => (string) $r->content,
                 'is_verified' => (bool) $r->is_verified,
                 'created_at' => optional($r->created_at)->format('d/m/Y'),
+                // NEW: ảnh review — cột json lưu path tương đối ('assets/images/reviews/x.jpg')
+                // -> bọc asset(); ảnh đã là URL tuyệt đối thì giữ nguyên (idempotent)
+                'images' => array_map(
+                    static fn(string $p): string => preg_match('#^https?://#i', $p) || str_starts_with($p, '/')
+                        ? $p
+                        : asset(ltrim($p, '/')),
+                    array_values((array) ($r->images ?? []))
+                ),
+                // NEW: phản hồi của Mộc Xanh (null khi chưa reply)
+                'admin_reply' => $r->admin_reply !== null && trim((string) $r->admin_reply) !== ''
+                    ? (string) $r->admin_reply
+                    : null,
             ])->values()->all(),
             'stats' => $stats,
         ];

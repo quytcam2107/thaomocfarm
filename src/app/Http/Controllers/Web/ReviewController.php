@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Review;
 use App\Requests\StoreReviewRequest;
 use App\Services\ReviewService;
 use Illuminate\Http\JsonResponse;
@@ -72,5 +73,39 @@ class ReviewController extends Controller
         $count = $this->reviewService->markHelpful($reviewId, (string) $request->ip());
 
         return response()->json(['success' => true, 'helpful_count' => $count]);
+    }
+
+    /**
+     * NEW: POST /danh-gia/{review}/phan-hoi  (web.review.reply)
+     * Admin/staff phản hồi công khai 1 đánh giá (reply rỗng = xóa phản hồi).
+     * Quyền theo convention dự án: kiểm tra user->isStaff() trực tiếp trong
+     * controller (app chưa đăng ký Gate/Policy nào — xem User::isStaff()).
+     */
+    public function reply(Request $request, int $reviewId): JsonResponse
+    {
+        $user = $request->user();
+        if ($user === null || !$user->isStaff()) {
+            return response()->json(['success' => false, 'message' => 'Bạn không có quyền phản hồi đánh giá.'], 403);
+        }
+
+        // Reply bắt buộc khi gửi từ UI admin; rỗng = xóa (service xử lý)
+        $data = $request->validate([
+            'admin_reply' => 'nullable|string|max:1000',
+        ], [
+            'admin_reply.max' => 'Phản hồi tối đa 1000 ký tự',
+        ]);
+
+        $review = Review::find($reviewId);
+        if ($review === null) {
+            return response()->json(['success' => false, 'message' => 'Đánh giá không tồn tại'], 404);
+        }
+
+        $updated = $this->reviewService->reply($review, (string) ($data['admin_reply'] ?? ''));
+
+        return response()->json([
+            'success' => true,
+            'message' => $updated->admin_reply ? 'Đã lưu phản hồi.' : 'Đã xóa phản hồi.',
+            'admin_reply' => $updated->admin_reply,
+        ]);
     }
 }

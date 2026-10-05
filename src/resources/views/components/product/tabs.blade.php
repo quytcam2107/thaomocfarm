@@ -49,7 +49,11 @@
                 </div>
             </div>
 
-            {{-- 2) Nút mở form + FORM đánh giá (rateyo khởi tạo trên input.rv-rating) --}}
+            {{-- 2) Nút mở form + FORM đánh giá.
+            FIX SAO KHÔNG CHỌN ĐƯỢC: input rating đổi sang type="hidden" và đặt
+            NGOÀI div .rv-rateyo — rateyo render con SVG vào trong div này, nếu
+            input nằm cạnh/trong box sẽ bị che/dispatch hỏng. Widget bind qua
+            data-rateyo-* + JS @tm/reviews (API rateyo 2.3.4: rating/numStars/onSet). --}}
             <div class="rv-form-toggle-row">
                 <button type="button" class="btn btn--leaf rv-form-toggle" id="rvOpenForm" aria-expanded="false"
                     aria-controls="rvForm">
@@ -57,14 +61,14 @@
                 </button>
             </div>
 
-            <form id="rvForm" class="rv-form" hidden novalidate
+            <form id="rvForm" class="rv-form" hidden novalidate enctype="multipart/form-data"
                 action="{{ route('web.product.reviews.store', $productSlug) }}" method="POST">
                 @csrf
+                {{-- Input value sao: hidden ngoài widget, JS onSet ghi vào đây --}}
+                <input type="hidden" class="rv-rating" name="rating" value="0">
                 <div class="rv-form__row">
                     <label class="rv-form__label">Chấm điểm của bạn <em>*</em></label>
-                    {{-- Input gốc: rateyo biến thành widget sao; value submit 0..5 --}}
-                    <input type="number" class="rv-rating" name="rating" min="1" max="5" step="1" value="0" hidden>
-                    <div class="rv-rateyo" title="Chọn từ 1 đến 5 sao"></div>
+                    <div class="rv-rateyo" id="rvRateyo" title="Chọn từ 1 đến 5 sao"></div>
                     <output class="rv-form__score" id="rvScoreText">Chưa chọn sao</output>
                 </div>
 
@@ -74,8 +78,14 @@
                         <input id="rvName" name="name" type="text" maxlength="100" placeholder="VD: Nguyễn Văn A"
                             autocomplete="name">
                     </div>
+                    {{-- FIX YÊU CẦU MỚI: SĐT bắt buộc (đối chiếu đơn đã giao), email KHÔNG bắt buộc --}}
                     <div class="rv-form__row">
-                        <label class="rv-form__label" for="rvEmail">Email (để đối chiếu đơn) <em>*</em></label>
+                        <label class="rv-form__label" for="rvPhone">Số điện thoại đã đặt hàng <em>*</em></label>
+                        <input id="rvPhone" name="phone" type="tel" maxlength="15" inputmode="tel"
+                            placeholder="VD: 0352806324" autocomplete="tel">
+                    </div>
+                    <div class="rv-form__row">
+                        <label class="rv-form__label" for="rvEmail">Email (không bắt buộc)</label>
                         <input id="rvEmail" name="email" type="email" maxlength="150" placeholder="ban@email.com"
                             autocomplete="email">
                     </div>
@@ -86,7 +96,16 @@
                     <textarea id="rvContent" name="content" rows="4" minlength="10" maxlength="1000"
                         placeholder="Chia sẻ cảm nhận của bạn về chất lượng, hương vị, đóng gói… (tối thiểu 10 ký tự)"></textarea>
                     <small class="rv-form__hint">Đánh giá hiển thị sau khi quản trị duyệt. Chỉ khách đã mua hàng được
-                        đánh giá.</small>
+                        đánh giá (đối chiếu bằng số điện thoại).</small>
+                </div>
+
+                {{-- NEW: chọn ảnh đánh giá — tối đa 5, preview grid (JS @tm/reviews quản lý) --}}
+                <div class="rv-form__row">
+                    <label class="rv-form__label" for="rvImages">Ảnh đánh giá (tối đa 5)</label>
+                    <input id="rvImages" name="images[]" type="file" accept="image/jpeg,image/png,image/webp" multiple
+                        class="rv-img-input">
+                    <small class="rv-form__hint">JPG, PNG hoặc WEBP — mỗi ảnh tối đa 2MB.</small>
+                    <div class="rv-img-previews" id="rvImgPreviews" aria-live="polite"></div>
                 </div>
 
                 <p class="rv-form__error" id="rvError" role="alert" hidden></p>
