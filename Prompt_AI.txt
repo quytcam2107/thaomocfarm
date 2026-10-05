@@ -1,29 +1,24 @@
-# Bối cảnh
-Dự án Laravel "Thảo Mộc Farm" (Blade + CSS/JS tĩnh trong `public/assets`, mobile-first, source code nằm trong thư mục `src/`).
-Quy trình làm việc: Mỗi lần nhận code từ AI, tôi sẽ copy và chạy thử/kiểm tra cẩn thận ở môi trường local trước khi commit và đẩy lên Git. Do đó, code trả về cần đảm bảo độ chính xác cao, đầy đủ, không thiếu hụt để có thể thực thi ngay.
+# BỐI CẢNH
+Laravel 13 "Thảo Mộc Farm" (Blade, CSS/JS tĩnh public/assets, mobile-first, src/). Đọc trước: `PROJECT_CONTEXT/README.md`, `02-CODE.md`, `01-DATABASE.md`, `ai-database/` (DB thật auto-export; chạy `php artisan ai:export-database` nếu cần cập nhật).
 
-Tài liệu ngữ cảnh đã có sẵn trong repo — **BẮT BUỘC đọc TRƯỚC khi làm bất cứ việc gì**:
-- `PROJECT_CONTEXT/README.md` → rule làm việc chi tiết + quy ước kỹ thuật cốt lõi.
-- `PROJECT_CONTEXT/01-DATABASE.md` → tổng quan schema thật: 34 bảng nghiệp vụ + 7 bảng framework, quy ước cột/index/enum/unique.
-- `PROJECT_CONTEXT/02-CODE.md` → models/scopes/relations, Enums, DTOs, Services, Controllers, FormRequests, routes, views, CSS partials, contract JS, config, helpers.
+# QUY TRÌNH
+Code phải CHÍNH XÁC, ĐỦ, CHẠY NGAY để tôi copy ghi đè local, test rồi commit.
 
-**Cơ sở dữ liệu thật** — xuất tự động bằng lệnh `php artisan ai:export-database` (tên DB lấy từ `.env`), chạy lại lệnh bất cứ khi nào cần cập nhật. Thư mục `ai-database/`:
-- `ai-database/INDEX.md` *(auto)* → danh sách toàn bộ bảng + số bản ghi + link file chi tiết. Đọc file này ĐẦU TIÊN khi cần thông tin database.
-- `ai-database/tables/<bảng>.md` *(auto)* → cấu trúc THẬT từng bảng: cột, kiểu, nullable, default, index, foreign key, comment + thống kê min/max/top values + 50 dòng mẫu dữ liệu.
-- `ai-database/data/<bảng>.jsonl` *(auto)* → TOÀN BỘ dữ liệu của bảng, mỗi dòng = 1 bản ghi JSON, không giới hạn record. Chỉ mở file này khi thực sự cần dữ liệu đầy đủ (file có thể lớn); nếu chỉ cần cấu trúc/mẫu thì đọc `tables/<bảng>.md` là đủ.
-- File *(auto)* KHÔNG được sửa tay — muốn cập nhật thì chạy lại lệnh export.
+# YÊU CẦU
+## Loại việc
+<tính năng / fix bug / review / khác>
 
-Nếu tài liệu và code/database thực tế khác nhau → **thực tế thắng**, và phải báo lại điểm chênh lệch.
+## Mô tả
+<tính năng: luồng mong đợi | fix bug: hiện tượng + tái hiện + KQ mong đợi + file nghi ngờ>
 
-# Quy tắc thực hiện (tóm tắt — áp dụng đầy đủ theo README.md)
-1. **Rà soát & Đọc trước khi sửa**:
-   - Tải và rà soát code mới nhất từ nhánh `main`.
-   - Kiểm tra kỹ toàn bộ file code và cấu trúc database liên quan trước khi triển khai để tránh sửa nhầm, sót logic hoặc phá vỡ cấu trúc hiện tại.
-   - Tên cột/kiểu/dữ liệu thật lấy trực tiếp từ `ai-database/tables/` và `ai-database/data/`, không tự đoán.
-2. **Bám sát thực tế**: dùng đúng tên route/cột/class/selector THẬT. Giữ tương thích ngược các contract JS (`#cartBadge`, `.add-cart`, `#toast`, `meta[name="csrf-token"]`, `[data-drawer-open]`/`[data-drawer-close]`). Route mới bắt buộc đặt **TRƯỚC** catch-all `GET /{slug}`. Tên route web luôn prefix `web.`. Không refactor ngoài phạm vi.
-3. **Cách xuất code (bắt buộc)**: mỗi file sửa/tạo mới → **MỘT code block riêng biệt chứa TOÀN BỘ nội dung file từ dòng 1 đến dòng cuối**, phía trên ghi rõ `### File: đường/dẫn/file`. KHÔNG diff, KHÔNG dùng placeholder "...". Nội dung không liên quan giữ NGUYÊN VĂN bản gốc để tiện copy trực tiếp đè vào file local.
-4. **Đủ mắt xích**: liệt kê TẤT CẢ file thay đổi (CSS ↔ Blade ↔ JS ↔ Route/Controller). Comment tiếng Việt ngắn gọn tại logic mới.
-5. **Kết thúc**: tóm tắt ngắn đã sửa file nào, luồng hoạt động; nêu rõ các bước cụ thể cần kiểm tra lại trên trình duyệt/database ở local trước khi commit lên git.
+## Ràng buộc/phạm vi
+<file liên quan; VD: giá flash qua FlashSalePriceService, cache home/catalog/content, freeship ≥300k...>
 
-#  Yêu cầu tiếp theo gợi ý sửa code đầy đủ các file dang code block và tôi chỉ việc copy từng file:
-- 
+# QUY TẮC
+1. Đọc code/db THỰC TẾ trước khi sửa; không đoán tên route/cột/class; không refactor ngoài phạm vi.
+2. Giữ contract JS (#cartBadge, .add-cart, #toast, csrf meta, drawer attrs, updateCartCount, importmap @tm/*); route mới đặt TRƯỚC catch-all /{slug}; prefix web..
+3. Mỗi file = MỘT code block TOÀN BỘ nội dung (dòng 1→cuối), đầu block ghi `### File: đường/dẫn/file`; KHÔNG diff/placeholder "..."; chỉ liệt kê file đổi.
+4. Liệt kê đủ mắt xích Route↔Controller↔Service↔Blade↔CSS↔JS; comment tiếng Việt tại logic mới.
+5. Kết thúc: tóm tắt luồng + checklist kiểm tra cụ thể trên trình duyệt/DB local.
+
+# YÊU CẦU TIẾP THEO
