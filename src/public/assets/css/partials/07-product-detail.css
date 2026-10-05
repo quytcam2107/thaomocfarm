@@ -256,6 +256,8 @@
 .rv-form textarea { resize: vertical; }
 .rv-form input:focus-visible, .rv-form textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; border-color: var(--leaf); }
 .rv-rateyo { display: inline-flex; min-height: 30px; }
+.rv-rating-fallback { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.rv-rating-radio { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
 .rv-form__score { font-size: 13px; color: var(--muted); }
 .rv-form__hint { color: var(--muted); font-size: 12px; }
 .rv-form__error { color: var(--rose); font-size: 13px; font-weight: 600; background: #fdf0f2; border: 1px solid var(--rose); border-radius: 8px; padding: 8px 10px; }

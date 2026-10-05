@@ -24,12 +24,35 @@ if (zone) {
     const scoreText = q('#rvScoreText');
     const STAR_LABELS = ['', 'Tệ', 'Tạm', 'Ổn', 'Tốt', 'Xuất sắc!'];
 
+    /* FIX BUG "The rating field must be an integer": rateyo có thể nhả giá trị
+       dạng chuỗi ("3.0000") hoặc NaN -> luôn ép về số nguyên 0..5 trước khi ghi
+       vào input hidden, đảm bảo payload rating luôn là số nguyên hợp lệ. */
+    function toIntStar(val) {
+        const n = Math.round(parseFloat(val));
+        return Number.isFinite(n) && n >= 1 && n <= 5 ? n : 0;
+    }
+
+    /* Radio fallback (.rv-rating-radio, KHÔNG có name để tránh trùng key multipart)
+       lưu số sao khách bấm; input hidden .rv-rating[name="rating"] mới là nguồn
+       của FormData — JS luôn ghi giá trị nguyên vào đó. */
+    function syncRadios(star) {
+        qa('input.rv-rating-radio').forEach(r => { r.checked = Number(r.value) === star; });
+    }
+
+    function checkedRadioRating() {
+        const r = qa('input.rv-rating-radio').find(x => x.checked);
+        return toIntStar(r?.value);
+    }
+
     function setRating(val) {
+        const star = toIntStar(val);
         if (ratingInput) {
-            ratingInput.value = String(val);
+            ratingInput.value = String(star);
             ratingInput.dispatchEvent(new Event('change'));
         }
-        if (scoreText) scoreText.textContent = val > 0 ? `${val} sao — ${STAR_LABELS[val] || ''}`.trim() : 'Chưa chọn sao';
+        // Đồng bộ bộ radio fallback (name="rating") — nguồn dữ liệu thật của FormData
+        syncRadios(star);
+        if (scoreText) scoreText.textContent = star > 0 ? `${star} sao — ${STAR_LABELS[star] || ''}`.trim() : 'Chưa chọn sao';
     }
 
     function initRateyo() {
@@ -49,13 +72,18 @@ if (zone) {
             normalFill: '#d8d2c4',
             ratedFill: '#e7b23a',      // khớp --gold của design system
             readOnly: false,
-            onInit: function (_, val) { if (val > 0) setRating(val); },
+            onInit: function (_, val) { if (toIntStar(val) > 0) setRating(val); },
             /* Contract JS dự án: set input.value bằng JS phải dispatchEvent('change') */
-            onSet: function (_, val) { setRating(Math.round(val)); },
-            onChange: function (_, val) { setRating(Math.round(val)); },
+            onSet: function (_, val) { setRating(val); },
+            onChange: function (_, val) { setRating(val); },
         });
         return true;
     }
+
+    // Khách bấm trực tiếp radio fallback khi widget chưa kịp init -> vẫn hiển thị số sao
+    qa('input.rv-rating-radio').forEach(r => {
+        r.addEventListener('change', () => { if (r.checked) setRating(Number(r.value)); });
+    });
 
     /* Vendor defer có thể chạy sau module -> retry ngắn (tối đa ~3s) */
     if (!initRateyo()) {
@@ -170,6 +198,38 @@ if (zone) {
         renderPreviews();
     });
 
+    /* Nguồn thật cuối cùng của số sao: ưu tiên input hidden; nếu JS cũ/cache
+       khiến input vẫn là "0"/rỗng thì hỏi trực tiếp rateyo instance, rồi mới
+       suy ra từ chiều rộng lớp tô .jq-ry-rated-group trong DOM widget. */
+    function readCurrentRating() {
+        // 0) Radio fallback đang checked (khách bấm thẳng hoặc JS rateyo đã đồng bộ)
+        const fromRadio = checkedRadioRating();
+        if (fromRadio > 0) return fromRadio;
+
+        const fromInput = toIntStar(ratingInput?.value);
+        if (fromInput > 0) return fromInput;
+
+        const jq = window.jQuery;
+        if (jq && rateyoBox) {
+            const fn = typeof jq.fn.rateYo === 'function' ? 'rateYo' : 'rateyo';
+            try {
+                const val = jq(rateyoBox)[fn]('rating');   // method trả number hiện tại
+                const star = toIntStar(val);
+                if (star > 0) { setRating(star); return star; }
+            } catch (_) { /* chưa init thì bỏ qua */ }
+        }
+
+        const rated = rateyoBox?.querySelector('.jq-ry-rated-group');
+        const normal = rateyoBox?.querySelector('.jq-ry-normal-group');
+        if (rated && normal) {
+            const wR = parseFloat(getComputedStyle(rated).width) || 0;
+            const wN = parseFloat(getComputedStyle(normal).width) || 0;
+            const star = wN > 0 ? toIntStar(wR / wN * 5) : 0;
+            if (star > 0) { setRating(star); return star; }
+        }
+        return 0;
+    }
+
     /* ============ 3) GỬI REVIEW (AJAX multipart + CSRF) ============ */
     const csrf = q('meta[name="csrf-token"]')?.content;
     const submitBtn = q('#rvSubmit');
@@ -179,7 +239,9 @@ if (zone) {
         e.preventDefault();
         if (sending) return;
 
-        const rating = parseInt(ratingInput?.value || '0', 10);
+        // Đọc sao từ NHIỀU nguồn (radio checked -> input hidden -> rateyo instance
+        // -> DOM widget) để không bao giờ gửi sang server giá trị rỗng/"NaN"
+        const rating = readCurrentRating();
         const content = (q('#rvContent')?.value || '').trim();
         const name = (q('#rvName')?.value || '').trim();
         const phone = (q('#rvPhone')?.value || '').replace(/[\s.]/g, '');
@@ -202,6 +264,8 @@ if (zone) {
             // FormData từ form gốc (có _token + các field text), sau đó thay
             // ảnh bằng danh sách picked đã lọc ≤5 (input file gốc đang rỗng)
             const fd = new FormData(form);
+            // Ghi DUY NHẤT một giá trị nguyên cho rating (fd.set thay thế mọi
+            // phần tử "rating" do radio/hidden để lại trong FormData)
             fd.set('rating', String(rating));
             fd.set('phone', phone);
             fd.delete('images[]');

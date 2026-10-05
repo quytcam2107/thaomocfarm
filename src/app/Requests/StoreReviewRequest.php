@@ -48,6 +48,21 @@ class StoreReviewRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        // FIX BUG "The rating field must be an integer": rateyo (jQuery) có thể
+        // trả giá trị dạng chuỗi ("3.0000") hoặc undefined -> NaN khi parseInt,
+        // làm payload gửi lên là rỗng/"NaN" và fail rule integer. Chuẩn hóa về
+        // số nguyên 1..5 ngay tại đây; ngoài khoảng hợp lệ hoặc không parse
+        // được thì đưa về 0 để rule min:1 báo lỗi tiếng Việt "chưa chọn sao".
+        $raw = $this->input('rating');
+        if (is_string($raw)) {
+            $raw = trim($raw);
+        }
+        $rating = is_numeric($raw) ? (int) $raw : 0;
+        if ($rating < 1 || $rating > 5) {
+            $rating = 0;
+        }
+        $this->request->set('rating', $rating);
+
         // Trim sẵn để service không phải xử lý khoảng trắng thừa
         $this->merge([
             'name' => $this->filled('name') ? trim((string) $this->input('name')) : null,
@@ -71,6 +86,7 @@ class StoreReviewRequest extends FormRequest
     {
         return [
             'rating.required' => 'Vui lòng chọn số sao đánh giá',
+            'rating.integer' => 'Vui lòng chọn số sao đánh giá',
             'rating.min' => 'Số sao phải từ 1 đến 5',
             'rating.max' => 'Số sao phải từ 1 đến 5',
             'content.required' => 'Vui lòng viết nhận xét của bạn',

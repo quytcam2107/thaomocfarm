@@ -64,8 +64,21 @@
             <form id="rvForm" class="rv-form" hidden novalidate enctype="multipart/form-data"
                 action="{{ route('web.product.reviews.store', $productSlug) }}" method="POST">
                 @csrf
-                {{-- Input value sao: hidden ngoài widget, JS onSet ghi vào đây --}}
+                {{-- Input value sao: hidden ngoài widget, JS onSet ghi vào đây.
+                FIX BUG "The rating field must be an integer": hidden mang
+                name="rating" + value="0" để formData gốc LUÔN chứa một giá trị
+                nguyên hợp lệ (rule integer không bao giờ nhận chuỗi rỗng/"NaN");
+                JS setRating() cập nhật value của nó mỗi lần chấm sao. --}}
                 <input type="hidden" class="rv-rating" name="rating" value="0">
+                {{-- Radio fallback 1..5 (KHÔNG đặt name="rating" — tránh trùng key
+                multipart làm Laravel nhận rating thành MẢNG và fail rule integer);
+                JS đọc .rv-rating-radio:checked để biết số sao khách chọn --}}
+                <div class="rv-rating-fallback" aria-hidden="true">
+                    @foreach([1, 2, 3, 4, 5] as $starVal)
+                        <input type="radio" class="rv-rating-radio" value="{{ $starVal }}" id="rvStar{{ $starVal }}"
+                            tabindex="-1">
+                    @endforeach
+                </div>
                 <div class="rv-form__row">
                     <label class="rv-form__label">Chấm điểm của bạn <em>*</em></label>
                     <div class="rv-rateyo" id="rvRateyo" title="Chọn từ 1 đến 5 sao"></div>
