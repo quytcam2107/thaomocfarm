@@ -145,7 +145,7 @@
     color: #fff; opacity: .92; text-decoration: none !important; padding: 2px 0 1px;
 }
 :is(.pd-actions, .buybar) .btn--clay .btn__sub:hover { opacity: 1; }
-:is(.pd-actions, .buybar) .btn--clay .btn__sub:visited, 
+:is(.pd-actions, .buybar) .btn--clay .btn__sub:visited,
 :is(.pd-actions, .buybar) .btn--clay .btn__sub:active { color: #fff; }
 :is(.pd-actions, .buybar) .btn--clay .btn__sub:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
 
@@ -255,3 +255,79 @@ body.has-buybar .floatnav { display: none; }
 @keyframes pdImgOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.985); } }
 @keyframes pdImgInFromLeft { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
 @keyframes pdImgInFromRight { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+/* =====================================================================
+   NEW LIGHTBOX PHÓNG TO ẢNH (#pdZoomViewer) — web + mobile.
+   Mặc định display:none (chốt !important) -> ẩn hoàn toàn khi chưa mở,
+   không ảnh hưởng LCP/SEO. JS chỉ cần bật/xóa attribute `hidden` trên
+   #pdZoomViewer là khối hiện ra (xem selector .pd-zoom:not([hidden]) bên dưới).
+   ===================================================================== */
+.pd-zoom {
+    position: fixed; inset: 0; z-index: 90;
+    display: none !important;
+    background: rgba(15, 20, 17, .92);
+    /* Chặn kéo chọn ảnh vô tình khi double-tap zoom */
+    user-select: none; -webkit-user-select: none;
+}
+.pd-zoom:not([hidden]) { display: block !important; }
+body.has-zoom { overflow: hidden; } /* khóa cuộn nền khi mở lightbox */
+
+.pd-zoom__stage {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    touch-action: none; /* JS tự xử lý pinch/pan/swipe — tắt trình duyệt zoom/scroll */
+    cursor: pointer; /* FIX MỚI NHẤT: ảnh chưa zoom -> bàn tay (chạm/nền để đóng) */
+}
+.pd-zoom__stage.is-zoomed { cursor: grab; } /* đang zoom -> kéo panoram */
+.pd-zoom__img {
+    max-width: 92vw; max-height: 88vh;
+    object-fit: contain;
+    transform-origin: center center;
+    will-change: transform;
+    -webkit-user-drag: none;
+    cursor: pointer; /* FIX MỚI NHẤT: không còn con trỏ zoom-in ở bất kỳ đâu */
+}
+
+/* Nút X + prev/next trong lightbox (touch target >= 44px) */
+.pd-zoom__btn, .pd-zoom__nav {
+    position: absolute; z-index: 2;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid rgb(255 255 255 / .25);
+    background: rgb(255 255 255 / .12); color: #fff;
+    cursor: pointer; touch-action: manipulation;
+    transition: background .15s;
+}
+.pd-zoom__btn:hover, .pd-zoom__nav:hover { background: rgb(255 255 255 / .25); }
+.pd-zoom__btn:focus-visible, .pd-zoom__nav:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.pd-zoom__btn--close { top: calc(10px + env(safe-area-inset-top)); right: 12px; }
+.pd-zoom__nav { top: 50%; transform: translateY(-50%); }
+.pd-zoom__nav--prev { left: 10px; }
+.pd-zoom__nav--next { right: 10px; }
+.pd-zoom__nav:disabled { opacity: .3; pointer-events: none; }
+
+.pd-zoom__counter {
+    position: absolute; right: 14px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 2;
+    font-size: 12.5px; font-weight: 700; color: #fff;
+    background: rgb(255 255 255 / .16); border-radius: 999px; padding: 3px 10px;
+    pointer-events: none;
+}
+.pd-zoom__hint {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 2;
+    margin: 0; font-size: 11.5px; color: rgb(255 255 255 / .75);
+    pointer-events: none; white-space: nowrap;
+}
+
+    /* Icon kính lúp trên ảnh to: FIX YÊU CẦU MỚI NHẤT — ĐÃ XÓA HẲN khỏi
+   Blade (không còn element .pd-zoom-hint nào được render). Desktop hover
+   KHÔNG hiện nút zoom (+) nào, chỉ đổi con trỏ thành hình BÀN TAY; mobile
+   chạm thẳng vào ảnh để phóng to. Giữ rule bên dưới để tương thích bản
+   Blade cũ chưa cập nhật (cache blade) — mặc định ẩn hoàn toàn. */
+.pd-zoom-hint { display: none !important; }
+
+/* FIX YÊU CẦU MỚI NHẤT: con trỏ trên ảnh to là HÌNH BÀN TAY (pointer) —
+   không dùng zoom-in nữa. Hover = bàn tay báo "bấm được"; CHỈ nhấn chuột
+   trái mới mở lightbox phóng to. Hàng thumbs giữ nguyên hành vi cũ
+   (bấm = đổi ảnh lớn, không phóng to). */
+[data-pd-zoom="stage"] { cursor: pointer; }
