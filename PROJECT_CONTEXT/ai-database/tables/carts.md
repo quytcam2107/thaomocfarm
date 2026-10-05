@@ -1,11 +1,11 @@
 # Bảng `carts`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-04T08:23:26+00:00
+> Bản cập nhật lúc: 2026-10-05T11:13:38+00:00
 
 ## Thông tin chung
 
-- Số bản ghi: **187**
+- Số bản ghi: **217**
 - Dữ liệu đầy đủ (JSON Lines, 1 dòng = 1 bản ghi): `data/carts.jsonl`
 
 ## Cấu trúc (columns)
@@ -28,9 +28,9 @@
 
 ## Thống kê dữ liệu
 
-- `id`: min = 1, max = 187
-- `created_at`: min = 2026-09-23 11:40:29, max = 2026-10-04 08:23:05
-- `updated_at`: min = 2026-09-23 11:40:29, max = 2026-10-04 08:23:05
+- `id`: min = 1, max = 217
+- `created_at`: min = 2026-09-23 11:40:29, max = 2026-10-04 14:44:18
+- `updated_at`: min = 2026-09-23 11:40:29, max = 2026-10-04 14:44:18
 
 ## Mẫu dữ liệu
 
@@ -87,4 +87,4 @@
 | 49 | NULL | 3387b8a5-9f10-4af2-b385-91d53d7d6518 | 2026-09-25 05:25:55 | 2026-09-25 05:25:55
 | 50 | NULL | 63e53480-8bf3-45d1-9fa4-d731e9382a15 | 2026-09-25 05:26:00 | 2026-09-25 05:26:00
 
-> Hiển thị 50/187 bản ghi. Toàn bộ dữ liệu nằm trong `data/carts.jsonl`.
+> Hiển thị 50/217 bản ghi. Toàn bộ dữ liệu nằm trong `data/carts.jsonl`.

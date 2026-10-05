@@ -1,7 +1,7 @@
 # Bảng `posts`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-04T08:23:27+00:00
+> Bản cập nhật lúc: 2026-10-05T11:13:39+00:00
 
 ## Thông tin chung
 
@@ -47,9 +47,9 @@
 - `reading_minutes`: min = 3, max = 6 — giá trị phổ biến: `5` (2), `4` (2), `3` (1), `6` (1)
 - `status`: giá trị phổ biến: `published` (6)
 - `published_at`: min = 2026-09-05 08:00:00, max = 2026-10-01 08:00:00 — giá trị phổ biến: `2026-09-05 08:00:00` (1), `2026-09-12 08:00:00` (1), `2026-09-18 08:00:00` (1), `2026-09-24 08:00:00` (1), `2026-09-28 08:00:00` (1), `2026-10-01 08:00:00` (1)
-- `view_count`: min = 32, max = 129 — giá trị phổ biến: `129` (1), `100` (1), `74` (1), `55` (1), `46` (1), `32` (1)
+- `view_count`: min = 32, max = 129 — giá trị phổ biến: `129` (1), `100` (1), `74` (1), `55` (1), `48` (1), `32` (1)
 - `created_at`: min = 2026-10-02 16:54:28, max = 2026-10-02 16:54:28 — giá trị phổ biến: `2026-10-02 16:54:28` (6)
-- `updated_at`: min = 2026-10-02 08:55:56, max = 2026-10-04 05:12:12 — giá trị phổ biến: `2026-10-02 08:55:56` (1), `2026-10-02 09:06:47` (1), `2026-10-02 16:54:28` (1), `2026-10-02 09:07:48` (1), `2026-10-02 09:24:02` (1), `2026-10-04 05:12:12` (1)
+- `updated_at`: min = 2026-10-02 08:55:56, max = 2026-10-04 10:33:09 — giá trị phổ biến: `2026-10-02 08:55:56` (1), `2026-10-02 09:06:47` (1), `2026-10-02 16:54:28` (1), `2026-10-02 09:07:48` (1), `2026-10-04 10:33:09` (1), `2026-10-04 05:12:12` (1)
 
 ## Mẫu dữ liệu
 
@@ -59,5 +59,5 @@
 | 2 | 1 | Mắc khén + hạt dổi: cặp gia vị không thể thiếu khi ướp thịt | mac-khen-hat-doi-cp-gia-vi-tay-bac | Vì sao người Tây Bắc nói "thịt mà thiếu mắc khén, hạt dổi thì mất一半 hồn"? Đây là cách dùng, liều lượng và bảo quản hai loại gia vị thần thánh này. | <p>Mắc khén và hạt dổi là "linh hồn" của ẩm thực Tây Bắc. Mùi thơm của chúng đến từ tinh dầu, nên <b>dùng sai cách là mất_HALF_hương</b>.</p><h2>1. Phân biệt nhanh</h2><ul><li><b>Mắc khén</b> (hua tiêu): vị cay tê nhẹ như tiêu, hậu thơm cam ch | assets/images/cay_tam_that.png | 4 | published | 2026-09-12 08:00:00 | 100 | 2026-10-02 16:54:28 | 2026-10-02 09:06:47
 | 3 | 2 | Nhiệt độ nước chuẩn cho từng loại trà hoa | nhiet-do-nuoc-chuan-cho-tung-loai-tra-hoa | Trà hoa cúc bị đắng, trà hồng nhạt vị — phần lớn do nước quá sôi hoặc quá nguội. Bảng nhiệt độ dưới đây giúp bạn hãm đúng chuẩn từng loại. | <p>Nước quá sôi (100°C) sẽ "luộc chín" cánh hoa, giải phóng tanin gây đắng; nước quá nguội không chiết hết hương. Mỗi loại trà một nhiệt độ:</p><table><tr><th>Loại trà</th><th>Nhiệt độ</th><th>Hãm</th></tr><tr><td>Trà hoa cúc / cúc chi</td><td> | assets/images/cay_tam_that.png | 5 | published | 2026-09-18 08:00:00 | 74 | 2026-10-02 16:54:28 | 2026-10-02 16:54:28
 | 4 | 3 | Bảo quản đặc sản gác bếp mùa nồm ẩm miền Bắc | bao-quan-dac-san-gac-bep-mua-nom-am | Miền Bắc vào mùa nồm, thịt gác bếp và gia vị rất dễ mốc. Chỉ cần 4 nguyên tắc dưới đây là giữ được cả mùa. | <p>Độ ẩm trên 85% kéo dài là "kẻ thù" của đồ khô gác bếp. Xử lý thế nào cho đúng?</p><h2>4 nguyên tắc vàng</h2><ol><li><b>Hút chân không chia phần</b>: mỗi phần 200–300g, mở tới đâu dùng hết tới đó.</li><li><b>Tủ mát 2–8°C</b> cho mùa n | assets/images/cay_tam_that.png | 3 | published | 2026-09-24 08:00:00 | 55 | 2026-10-02 16:54:28 | 2026-10-02 09:07:48
-| 5 | 2 | Atiso Đà Lạt: 3 cách hãm thơm ngọt không đắng | atiso-da-lat-3-cach-ham-thom-khong-dang | Trà atiso dễ uống nhưng hay bị đắng và ngái. Với 3 cách hãm dưới đây, nước atiso trong ngọt như quán. | <p>Atiso khô chứa inulin và cynarin — hãm đúng cách mới cho vị ngọt hậu đặc trưng.</p><h2>Cách 1: Hãm nguyên bông</h2><ul><li>Dùng 1 bông atiso khô cho bình 1–1,5L nước sôi 95–100°C.</li><li>Hãm 7–10 phút, rót ra hết, không ngâm lâu sẽ đắng.</li> | assets/images/cay_tam_that.png | 4 | published | 2026-09-28 08:00:00 | 46 | 2026-10-02 16:54:28 | 2026-10-02 09:24:02
+| 5 | 2 | Atiso Đà Lạt: 3 cách hãm thơm ngọt không đắng | atiso-da-lat-3-cach-ham-thom-khong-dang | Trà atiso dễ uống nhưng hay bị đắng và ngái. Với 3 cách hãm dưới đây, nước atiso trong ngọt như quán. | <p>Atiso khô chứa inulin và cynarin — hãm đúng cách mới cho vị ngọt hậu đặc trưng.</p><h2>Cách 1: Hãm nguyên bông</h2><ul><li>Dùng 1 bông atiso khô cho bình 1–1,5L nước sôi 95–100°C.</li><li>Hãm 7–10 phút, rót ra hết, không ngâm lâu sẽ đắng.</li> | assets/images/cay_tam_that.png | 4 | published | 2026-09-28 08:00:00 | 48 | 2026-10-02 16:54:28 | 2026-10-04 10:33:09
 | 6 | 3 | Củ tam thất: phân loại, liều dùng và ai nên tránh | cu-tam-that-phan-loai-liet-dung | Tam thất bột, tam thất củ tươi, hoa tam thất — mỗi loại một công dụng và liều khác nhau. Đọc trước khi dùng để không phí tiền và an toàn. | <p>Tam thất (<i>Panax pseudo-ginseng</i>) là dược liệu quý vùng núi cao, phổ biến nhất là tam thất Bắc và tam thất Nam.</p><h2>1. Phân loại nhanh</h2><ul><li><b>Củ tam thất khô</b>: thái lát hãm trà hoặc tán bột uống.</li><li><b>Bột tam thất</b>: tiệ | assets/images/cay_tam_that.png | 6 | published | 2026-10-01 08:00:00 | 32 | 2026-10-02 16:54:28 | 2026-10-04 05:12:12

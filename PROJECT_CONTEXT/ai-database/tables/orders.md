@@ -1,11 +1,11 @@
 # Bảng `orders`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-04T08:23:27+00:00
+> Bản cập nhật lúc: 2026-10-05T11:13:39+00:00
 
 ## Thông tin chung
 
-- Số bản ghi: **6**
+- Số bản ghi: **8**
 - Dữ liệu đầy đủ (JSON Lines, 1 dòng = 1 bản ghi): `data/orders.jsonl`
 
 ## Cấu trúc (columns)
@@ -47,24 +47,24 @@
 
 ## Thống kê dữ liệu
 
-- `id`: min = 1, max = 6 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `4` (1), `5` (1), `6` (1)
-- `order_number`: giá trị phổ biến: `TMX-20260925-G7RPB` (1), `TMX-20260925-MGPRW` (1), `TMX-20260926-ZHUIR` (1), `TMX-20261001-OBH6P` (1), `TMX-20261001-UM4P1` (1), `TMX-20261004-BD1NH` (1)
-- `customer_name`: giá trị phổ biến: `Quyết Lưu` (4), `LV Quyết` (2)
-- `customer_phone`: giá trị phổ biến: `0352806324` (6)
-- `customer_email`: giá trị phổ biến: `NULL` (4), `quyetluu217@gmail.com` (2)
-- `address_snapshot`: giá trị phổ biến: `{"name": "LV Quyết", "ward": "", "email": "quyetluu217@gmail.com", "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Phú Nhuận", "province": "Hồ Chí Minh"}` (2), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Quận 3", "province": "Hà Nội"}` (1), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Thủ Đức", "province": "Hà Nội"}` (1), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Quận 3", "province": "Hồ Chí Minh"}` (1), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Phú Nhuận", "province": "Hà Nội"}` (1)
-- `note`: giá trị phổ biến: `NULL` (5), `asdasd` (1)
-- `subtotal`: min = 145000, max = 3292600 — giá trị phổ biến: `2265000` (1), `145000` (1), `560000` (1), `1989500` (1), `283800` (1), `3292600` (1)
-- `discount_amount`: min = 0, max = 56000 — giá trị phổ biến: `0` (4), `56000` (1), `30000` (1)
-- `coupon_id`: min = 1, max = 4 — giá trị phổ biến: `NULL` (4), `1` (1), `4` (1)
-- `coupon_code_snapshot`: giá trị phổ biến: `NULL` (4), `SALETO500K` (1), `SALETO300K` (1)
-- `shipping_fee`: min = 0, max = 30000 — giá trị phổ biến: `0` (4), `20000` (1), `30000` (1)
-- `total`: min = 165000, max = 3292600 — giá trị phổ biến: `2265000` (1), `165000` (1), `504000` (1), `1989500` (1), `283800` (1), `3292600` (1)
-- `payment_method`: giá trị phổ biến: `cod` (6)
-- `payment_status`: giá trị phổ biến: `pending` (6)
-- `status`: giá trị phổ biến: `new` (6)
-- `created_at`: min = 2026-09-25 04:15:13, max = 2026-10-04 05:30:34 — giá trị phổ biến: `2026-09-25 04:15:13` (1), `2026-09-25 04:24:20` (1), `2026-09-26 09:40:05` (1), `2026-10-01 08:38:38` (1), `2026-10-01 09:02:58` (1), `2026-10-04 05:30:34` (1)
-- `updated_at`: min = 2026-09-25 04:15:13, max = 2026-10-04 05:30:34 — giá trị phổ biến: `2026-09-25 04:15:13` (1), `2026-09-25 04:24:20` (1), `2026-09-26 09:40:05` (1), `2026-10-01 08:38:38` (1), `2026-10-01 09:02:58` (1), `2026-10-04 05:30:34` (1)
+- `id`: min = 1, max = 8 — giá trị phổ biến: `1` (1), `2` (1), `3` (1), `4` (1), `5` (1), `6` (1), `7` (1), `8` (1)
+- `order_number`: giá trị phổ biến: `TMX-20260925-G7RPB` (1), `TMX-20260925-MGPRW` (1), `TMX-20260926-ZHUIR` (1), `TMX-20261001-OBH6P` (1), `TMX-20261001-UM4P1` (1), `TMX-20261004-4ZCDC` (1), `TMX-20261004-BD1NH` (1), `TMX-20261004-GCXRA` (1)
+- `customer_name`: giá trị phổ biến: `Quyết Lưu` (5), `LV Quyết` (2), `Q` (1)
+- `customer_phone`: giá trị phổ biến: `0352806324` (7), `0362795897` (1)
+- `customer_email`: giá trị phổ biến: `NULL` (6), `quyetluu217@gmail.com` (2)
+- `address_snapshot`: giá trị phổ biến: `{"name": "LV Quyết", "ward": "", "email": "quyetluu217@gmail.com", "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Phú Nhuận", "province": "Hồ Chí Minh"}` (2), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Quận 3", "province": "Hồ Chí Minh"}` (2), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Quận 3", "province": "Hà Nội"}` (1), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Thủ Đức", "province": "Hà Nội"}` (1), `{"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Phú Nhuận", "province": "Hà Nội"}` (1), `{"name": "Q", "ward": "", "email": null, "phone": "0362795897", "detail": "số 1", "district": "Phú Nhuận", "province": "Đà Nẵng"}` (1)
+- `note`: giá trị phổ biến: `NULL` (7), `asdasd` (1)
+- `subtotal`: min = 145000, max = 3292600 — giá trị phổ biến: `2265000` (1), `145000` (1), `560000` (1), `1989500` (1), `283800` (1), `3292600` (1), `1642100` (1), `1283350` (1)
+- `discount_amount`: min = 0, max = 56000 — giá trị phổ biến: `0` (4), `9000` (2), `56000` (1), `30000` (1)
+- `coupon_id`: min = 1, max = 4 — giá trị phổ biến: `NULL` (4), `2` (2), `1` (1), `4` (1)
+- `coupon_code_snapshot`: giá trị phổ biến: `NULL` (4), `SALE9K` (2), `SALETO500K` (1), `SALETO300K` (1)
+- `shipping_fee`: min = 0, max = 30000 — giá trị phổ biến: `0` (6), `20000` (1), `30000` (1)
+- `total`: min = 165000, max = 3292600 — giá trị phổ biến: `2265000` (1), `165000` (1), `504000` (1), `1989500` (1), `283800` (1), `3292600` (1), `1633100` (1), `1274350` (1)
+- `payment_method`: giá trị phổ biến: `cod` (8)
+- `payment_status`: giá trị phổ biến: `pending` (8)
+- `status`: giá trị phổ biến: `new` (8)
+- `created_at`: min = 2026-09-25 04:15:13, max = 2026-10-04 14:43:50 — giá trị phổ biến: `2026-09-25 04:15:13` (1), `2026-09-25 04:24:20` (1), `2026-09-26 09:40:05` (1), `2026-10-01 08:38:38` (1), `2026-10-01 09:02:58` (1), `2026-10-04 05:30:34` (1), `2026-10-04 10:32:24` (1), `2026-10-04 14:43:50` (1)
+- `updated_at`: min = 2026-09-25 04:15:13, max = 2026-10-04 14:43:50 — giá trị phổ biến: `2026-09-25 04:15:13` (1), `2026-09-25 04:24:20` (1), `2026-09-26 09:40:05` (1), `2026-10-01 08:38:38` (1), `2026-10-01 09:02:58` (1), `2026-10-04 05:30:34` (1), `2026-10-04 10:32:24` (1), `2026-10-04 14:43:50` (1)
 
 ## Mẫu dữ liệu
 
@@ -76,3 +76,5 @@
 | 4 | TMX-20261001-OBH6P | NULL | Quyết Lưu | 0352806324 | NULL | {"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Quận 3", "province": "Hồ Chí Minh"} | NULL | 1989500 | 0 | NULL | NULL | 0 | 1989500 | cod | pending | new | NULL | NULL | 2026-10-01 08:38:38 | 2026-10-01 08:38:38
 | 5 | TMX-20261001-UM4P1 | NULL | LV Quyết | 0352806324 | quyetluu217@gmail.com | {"name": "LV Quyết", "ward": "", "email": "quyetluu217@gmail.com", "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Phú Nhuận", "province": "Hồ Chí Minh"} | NULL | 283800 | 30000 | 4 | SALETO300K | 30000 | 283800 | cod | pending | new | NULL | NULL | 2026-10-01 09:02:58 | 2026-10-01 09:02:58
 | 6 | TMX-20261004-BD1NH | NULL | Quyết Lưu | 0352806324 | NULL | {"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Phú Nhuận", "province": "Hà Nội"} | NULL | 3292600 | 0 | NULL | NULL | 0 | 3292600 | cod | pending | new | NULL | NULL | 2026-10-04 05:30:34 | 2026-10-04 05:30:34
+| 7 | TMX-20261004-GCXRA | NULL | Quyết Lưu | 0352806324 | NULL | {"name": "Quyết Lưu", "ward": "", "email": null, "phone": "0352806324", "detail": "CT3 Yên Nghĩa - Hà Đông", "district": "Quận 3", "province": "Hồ Chí Minh"} | NULL | 1642100 | 9000 | 2 | SALE9K | 0 | 1633100 | cod | pending | new | NULL | NULL | 2026-10-04 10:32:24 | 2026-10-04 10:32:24
+| 8 | TMX-20261004-4ZCDC | NULL | Q | 0362795897 | NULL | {"name": "Q", "ward": "", "email": null, "phone": "0362795897", "detail": "số 1", "district": "Phú Nhuận", "province": "Đà Nẵng"} | NULL | 1283350 | 9000 | 2 | SALE9K | 0 | 1274350 | cod | pending | new | NULL | NULL | 2026-10-04 14:43:50 | 2026-10-04 14:43:50

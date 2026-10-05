@@ -1,2 +1,4 @@
 {"id":1,"coupon_id":1,"user_id":null,"order_id":3,"discount_amount":56000,"created_at":"2026-09-26 09:40:05","updated_at":"2026-09-26 09:40:05"}
 {"id":2,"coupon_id":4,"user_id":null,"order_id":5,"discount_amount":30000,"created_at":"2026-10-01 09:02:58","updated_at":"2026-10-01 09:02:58"}
+{"id":3,"coupon_id":2,"user_id":null,"order_id":7,"discount_amount":9000,"created_at":"2026-10-04 10:32:24","updated_at":"2026-10-04 10:32:24"}
+{"id":4,"coupon_id":2,"user_id":null,"order_id":8,"discount_amount":9000,"created_at":"2026-10-04 14:43:50","updated_at":"2026-10-04 14:43:50"}
