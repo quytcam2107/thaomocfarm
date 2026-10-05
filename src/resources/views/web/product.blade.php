@@ -6,6 +6,25 @@
         <x-product.schema :product="$product" />
     </x-slot>
 
+    {{-- NEW LIGHTGALLERY: riêng trang chi tiết sản phẩm nạp vendor CSS + JS
+    (self-host public/assets/vendor/lightgallery — xem lệnh tải Bước 0).
+    THỨ TỰ JS PHẢI ĐÚNG: core -> plugin -> (app.js do layout render sau stack).
+    Plugin caption KHÔNG tồn tại trong lightgallery@2.8.x — subHtml do core
+    render nên không cần nạp. --}}
+    @push('vendorStyles')
+        <link rel="stylesheet" href="{{ asset('assets/vendor/lightgallery/lightgallery-bundle.min.css') }}">
+    @endpush
+
+    @push('vendorScripts')
+        <script src="{{ asset('assets/vendor/lightgallery/lightgallery.umd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/lightgallery/lg-zoom.umd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/lightgallery/lg-thumbnail.umd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/lightgallery/lg-autoplay.umd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/lightgallery/lg-share.umd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/lightgallery/lg-fullscreen.umd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/vendor/lightgallery/lg-pager.umd.min.js') }}" defer></script>
+    @endpush
+
     <div class="container">
         <x-ui.breadcrumb :items="$breadcrumbs" />
 

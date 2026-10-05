@@ -1,6 +1,7 @@
 /**
  * APP PRODUCT — countdown flash sale (home + PDP), gallery thumbs + vuốt ảnh,
- * nút chia sẻ, tabs ARIA, Buy Now. Loader chỉ nạp khi có một trong các marker:
+ * phóng to ảnh bằng LIGHTGALLERY.JS, nút chia sẻ, tabs ARIA, Buy Now.
+ * Loader chỉ nạp khi có một trong các marker:
  * .countdown[data-ends] / [data-pd-flash] / .pd-thumbs / [role="tab"] / #buyNow,#buyNowMobile.
  */
 import { q, qa, toast } from '@tm/core';
@@ -60,24 +61,21 @@ if (pdBox) {
    2) Ngưỡng vuốt hạ 28px -> 12px + cancel native drag (dragstart.preventDefault)
       để chuột kéo trên ảnh không bị HTML5 image-drag cắt mất pointermove.
    3) Chặn click "dư" sau vuốt bằng flag gallerySuppressClick (KHAI BÁO CỤC BỘ
-      trong block này — đổi tên từ suppressClick để không nhầm với scope khác)
-      + capture-phase click listener (chỉ chặn khi quãng di chuyển >= ngưỡng
-      thật sự là vuốt). NEW: giá trị flag còn được đồng bộ sang
-      window.__pdGallerySuppressClick để lightbox đọc được -> vuốt/lướt chuột
-      trên ảnh to KHÔNG bao giờ mở lightbox phóng to.
-   - FIX YÊU CẦU MỚI NHẤT (desktop): pointerdown chỉ theo dõi vuốt khi nhấn
-     CHUỘT TRÁI (button===0); hover thuần không sinh action nào, con trỏ là
-     HÌNH BÀN TAY (không icon kính lúp +, không cursor zoom-in). Chỉ CLICK
-     chuột trái thật sự vào ảnh to mới mở lightbox.
+      trong block này) + đồng bộ sang window.__pdGallerySuppressClick để khối
+      lightgallery đọc được -> vuốt/lướt chuột trên ảnh to KHÔNG bao giờ mở
+      phóng to ("lướt chuột là tự zoom").
+   - Desktop: pointerdown chỉ theo dõi vuốt khi nhấn CHUỘT TRÁI (button===0);
+     hover thuần không sinh action nào, con trỏ là HÌNH BÀN TAY (không icon
+     kính lúp +, không cursor zoom-in). Chỉ CLICK chuột trái thật sự vào ảnh
+     to mới mở phóng to.
    - Wrap-around: ẢNH CUỐI vuốt trái -> về ảnh ĐẦU, ẢNH ĐẦU vuốt phải -> ra
-     ảnh cuối (chỉ áp dụng cho VUỐT; NÚT prev/next thì stop ở biên — xem
-     updateNavState bên dưới).
-   - NEW DISABLED Ở BIÊN: nút prev disabled khi đang xem ảnh đầu, nút next
-     disabled khi đang xem ảnh cuối. Blade render sẵn prev disabled (trang
-     luôn mở đầu ở ảnh 1) để đúng cả trước khi JS chạy; updateNavState()
-     đồng bộ lại sau MỌI lần đổi ảnh (nút / thumb / vuốt).
+     ảnh cuối (chỉ áp dụng cho VUỐT; NÚT prev/next thì stop ở biên).
+   - DISABLED Ở BIÊN: nút prev disabled khi đang xem ảnh đầu, nút next disabled
+     khi đang xem ảnh cuối. Blade render sẵn prev disabled (trang luôn mở đầu
+     ở ảnh 1) để đúng cả trước khi JS chạy; updateNavState() đồng bộ lại sau
+     MỌI lần đổi ảnh (nút / thumb / vuốt).
    - Hiệu ứng chuyển ảnh MƯỢT THEO HƯỚNG (FIX GIẬT HÌNH): không chạy animation
-     trên <img> thật nữa mà trên 2 lớp phủ .pd-stage__fx (Blade render khi >1
+     trên #pdStageImg nữa mà trên 2 lớp phủ .pd-stage__fx (Blade render khi >1
      ảnh) — ảnh CŨ đứng lại + mờ dần, ảnh MỚI chờ load xong rồi slide vào từ
      mép trái/phải tùy hướng; keyframes pdImgOut / pdImgInFromLeft/Right trong
      07-product-detail.css. Chi tiết xem khối fxPlay bên dưới.
@@ -92,26 +90,24 @@ if (stage && thumbs.length) {
     const thumbsWrap = q('.pd-thumbs-wrap'); /* cha flex chứa 2 nút prev/next nhỏ */
     let current = parseInt(stage.dataset.index || '0', 10) || 0;
     /* Flag chặn click "dư" phát ra sau một cú vuốt thật (desktop + mobile).
-       FIX YÊU CẦU MỚI NHẤT: đồng bộ sang window.__pdGallerySuppressClick để
-       lightbox (initPdZoom bên dưới) đọc được qua isSuppressed() — nhờ đó
-       CLICK DƯ sau vuốt chuột trên ảnh to KHÔNG bao giờ mở lightbox
-       ("lướt chuột là tự zoom" như bản cũ). */
+       Đồng bộ sang window.__pdGallerySuppressClick để lightgallery đọc được —
+       nhờ đó CLICK DƯ sau vuốt chuột trên ảnh to KHÔNG bao giờ mở phóng to. */
     let gallerySuppressClick = false;
     window.__pdGallerySuppressClick = false;
     const setGallerySuppress = (v) => {
         gallerySuppressClick = v;
-        window.__pdGallerySuppressClick = v; // chia sẻ trạng thái cho lightbox
+        window.__pdGallerySuppressClick = v; // chia sẻ trạng thái cho lightgallery
     };
 
     /* =================================================================
-       FIX NEW: 2 nút prev/next của HÀNG THUMBS chỉ hiện khi hàng thumbs
-       THỰC SỰ tràn ngang (còn ảnh ngoài tầm nhìn -> cần vuốt).
+       2 nút prev/next của HÀNG THUMBS chỉ hiện khi hàng thumbs THỰC SỰ
+       tràn ngang (còn ảnh ngoài tầm nhìn -> cần vuốt).
        - Blade render sẵn 2 span [data-thumbs-nav] với attribute `hidden`
          => mặc định ẩn trên MỌI màn hình, kể cả khi JS chưa kịp chạy.
        - updateThumbsNav() đo scrollWidth > clientWidth (+2px dung sai):
          * không tràn -> ẩn 2 nút + data-cols="auto": hàng thumbs co về
-           đúng khổ nội dung (không giữ 76px slot nút thừa -> khỏi lệch
-           tâm so với khung ảnh to).
+           đúng khổ nội dung (không giữ slot nút thừa -> khỏi lệch tâm so
+           với khung ảnh to).
          * tràn -> hiện 2 nút + data-cols="fill": hàng thumbs chiếm phần
            còn lại của cột và cuộn trong phạm vi đó.
        - ResizeObserver (fallback: resize/load) => ĐÚNG TRÊN MỌI KÍCH
@@ -141,9 +137,9 @@ if (stage && thumbs.length) {
     [50, 300, 800].forEach(ms => setTimeout(updateThumbsNav, ms));
 
     /* =================================================================
-       DISABLED NÚT prev/next Ở 2 BIÊN (mới):
+       DISABLED NÚT prev/next Ở 2 BIÊN:
        - prev (data-pd-edge="first") disabled khi current === 0 (đang xem ảnh đầu)
-       - next (data-pd-edge="last")  disabled khi current === n-1 (đang xem ảnh cuối)
+       - next (data-pd-edge="last")  disabled khi current >= n-1 (đang xem ảnh cuối)
        - Áp cho CẢ 4 nút: 2 nút overlay trên ảnh to + 2 nút nhỏ cạnh hàng thumbs.
        - Gọi ngay khi module chạy + sau MỌI lần goTo() để trạng thái luôn đúng;
          vì disabled nên trình duyệt tự không phát click -> không cần chặn thêm.
@@ -159,7 +155,7 @@ if (stage && thumbs.length) {
     }
 
     /* =================================================================
-       NEW (CHỐNG GIẬT + SLIDE THEO HƯỚNG): hiệu ứng chuyển ảnh KHÔNG chạy
+       (CHỐNG GIẬT + SLIDE THEO HƯỚNG): hiệu ứng chuyển ảnh KHÔNG chạy
        trên #pdStageImg nữa (đó chính là thủ phạm "giật đùng đùng": animation
        bắt đầu ngay khi gán src -> ảnh chưa tải, khung nhảy trắng). Thay vào
        đó dùng 2 lớp phủ .pd-stage__fx do Blade render sẵn khi có >1 ảnh:
@@ -238,7 +234,7 @@ if (stage && thumbs.length) {
         stage.dataset.index = String(i);
         thumbs.forEach(b => b.setAttribute('aria-current', String(b === btn)));
         if (counter) counter.textContent = `${i + 1}/${n}`;
-        /* NEW: bật/tắt 2 nút prev/next theo vị trí ảnh hiện tại */
+        /* Bật/tắt 2 nút prev/next theo vị trí ảnh hiện tại */
         updateNavState();
         /* FIX GIẬT HÌNH: hiệu ứng chuyển mượt THEO HƯỚNG chạy trên 2 lớp phủ
            .pd-stage__fx (JS chờ ảnh mới load xong mới khởi động). dir='prev'
@@ -261,17 +257,17 @@ if (stage && thumbs.length) {
 
     /* Nút prev/next (overlay trên ảnh to + 2 nút nhỏ cạnh hàng thumbs).
        Dùng click + stopPropagation: nếu là hệ quả của vuốt thì đã bị
-       gallerySuppressClick chặn ở capture phase bên dưới.
-       NEW: guard btn.disabled — khi đang ở biên (prev: ảnh đầu, next: ảnh cuối)
-       trình duyệt đã không phát click; guard này chặn thêm cả trường hợp
-       sự kiện tổng hợp (keyboard/JS) lọt tới -> hết wrap-around qua NÚT. */
+       gallerySuppressClick chặn. Guard btn.disabled — khi đang ở biên
+       (prev: ảnh đầu, next: ảnh cuối) trình duyệt đã không phát click;
+       guard này chặn thêm cả trường hợp sự kiện tổng hợp (keyboard/JS)
+       lọt tới -> hết wrap-around qua NÚT. */
     qa('[data-pd-nav]').forEach(btn => btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (btn.disabled) return; // đã ở biên -> không đổi ảnh, không wrap
         if (gallerySuppressClick) return; // vừa vuốt xong -> bỏ qua click dư
         const delta = parseInt(btn.dataset.pdNav, 10) || 0;
-        /* NEW: truyền hướng tương ứng ('prev' nếu lùi, 'next' nếu tới) để hiệu
+        /* Truyền hướng tương ứng ('prev' nếu lùi, 'next' nếu tới) để hiệu
            ứng slide vào đúng chiều mũi tên bấm */
         goTo(current + delta, delta < 0 ? 'prev' : 'next');
     }));
@@ -284,19 +280,17 @@ if (stage && thumbs.length) {
         let sx = 0, sy = 0, swiping = false, pid = null, captured = false;
 
         stageBox.addEventListener('pointerdown', e => {
-            /* FIX YÊU CẦU MỚI NHẤT (desktop): chỉ theo dõi vuốt khi nhấn CHUỘT
-               TRÁI (button===0) hoặc pointer cảm ứng — rê chuột với phím khác
-               không được kích hoạt logic vuốt/zoom */
+            /* Desktop: chỉ theo dõi vuốt khi nhấn CHUỘT TRÁI (button===0) hoặc
+               pointer cảm ứng — rê chuột với phím khác không kích hoạt vuốt/zoom */
             if (e.pointerType === 'mouse' && e.button !== 0) { swiping = false; return; }
             swiping = true;
             sx = e.clientX;
             sy = e.clientY;
             pid = e.pointerId;
             captured = false;
-            /* FIX #1: KHÔNG capture khi bấm vào nút prev/next overlay —
-               capture sẽ cướp click của button (nguyên nhân "bấm nút không đổi ảnh").
-               Với pointer chuột trên ảnh: capture giúp theo dõi cả khi con trỏ
-               rời khỏi khung giữa chừng. */
+            /* KHÔNG capture khi bấm vào nút prev/next overlay — capture sẽ cướp
+               click của button (nguyên nhân "bấm nút không đổi ảnh"). Với pointer
+               chuột trên ảnh: capture giúp theo dõi cả khi con trỏ rời khỏi khung. */
             const onNavBtn = !!e.target.closest('[data-pd-nav]');
             if (!onNavBtn) {
                 try { stageBox.setPointerCapture(pid); captured = true; } catch (_) { /* browser cũ: bỏ qua */ }
@@ -327,16 +321,168 @@ if (stage && thumbs.length) {
         stageBox.addEventListener('pointerup', endSwipe);
         stageBox.addEventListener('pointercancel', endSwipe);
 
-        /* FIX #2: chặn HTML5 native image drag trong khung ảnh — native drag
-           cắt stream pointermove giữa chừng khiến vuốt bằng chuột không đạt ngưỡng. */
+        /* Chặn HTML5 native image drag trong khung ảnh — native drag cắt stream
+           pointermove giữa chừng khiến vuốt bằng chuột không đạt ngưỡng. */
         stageBox.addEventListener('dragstart', e => e.preventDefault());
     }
 
     stage.dataset.index = String(current);
-    /* NEW: đồng bộ disabled prev/next ngay lần render đầu (ảnh 1 -> prev disabled,
+    /* Đồng bộ disabled prev/next ngay lần render đầu (ảnh 1 -> prev disabled,
        ảnh cuối -> next disabled) — phòng hờ JS chạy sau khi đã có data-index */
     updateNavState();
 }
+
+/* =====================================================================
+   PHÓNG TO ẢNH BẰNG LIGHTGALLERY.JS (THAY lightbox tự chế #pdZoomViewer).
+
+   SỬA 2 LỖI ĐƯỢC BÁO:
+   A) "Lỗi font ở các nút" (toolbar hiện ô vuông □/ký tự lạ):
+      - Nguyên nhân: icon lightgallery là FONT-SYMBOL (family "lg", escape
+        \e0xx). Vendor font KHÔNG được tải -> browser render glyph khuyết.
+      - Fix: self-host đủ lg.woff2/woff/ttf/svg vào
+        public/assets/vendor/lightgallery/fonts/ (Bước 0) + @font-face chốt
+        đường dẫn asset() tuyệt đối trong partial 07.
+      - Phòng vệ: hàm ensureVendorReady() dưới đây CHỜ window.lightGallery
+        xuất hiện (vendor <script defer> có thể迟到 hơn module ES) -> tránh
+        trường hợp bấm ảnh lúc vendor chưa load rồi lightbox mở "nửa vời".
+   B) "Chưa đầy đủ công cụ":
+      - Core UMD KHÔNG kèm plugin. Phải nạp lg-zoom/lg-thumbnail/lg-autoplay/
+        lg-share/lg-fullscreen/lg-pager (Blade @push) VÀ truyền vào
+        settings.plugins — thiếu 1 trong 2 đều mất nút.
+      - Plugin caption KHÔNG tồn tại trong lightgallery@2.8.x: caption
+        data-sub-html do core render -> không nạp, không khai báo.
+      - settings.download:true -> core tự thêm nút Tải ảnh (không phải plugin).
+      - mobileSettings.controls:true -> trên điện thoại toolbar VẪN hiện đủ
+        (mặc định của lib là ẨN toolbar trên mobile = "thiếu công cụ" trên
+        mobile, phải ghi đè).
+   - Nguồn slide: các <a data-src/data-thumb/data-sub-html/data-download-url>
+     trong #lgGalleryRoot (Blade render từ $images).
+   - Dynamic mode + create/destroy mỗi lần mở -> không tồn tại DOM lightgallery
+     khi đóng, không trùng toolbar, không rò rỉ listener.
+   - Trigger mở DUY NHẤT: [data-pd-zoom="stage"] (CLICK chuột trái / CHẠM vào
+     ảnh to). Hàng thumbs bấm vẫn CHỈ đổi ảnh lớn.
+   - Chặn "tự zoom khi lướt chuột": đọc window.__pdGallerySuppressClick +
+     e.button !== 0 + bỏ qua click vào nút prev/next và .pd-counter.
+   - Fallback: vendor thiếu -> console.warn, KHÔNG phá gallery hiện có.
+   ===================================================================== */
+(function initLightGallery() {
+    const lgRoot = q('#lgGalleryRoot');
+    if (!lgRoot) return; // trang không phải PDP -> bỏ qua
+
+    let wrapper = null;   // element tạm承载 dynamic items (chỉ tồn tại khi mở)
+    let lgInstance = null;
+
+    /* Đọc danh sách ảnh từ Blade (nguồn duy nhất, trùng data-full hàng thumbs)
+       -> mảng dynamic mode của lightgallery */
+    function collectItems() {
+        return qa('a[data-src]', lgRoot).map(a => ({
+            src: a.getAttribute('data-src'),
+            thumb: a.getAttribute('data-thumb') || a.getAttribute('data-src'),
+            subHtml: a.getAttribute('data-sub-html') || '',
+            downloadUrl: a.getAttribute('data-download-url') || a.getAttribute('data-src'),
+        })).filter(it => it.src);
+    }
+
+    /* Danh sách plugin: lấy global do các file UMD expose; lọc bỏ plugin chưa
+       tải để không crash (VD user quên 1 file curl) — log rõ file nào thiếu. */
+    function resolvePlugins() {
+        const wanted = [
+            ['lgZoom', 'lg-zoom.umd.min.js'],
+            ['lgThumbnail', 'lg-thumbnail.umd.min.js'],
+            ['lgAutoplay', 'lg-autoplay.umd.min.js'],
+            ['lgShare', 'lg-share.umd.min.js'],
+            ['lgFullscreen', 'lg-fullscreen.umd.min.js'],
+            ['lgPager', 'lg-pager.umd.min.js'],
+        ];
+        const plugins = [];
+        wanted.forEach(([name, file]) => {
+            if (typeof window[name] === 'function') plugins.push(window[name]);
+            else console.warn('[lightgallery] thiếu plugin ' + name + ' — kiểm tra public/assets/vendor/lightgallery/' + file);
+        });
+        return plugins;
+    }
+
+    function openGallery(index) {
+        if (typeof window.lightGallery !== 'function') {
+            console.warn('[lightgallery] vendor JS chưa tải — kiểm tra public/assets/vendor/lightgallery/');
+            return;
+        }
+        const items = collectItems();
+        if (!items.length) return;
+
+        /* Wrapper tạm chứa dynamic items — settings.container phải là cha của el */
+        wrapper = document.createElement('div');
+        wrapper.className = 'lg-dynamic-host';
+        const host = q('.pd-gallery') || document.body;
+        host.appendChild(wrapper);
+
+        lgInstance = window.lightGallery(wrapper, {
+            dynamic: true,
+            dynamicEl: items,
+            index: Math.min(Math.max(index, 0), items.length - 1),
+            plugins: resolvePlugins(),   // <-- ĐỦ CÔNG CỤ: zoom/thumb/autoplay/share/fullscreen/pager
+            download: true,              // nút Tải ảnh (core built-in)
+            counter: true,               // "i / n" góc toolbar
+            closable: true,
+            closeOnTap: true,            // chạm nền đóng
+            hideScrollbar: true,
+            loop: true,                  // tới ảnh cuối bấm next quay về đầu (trong lightbox)
+            speed: 280,
+            zoomMax: 4,                  // khớp mức zoom tối đa 4x của lightbox cũ
+            actualSize: true,            // nút "1:1 / xem kích thước thật"
+            showZoomInOut: true,         // explicit +/- trong toolbar
+            doubleTapZoom: 2,            // mobile double-tap -> 2x
+            pinchZoom: true,             // pinch 2 ngón (zoom plugin)
+            addClass: 'lg-tm-theme',     // hook theme xanh Thảo Mộc trong CSS
+            /* mobileSettings.controls mặc định = false => ẨN toolbar trên phone.
+               Bật lên true để mobile cũng đủ công cụ (mục B ở trên). */
+            mobileSettings: { controls: true, showCloseIcon: true, download: true },
+            /* Việt hóa TOÀN BỘ label/tooltip/aria (contract UI tiếng Việt):
+               strings core + strings từng plugin — thiếu key nào plugin tự fallback
+               tiếng Anh, nên khai báo đủ cả 6 bộ. */
+            strings: {
+                closeGallery: 'Đóng',
+                toggleMaximize: 'Toàn màn hình',
+                previousSlide: 'Ảnh trước',
+                nextSlide: 'Ảnh sau',
+                download: 'Tải ảnh',
+                playVideo: 'Chạy video',
+                mediaLoadingFailed: 'Không tải được ảnh…',
+            },
+            zoomPluginStrings: {
+                zoomIn: 'Phóng to',
+                zoomOut: 'Thu nhỏ',
+                viewActualSize: 'Kích thước thật',
+            },
+            thumbnailPluginStrings: { toggleThumbnails: 'Dải ảnh nhỏ' },
+            autoplayPluginStrings: { toggleAutoplay: 'Chạy slideshow' },
+            sharePluginStrings: { share: 'Chia sẻ' },
+            fullscreenPluginStrings: { toggleFullscreen: 'Toàn màn hình' },
+            pagerPluginStrings: { currentPage: 'Trang hiện tại', totalNoOfPages: 'Tổng số trang' },
+        });
+
+        /* Đóng -> destroy + xóa wrapper: không để lại DOM lightgallery trên trang */
+        wrapper.addEventListener('lgAfterClose', () => {
+            try { if (lgInstance && typeof lgInstance.destroy === 'function') lgInstance.destroy(); } catch (_) { }
+            lgInstance = null;
+            if (wrapper) { wrapper.remove(); wrapper = null; }
+        });
+
+        lgInstance.openGallery();
+    }
+
+    /* Delegate click trên document (bind 1 lần, không lo timing DOM) */
+    document.addEventListener('click', e => {
+        if (lgInstance) return;                                // đang mở -> ignore
+        if (e.button !== undefined && e.button !== 0) return;  // chỉ chuột trái
+        if (window.__pdGallerySuppressClick) return;           // click dư sau vuốt
+        if (e.target.closest('[data-pd-nav], .pd-counter')) return; // nút prev/next/counter
+        if (!e.target.closest('[data-pd-zoom="stage"]')) return;
+        e.preventDefault();
+        const idx = parseInt((q('#pdStageImg') || {}).dataset?.index || '0', 10) || 0;
+        openGallery(idx);
+    });
+})();
 
 /* =====================================================================
    PD SHARE: hàng nút chia sẻ dưới .pd-thumbs — chỉ render khi SP đang
@@ -488,302 +634,3 @@ document.addEventListener('click', e => {
     e.preventDefault();
     buyNow(btn);
 });
-
-/* =====================================================================
-   PHÓNG TO ẢNH (LIGHTBOX) — FIX LỖI "suppressClick is not defined":
-   suppressClick là biến KHAI BÁO CỤC BỘ trong block gallery bên trên
-   (`let suppressClick = false;` trong if (stage && thumbs.length)) ->
-   không nhìn thấy được từ scope toàn cục. Bản vá cũ chèn code zoom ở
-   NGOÀI block nên tham chiếu biến này bị ReferenceError.
-   => Lightbox dùng cờ RIÊNG `zoomSuppressClick` (khai báo ngay trong
-   scope initPdZoom), không phụ thuộc block gallery.
-
-   FIX YÊU CẦU MỚI (hành vi bấm/chạm):
-   - Trigger mở DUY NHẤT: [data-pd-zoom="stage"] — CLICK (desktop) hoặc
-     CHẠM (mobile) vào ẢNH TO .pd-stage. Không có trigger nào khác.
-   - Hàng thumbs (.pd-thumbs-wrap): bấm thumb luôn CHỈ đổi ảnh lớn như
-     cũ, KHÔNG bao giờ mở lightbox (đã xóa hẳn branch data-pd-zoom="thumbs").
-   - FIX YÊU CẦU MỚI NHẤT (hành vi chuột trên desktop):
-     - CHỈ mở lightbox khi CLICK THẬT vào ảnh to: không đổi ảnh trong lúc rê
-       chuột (không có "lướt là tự zoom"), hover chỉ đổi con trỏ thành hình
-       BÀN TAY (cursor:pointer — đã xóa cursor:zoom-in và icon kính lúp +).
-     - Chặn click "dư" bằng gallerySuppressClick (khai báo cục bộ trong block
-       gallery, scope module — ánh xạ sang cờ zoomSuppressClick RIÊNG của
-       lightbox qua window.__pdGallerySuppressClick getter, xem bên dưới).
-   - Điều khiển: X / chạm nền / Esc đóng; prev-next + phím mũi tên +
-     vuốt đổi ảnh; pinch 2 ngón hoặc double-tap zoom 1x→2x→4x→1x kèm kéo
-     panoram khi đang zoom; scroll chuột phóng to/thu nhỏ (web).
-   ===================================================================== */
-const zoomOverlay = q('#pdZoomViewer');
-if (zoomOverlay) initPdZoom(zoomOverlay);
-
-function initPdZoom(overlay) {
-    const stageBox = q('[data-zoom-stage]', overlay);
-    const bigImg = q('[data-zoom-img]', overlay);
-    const counterEl = q('[data-zoom-counter]', overlay);
-    const closeBtn = q('[data-zoom-close]', overlay);
-    const navPrev = q('[data-zoom-nav="-1"]', overlay);
-    const navNext = q('[data-zoom-nav="1"]', overlay);
-
-    /* Danh sách ảnh full lấy từ data-full của hàng thumbs (nguồn duy nhất) */
-    const srcs = qa('.pd-thumbs button[data-full]').map(b => b.dataset.full);
-    let zi = 0;               // ảnh đang xem trong lightbox
-    let isOpen = false;
-    /* CỜ RIÊNG của lightbox — thay cho suppressClick cục bộ của block gallery.
-       FIX "lướt chuột là tự zoom": dùng GETTER đọc thẳng cờ vuốt của block
-       gallery (window.__pdGallerySuppressClick do block gallery cập nhật) +
-       cờ nội bộ zoomSuppressClick cho các vuốt BÊN TRONG lightbox. */
-    let zoomSuppressClick = false; // true tạm thời khi vừa vuốt xong trong lightbox
-    const isSuppressed = () => zoomSuppressClick || !!window.__pdGallerySuppressClick;
-
-    /* ====== Zoom/Pan state ====== */
-    let scale = 1, tx = 0, ty = 0;
-    let imgW = 0, imgH = 0;   // kích thước hiển thị thực tế của bigImg
-    let boxW = 0, boxH = 0;   // kích thước khung .pd-zoom__stage
-    const MAX_SCALE = 4, MIN_SCALE = 1;
-
-    function measure() {
-        const rStage = stageBox.getBoundingClientRect();
-        boxW = rStage.width; boxH = rStage.height;
-        const rImg = bigImg.getBoundingClientRect();
-        // rect đã bao gồm transform hiện tại -> chia scale để về kích thước gốc
-        imgW = rImg.width / (scale || 1);
-        imgH = rImg.height / (scale || 1);
-    }
-
-    function clampPan() {
-        const maxX = Math.max(0, (imgW * scale - boxW) / 2);
-        const maxY = Math.max(0, (imgH * scale - boxH) / 2);
-        tx = Math.min(maxX, Math.max(-maxX, tx));
-        ty = Math.min(maxY, Math.max(-maxY, ty));
-    }
-
-    function applyTransform() {
-        clampPan();
-        bigImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-        stageBox.classList.toggle('is-zoomed', scale > 1);
-    }
-
-    function resetView() {
-        scale = 1; tx = 0; ty = 0;
-        bigImg.style.transition = 'transform .2s ease';
-        applyTransform();
-        setTimeout(() => { bigImg.style.transition = ''; }, 220);
-    }
-
-    /* Phóng to quanh 1 điểm (x,y tính từ TÂM khung) — giữ đúng vùng dưới ngón/con trỏ */
-    function zoomAt(newScale, x, y) {
-        const ns = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
-        if (ns === scale) return;
-        const k = ns / scale;
-        tx = x - (x - tx) * k;
-        ty = y - (y - ty) * k;
-        scale = ns;
-        applyTransform();
-    }
-
-    function show(i) {
-        const n = srcs.length || 1;
-        zi = ((i % n) + n) % n;
-        if (srcs[zi]) bigImg.src = srcs[zi];
-        if (counterEl) counterEl.textContent = `${zi + 1}/${n}`;
-        resetView();
-        updateZoomNav();
-    }
-
-    /* Nút prev/next lightbox stop ở 2 biên (đồng bộ hành vi với gallery ngoài) */
-    function updateZoomNav() {
-        const n = srcs.length;
-        if (navPrev) navPrev.disabled = zi <= 0;
-        if (navNext) navNext.disabled = zi >= n - 1;
-    }
-
-    /* ====== Mở / đóng ====== */
-    function open(i) {
-        isOpen = true;
-        overlay.hidden = false;
-        document.body.classList.add('has-zoom');
-        show(i);
-        requestAnimationFrame(measure);
-        closeBtn && closeBtn.focus({ preventScroll: true });
-    }
-
-    function close() {
-        isOpen = false;
-        overlay.hidden = true;
-        document.body.classList.remove('has-zoom');
-        resetView();
-        /* Xóa src để browser KHÔNG preload bản full từ trang list — mỗi lần mở
-           sẽ request đúng 1 ảnh full đang chọn (tiết kiệm băng thông mobile) */
-        bigImg.removeAttribute('src');
-    }
-
-    /* ====== Trigger mở (delegation — bind 1 lần, không lo timing DOM) ======
-       FIX YÊU CẦU MỚI NHẤT (desktop): CHỈ CLICK TRÁI THẬT vào ảnh to mới mở
-       lightbox. Các cơ chế chặn "tự zoom khi lướt chuột":
-       1) e.button !== 0 -> bỏ qua (chuột phải/giữa).
-       2) isSuppressed() đọc gallerySuppressClick của block gallery (qua
-          window.__pdGallerySuppressClick) -> click dư phát ra sau một cú VUỐT
-          ngang trên ảnh to bị bỏ qua, chỉ đổi ảnh chứ không phóng to.
-       3) Ngưỡng vuốt 12px: rê chuột dưới 12px không tính là vuốt; trường hợp
-          này trình duyệt sinh click nhưng người dùng thực tế đã nhấc/đặt chuột
-          — hành vi chuẩn của mọi slider ảnh. Di chuột thuần (hover, không nhấn)
-          KHÔNG sinh click -> không bao giờ tự zoom.
-       Hàng thumbs .pd-thumbs-wrap: bấm thumb luôn CHỈ đổi ảnh lớn như cũ
-       (branch data-pd-zoom="thumbs" đã xóa hẳn). */
-    document.addEventListener('click', e => {
-        if (isOpen || overlay.contains(e.target)) return;
-        if (e.button !== undefined && e.button !== 0) return; // chỉ chuột trái
-        /* Vừa vuốt xong (ngoài gallery HOẶC trong lightbox) thì click "dư"
-           phát ra ngay sau pointerup -> bỏ qua, KHÔNG mở/đóng gì cả */
-        if (isSuppressed()) return;
-        /* KHÔNG mở lightbox khi pointer rơi vào nút prev/next hoặc counter
-           overlay trên ảnh to — 2 element này pointer-events:auto và nằm
-           TRONG [data-pd-zoom="stage"] nên closest() vẫn thấy stage; phải
-           chặn tường minh ở đây. */
-        if (e.target.closest('[data-pd-nav], .pd-counter')) return;
-        const stageTrigger = e.target.closest('[data-pd-zoom="stage"]');
-        if (stageTrigger) {
-            const idx = parseInt((q('#pdStageImg') || {}).dataset?.index || '0', 10) || 0;
-            open(idx);
-        }
-    });
-
-    /* Chặn click dư sau khi VUỐT TRONG LIGHTBOX bằng capture-phase listener */
-    overlay.addEventListener('click', e => {
-        if (zoomSuppressClick) { e.stopPropagation(); e.preventDefault(); }
-    }, true);
-
-    closeBtn && closeBtn.addEventListener('click', close);
-
-    /* Chấm nền (click đúng stage trống quanh ảnh) -> đóng */
-    overlay.addEventListener('click', e => {
-        if (e.target === overlay) close();
-    });
-
-    /* Keyboard: Esc đóng, mũi tên đổi ảnh, +/- zoom */
-    document.addEventListener('keydown', e => {
-        if (!isOpen) return;
-        if (e.key === 'Escape') { close(); return; }
-        if (e.key === 'ArrowLeft' && !navPrev?.disabled) show(zi - 1);
-        if (e.key === 'ArrowRight' && !navNext?.disabled) show(zi + 1);
-        if (e.key === '+' || e.key === '=') { measure(); zoomAt(scale * 1.4, 0, 0); }
-        if (e.key === '-') { measure(); zoomAt(scale / 1.4, 0, 0); }
-    });
-
-    /* Scroll chuột = phóng to/thu nhỏ tại vị trí con trỏ (chỉ web).
-       FIX YÊU CẦU MỚI NHẤT: thêm ngưỡng 6px — rê/di chuyển chuột thông thường
-       trên ảnh to KHÔNG được tự zoom; chỉ khi THỰC SỰ lăn con lăn (deltaY>=6)
-       mới đổi scale. */
-    stageBox && stageBox.addEventListener('wheel', e => {
-        if (!isOpen) return;
-        if (Math.abs(e.deltaY) < 6 && Math.abs(e.deltaX) < 6) return; // không phải lăn chuột thật -> bỏ qua
-        e.preventDefault();
-        measure();
-        const r = stageBox.getBoundingClientRect();
-        const px = e.clientX - r.left - boxW / 2;
-        const py = e.clientY - r.top - boxH / 2;
-        zoomAt(scale * (e.deltaY < 0 ? 1.25 : 0.8), px, py);
-    }, { passive: false });
-
-    navPrev && navPrev.addEventListener('click', () => show(zi - 1));
-    navNext && navNext.addEventListener('click', () => show(zi + 1));
-
-    /* ====== Cảm ứng trong lightbox: pinch / double-tap / pan / swipe ====== */
-    if (stageBox) {
-        const pts = new Map();          // pointerId -> {x, y}
-        let pinchStartDist = 0, pinchStartScale = 1;
-        let panStart = null;            // {x, y, tx, ty}
-        let swipe = null;               // {x, y, moved}
-        let lastTap = 0;
-
-        const dist2 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-        const mid2 = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-
-        stageBox.addEventListener('pointerdown', e => {
-            pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            try { stageBox.setPointerCapture(e.pointerId); } catch (_) { }
-            measure();
-            if (pts.size === 2) {
-                const [p1, p2] = [...pts.values()];
-                pinchStartDist = dist2(p1, p2);
-                pinchStartScale = scale;
-                swipe = null; panStart = null;
-            } else if (pts.size === 1) {
-                if (scale > 1) {
-                    panStart = { x: e.clientX, y: e.clientY, tx, ty };
-                } else {
-                    swipe = { x: e.clientX, y: e.clientY, moved: false };
-                }
-            }
-        });
-
-        stageBox.addEventListener('pointermove', e => {
-            if (!pts.has(e.pointerId)) return;
-            pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-            if (pts.size === 2 && pinchStartDist > 0) {
-                /* PINCH ZOOM quanh điểm giữa 2 ngón */
-                const [p1, p2] = [...pts.values()];
-                const m = mid2(p1, p2);
-                const r = stageBox.getBoundingClientRect();
-                zoomAt(pinchStartScale * (dist2(p1, p2) / pinchStartDist),
-                    m.x - r.left - boxW / 2, m.y - r.top - boxH / 2);
-                return;
-            }
-            if (panStart && scale > 1) {
-                /* Kéo panoram khi đang zoom */
-                tx = panStart.tx + (e.clientX - panStart.x);
-                ty = panStart.ty + (e.clientY - panStart.y);
-                applyTransform();
-                return;
-            }
-            if (swipe) {
-                const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
-                if (Math.abs(dx) > 8 || Math.abs(dy) > 8) swipe.moved = true;
-            }
-        });
-
-        const endPt = e => {
-            const wasTwo = pts.size === 2;
-            pts.delete(e.pointerId);
-            if (wasTwo) { pinchStartDist = 0; }
-
-            if (!isOpen) return;
-
-            /* Double-tap (1 ngón) -> zoom bậc thang 1x→2x→4x→1x tại điểm chạm */
-            if (e.pointerType === 'touch' && pts.size === 0 && !wasTwo && swipe && !swipe.moved) {
-                const now = Date.now();
-                if (now - lastTap < 320) {
-                    const r = stageBox.getBoundingClientRect();
-                    const px = e.clientX - r.left - boxW / 2;
-                    const py = e.clientY - r.top - boxH / 2;
-                    const next = scale === 1 ? 2 : (scale <= 2 ? 4 : 1);
-                    if (next === 1) resetView();
-                    else zoomAt(next, px, py);
-                    lastTap = 0;
-                } else {
-                    lastTap = now;
-                }
-            }
-
-            /* Vuốt ngang khi KHÔNG zoom -> đổi ảnh trong lightbox */
-            if (swipe && swipe.moved && scale === 1) {
-                const dx = e.clientX - swipe.x;
-                if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(e.clientY - swipe.y) * 1.2) {
-                    zoomSuppressClick = true;
-                    setTimeout(() => { zoomSuppressClick = false; }, 350);
-                    if (dx < 0 && zi < srcs.length - 1) show(zi + 1);
-                    else if (dx > 0 && zi > 0) show(zi - 1);
-                }
-            }
-            swipe = null; panStart = null;
-        };
-        stageBox.addEventListener('pointerup', endPt);
-        stageBox.addEventListener('pointercancel', endPt);
-        stageBox.addEventListener('dragstart', e => e.preventDefault());
-    }
-
-    /* Đổi orientation / resize -> đo lại để clamp panoram đúng */
-    window.addEventListener('resize', () => { if (isOpen) { measure(); applyTransform(); } });
-}

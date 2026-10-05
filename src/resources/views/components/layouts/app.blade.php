@@ -36,6 +36,12 @@
         type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
+    {{-- NEW LIGHTGALLERY: CSS vendor nạp bằng
+    <link> RIÊNG qua stack (KHÔNG @import
+    vào style.css — style.css đã có @import fonts ở partial 01-base.css, mọi @import
+    đứng sau sẽ bị browser bỏ theo đặc tả CSS). View nào push mới tải. --}}
+    @stack('vendorStyles')
+
     {{-- Import map: cho phép module con import bằng tên định danh @tm/... thay vì đường dẫn tương đối --}}
     <script type="importmap">
     {
@@ -76,6 +82,13 @@
     {{ $extra ?? '' }}
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    {{-- NEW LIGHTGALLERY: vendor scripts (core + plugin UMD) — CHỈ khi view PDP
+    push vào stack. Đặt TRƯỚC app.js để window.lightGallery/lgZoom... kịp tồn tại
+    trước khi module @tm/product chạy (module luôn defer -> script thường phía
+    trên chắc chắn execute trước). --}}
+    @stack('vendorScripts')
+
     {{-- JS tách module: app.js là loader dispatch theo DOM; cart.js là shim tương thích ngược --}}
     <script type="module" src="{{ asset('assets/js/app.js') }}"></script>
     <script type="module" src="{{ asset('assets/js/cart.js') }}"></script>

@@ -6,12 +6,12 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
     {{-- Khung .pd-stage là vùng NHẬN VUỐT (touch + chuột) để đổi ảnh — xem
     app-product.js (Pointer Events) và 07-product-detail.css (touch-action:pan-y,
     hiệu ứng chuyển mượt theo hướng chạy trên 2 lớp phủ .pd-stage__fx bên dưới.
-    data-pd-zoom="stage" = trigger DUY NHẤT mở lightbox phóng to ảnh: desktop
+    data-pd-zoom="stage" = trigger DUY NHẤT mở PHÓNG TO lightgallery.js: desktop
     CLICK chuột trái vào ảnh, mobile CHẠM vào ảnh; vuốt đổi ảnh không sinh
     click nên vẫn giữ nguyên hành vi cũ (logic trong app-product.js).
-    FIX YÊU CẦU MỚI NHẤT: hover desktop KHÔNG hiện icon kính lúp (+) — con trỏ
-    chuyển thành hình BÀN TAY (cursor:pointer cuối 07-product-detail.css); chỉ
-    nhấn chuột trái mới phóng to. --}}
+    Hover desktop KHÔNG hiện icon kính lúp (+) — con trỏ chuyển thành hình
+    BÀN TAY (cursor:pointer cuối 07-product-detail.css); chỉ nhấn chuột trái
+    mới phóng to. --}}
     <div class="pd-stage" data-pd-zoom="stage">
         {{-- FIX VUỐT BẰNG CHUỘT: draggable="false" + unselectable chặn HTML5 native
         image drag — thủ phạm cắt pointermove giữa chừng khiến vuốt chuột không đủ
@@ -31,7 +31,7 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
         {{-- Nút prev/next TRÊN ẢNH TO: overlay 2 mép, chỉ hiện khi có >1 ảnh.
         data-pd-nav-zone="stage": JS bỏ qua setPointerCapture khi pointerdown
         rơi vào nút này, nhờ vậy button nhận được click bình thường.
-        NEW data-pd-edge="first|last": JS disabled nút prev khi đang xem ẢNH ĐẦU
+        data-pd-edge="first|last": JS disabled nút prev khi đang xem ẢNH ĐẦU
         và disabled nút next khi đang xem ẢNH CUỐI (không còn wrap-around ở nút).
         Trạng thái đầu trang do server render sẵn (ảnh 1 -> prev disabled);
         app-product.js cập nhật lại sau mỗi lần đổi ảnh. --}}
@@ -56,7 +56,7 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
         {{-- FIX YÊU CẦU MỚI NHẤT: XÓA HẲN icon kính lúp (+) trên ảnh to.
         Desktop/web: hover chỉ đổi con trỏ thành hình bàn tay (cursor:pointer
         trong 07-product-detail.css), KHÔNG có icon nào hiện lên; CHỈ khi nhấn
-        chuột trái (click thật, không phải vuốt) mới mở lightbox phóng to.
+        chuột trái (click thật, không phải vuốt) mới mở phóng to.
         Mobile: chạm vào ảnh để phóng to — không có icon thường trực. --}}
     </div>
 
@@ -82,10 +82,8 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
             </button>
         </span>
 
-        {{-- FIX YÊU CẦU MỚI: bỏ hoàn toàn trigger phóng to trên hàng thumbs.
-        Bấm thumb trong .pd-thumbs-wrap -> CHỈ đổi ảnh lớn như cũ, không bao giờ
-        mở lightbox (đã xóa data-pd-zoom="thumbs"; logic tương ứng cũng đã xóa
-        khỏi app-product.js). --}}
+        {{-- Bấm thumb trong .pd-thumbs-wrap -> CHỈ đổi ảnh lớn như cũ, KHÔNG bao
+        giờ mở phóng to (trigger duy nhất là [data-pd-zoom="stage"]). --}}
         <div class="pd-thumbs no-scrollbar" role="group" aria-label="Ảnh thu nhỏ sản phẩm">
             @forelse($images as $i => $img)
                 <button type="button" data-full="{{ $img }}" data-index="{{ $i }}"
@@ -111,39 +109,36 @@ duy nhất ở tầng service) -> KHÔNG bọc asset() nữa, tránh URL đúp h
         </span>
     </div>
 
-    {{-- NEW LIGHTBOX PHÓNG TO ẢNH (web + mobile): overlay toàn màn hình #pdZoomViewer,
-    display:none mặc định trong 07-product-detail.css — không ảnh hưởng LCP/SEO.
-    FIX YÊU CẦU MỚI: trigger mở DUY NHẤT là CHẠM/CLICK vào ẢNH TO (.pd-stage).
-    Hàng thumbs chỉ đổi ảnh, không mở lightbox.
-    Điều khiển trong app-product.js: đóng bằng nút X / chạm nền / Esc; prev-next
-    + phím mũi tên + vuốt trái-phải đổi ảnh; pinch 2 ngón hoặc double-tap zoom
-    1x->2x->4x->1x (kèm kéo panoram khi đang zoom); scroll chuột phóng to (web). --}}
-    <div class="pd-zoom" id="pdZoomViewer" role="dialog" aria-modal="true" aria-label="Xem ảnh phóng to" hidden>
-        <div class="pd-zoom__stage" data-zoom-stage>
-            <img class="pd-zoom__img" data-zoom-img src="" alt="{{ $alt }}" draggable="false">
-        </div>
-        <button type="button" class="pd-zoom__btn pd-zoom__btn--close" data-zoom-close aria-label="Đóng xem ảnh">
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" />
-            </svg>
-        </button>
-        <button type="button" class="pd-zoom__nav pd-zoom__nav--prev" data-zoom-nav="-1" aria-label="Ảnh trước">
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round" />
-            </svg>
-        </button>
-        <button type="button" class="pd-zoom__nav pd-zoom__nav--next" data-zoom-nav="1" aria-label="Ảnh sau">
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round" />
-            </svg>
-        </button>
-        <span class="pd-zoom__counter" data-zoom-counter aria-live="polite">1/{{ count($images) ?: 1 }}</span>
-        <p class="pd-zoom__hint" aria-hidden="true">Chạm 2 lần hoặc chụm 2 ngón để phóng to</p>
+    {{-- NEW LIGHTGALLERY.JS (THAY HOÀN TOÀN lightbox tự chế #pdZoomViewer — khối
+    div đó cùng toàn bộ CSS/JS của nó đã xóa): container RỖNG chứa danh sách
+    slide làm nguồn dữ liệu dynamic mode. display:none trong
+    07-product-detail.css -> không hiển thị gì, không ảnh hưởng LCP/CLS/SEO.
+    Thuộc tính chuẩn lightgallery:
+    - data-src : ảnh full (slide)
+    - data-thumb : bản nhỏ cho dải thumbnail dưới lightbox
+    (KHÔNG có -> thumbnail rỗng = "thiếu công cụ")
+    - data-sub-html : caption (core 2.8.x render sẵn, ko cần plugin caption)
+    - data-download-url : link cho nút Tải ảnh trong toolbar --}}
+    <div id="lgGalleryRoot" class="lg-gallery-root" aria-hidden="true">
+        @php
+            /* Dùng $imageThumbs (WebProductController biến $imageThumbs) nếu controller
+            có truyền; fallback $thumbs; cuối cùng mới tới ảnh full làm thumb. */
+            $lgThumbs = $thumbs ?: ($imageThumbs ?? []);
+        @endphp
+        @forelse($images as $i => $img)
+            <a href="{{ $img }}" data-src="{{ $img }}" data-thumb="{{ $lgThumbs[$i] ?? $img }}"
+                data-download-url="{{ $img }}"
+                data-sub-html="<p>{{ $alt }} — Ảnh {{ $i + 1 }}/{{ count($images) }}</p>"></a>
+        @empty
+            <a href="{{ asset('images/placeholder.svg') }}" data-src="{{ asset('images/placeholder.svg') }}"
+                data-thumb="{{ asset('images/placeholder.svg') }}"
+                data-download-url="{{ asset('images/placeholder.svg') }}"></a>
+        @endforelse
     </div>
 
+    {{-- NEW (định vị nút chia sẻ): hàng nút share từng nằm SAU khối #pdZoomViewer;
+    khối đó xóa đi nên đưa share về ngay sau .pd-thumbs-wrap để layout cột
+    .pd-gallery không bị trống khoảng. --}}
     <div class="pd-share" role="group" aria-label="Chia sẻ sản phẩm">
 
         <button type="button" class="pd-share__btn pd-share__btn--native" data-share-native
