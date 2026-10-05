@@ -18,7 +18,7 @@ class ProductDetailHydrator
 {
     /**
      * @param array<string, mixed> $cached Mảng thô từ ProductDetailFetcher::fetch()
-     * @param array{reviews: list<array<string, mixed>>, stats: array<string, mixed>} $reviewData
+     * @param array{reviews: list<array<string, mixed>|ReviewViewDTO>, stats: array<string, mixed>} $reviewData
      * @param FlashSalePriceService|null $flashPricing NEW: gắn block flash sale (countdown) cho PDP
      * @return array<string, mixed>
      */
@@ -81,18 +81,15 @@ class ProductDetailHydrator
             sold_count: $r['sold_count'],
         ), $cached['relatedProducts']);
 
-        // Reviews luôn đọc mới qua group cache 'review' riêng — không nằm trong cache 'catalog'
-        $reviewDTOs = array_map(fn($r) => new ReviewViewDTO(
-            customer: $r['customer'],
-            rating: $r['rating'],
-            content: $r['content'],
-            created_at: $r['created_at'],
-            is_verified: (bool) ($r['is_verified'] ?? false),
-            // NEW: key mới — cache 'review' cũ còn TTL có thể thiếu -> fallback an toàn
-            id: (int) ($r['id'] ?? 0),
-            initials: (string) ($r['initials'] ?? '?'),
-            helpful_count: (int) ($r['helpful_count'] ?? 0),
-        ), $reviewData['reviews']);
+        // Reviews luôn đọc mới qua group cache 'review' riêng — không nằm trong cache 'catalog'.
+        // FIX "Cannot use object of type App\DTOs\ReviewViewDTO as array": dùng helper
+        // fromArray() + is_array() nên hàm này an toàn với CẢ 2 dạng đầu vào:
+        //   - list array thuần (chuẩn mới — CatalogService::getProductReviews trả raw)
+        //   - list ReviewViewDTO (cache/deploy cũ còn TTL hoặc call-site ngoài còn truyền DTO)
+        $reviewDTOs = array_map(
+            [ReviewViewDTO::class, 'fromArray'],
+            $reviewData['reviews'] ?? []
+        );
 
         /* Normalize ảnh gallery: list chứa object {full, thumb, alt} (bản mới) hoặc
            list URL string trần (cache cũ còn TTL sau deploy). Tách riêng 2 list URL

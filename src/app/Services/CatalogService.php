@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\DTOs\ReviewViewDTO;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\Catalog\BreadcrumbBuilder;
@@ -76,7 +75,17 @@ class CatalogService
     }
 
     /**
-     * Lấy reviews và rating stats (hydrate thành ReviewViewDTO).
+     * Lấy reviews và rating stats — TRẢ ARRAY THUẦN (không hydrate DTO ở đây).
+     *
+     * FIX "Cannot use object of type App\DTOs\ReviewViewDTO as array":
+     * - Trước đây hàm này ép mỗi review thành ReviewViewDTO NGAY, rồi
+     *   ProductDetailHydrator::hydrate() lại lấy kết quả đó map tiếp bằng
+     *   cú pháp mảng ($r['customer']) => crash khi PDP render khối đánh giá.
+     *   Đây là nguồn lỗi gốc (double-hydrate), nên bỏ hẳn việc tạo DTO trùng lặp.
+     * - Quy ước mới (đồng bộ convention "mảng thuần cho cache" của tầng Catalog):
+     *   mọi hàm service trả raw array; CHỈ ProductDetailHydrator::hydrate()
+     *   đổi ra DTO một lần duy nhất trước khi đưa vào view.
+     * - Call-site cũ nào cần từng bản ghi có thể dùng ReviewViewDTO::fromArray().
      */
     public function getProductReviews(int $productId): array
     {
@@ -87,16 +96,10 @@ class CatalogService
             return ProductDetailFetcher::fetchReviews($productId);
         });
 
-        $reviewDTOs = array_map(fn($r) => new ReviewViewDTO(
-            customer: $r['customer'],
-            rating: $r['rating'],
-            content: $r['content'],
-            created_at: $r['created_at'],
-            is_verified: (bool) ($r['is_verified'] ?? false),
-        ), $cached['reviews']);
-
         return [
-            'reviews' => $reviewDTOs,
+            // list<array<string, mixed>> — keys: id, customer, initials,
+            // helpful_count, rating, content, is_verified, created_at
+            'reviews' => $cached['reviews'],
             'stats' => $cached['stats'],
         ];
     }
