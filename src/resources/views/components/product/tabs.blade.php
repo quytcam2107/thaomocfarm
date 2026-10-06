@@ -19,7 +19,23 @@
     </div>
 
     <div class="tabs__panel" id="panel-desc" role="tabpanel" aria-labelledby="tab-desc">
-        {!! $description !!}
+        {{-- NEW XEM THÊM MÔ TẢ: description là longtext HTML rất dài (bảng biểu, FAQ
+        <details>) -> bọc trong .desc-collapse để CSS clamp max-height + lớp fade;
+            data-desc-toggle là hook cho app-product.js (tự ẩn nút khi nội dung ngắn).
+            Body collapse mang id để aria-controls trỏ đúng (accessibility). --}}
+            <div class="desc-collapse is-collapsed" data-desc-collapse>
+                <div class="desc-collapse__body" id="descCollapseBody" data-desc-body>
+                    {!! $description !!}
+                </div>
+
+                <div class="desc-collapse__foot" data-desc-foot hidden>
+                    <button type="button" class="desc-more" data-desc-toggle aria-expanded="false"
+                        aria-controls="descCollapseBody">
+                        <span class="desc-more__label">Xem thêm mô tả sản phẩm</span>
+                        <span class="desc-more__icon" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
     </div>
 
     <div class="tabs__panel" id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
