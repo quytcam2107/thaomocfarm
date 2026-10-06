@@ -1,0 +1,134 @@
+/* =====================================================================
+   07b — PDP: GALLERY ẢNH (stage + prev/next + thumbs + nút chia sẻ)
+   Selector đặc trưng: .pd-stage, .pd-nav(.--prev/--next/--sm), .pd-counter,
+                      .pd-thumbs(-wrap/-nav), .pd-share(__btn/__label)
+   Blade tương ứng: resources/views/components/product/gallery.blade.php
+   JS tương ứng:    assets/js/app-product.js (vuốt ngang, counter, fxPlay)
+   Lưu ý: biến --pd-nav-* định nghĩa ở 07d (khớp gốc: khai báo sau vẫn áp).
+   ===================================================================== */
+
+.pd-stage, .pd-gallery, .pd-info { min-width: 0; }
+.pd-stage {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--r);
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+    touch-action: pan-y; /* cho phép cuộn dọc tự nhiên, JS giữ quyền vuốt ngang */
+}
+.pd-stage img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+/* Nút prev/next overlay trên ảnh to + 2 nút nhỏ cạnh hàng thumbs */
+.pd-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: rgb(255 255 255 / .9);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background .15s, opacity .15s;
+}
+.pd-nav svg { width: var(--pd-nav-icon, 22px) !important; height: var(--pd-nav-icon, 22px) !important; }
+.pd-nav:hover { background: #fff; }
+.pd-nav:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.pd-nav--prev { left: 8px; }
+.pd-nav--next { right: 8px; }
+.pd-nav:disabled { opacity: .25; pointer-events: none; }
+.pd-nav:disabled:hover { background: rgba(255,255,255,.92); transform: translateY(-50%); }
+.pd-counter {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 3;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-2);
+    background: rgb(255 255 255 / .85);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 9px;
+    pointer-events: none;
+}
+
+/* Hàng thumbs: luôn cuộn ngang an toàn, không đẩy giãn cột grid */
+.pd-thumbs-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    max-width: 100%;
+}
+.pd-thumbs-wrap[data-cols="auto"] { justify-content: center; }
+.pd-thumbs-wrap[data-cols="fill"] { justify-content: flex-start; }
+.pd-thumbs-nav { display: flex; align-items: center; flex: 0 0 auto; }
+.pd-thumbs-nav[hidden] { display: none; }
+.pd-nav--sm { position: static; transform: none; width: 28px; height: 28px; }
+.pd-nav--sm:hover { transform: scale(1.06); }
+.pd-nav--sm:disabled:hover { transform: none; }
+.pd-thumbs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    max-width: 100%;
+    padding: 2px;
+    scrollbar-width: thin;
+}
+.pd-thumbs-wrap[data-cols="fill"] .pd-thumbs { flex: 1 1 auto; min-width: 0; }
+.pd-thumbs-wrap[data-cols="auto"] .pd-thumbs { flex: 0 1 auto; }
+.pd-thumbs button {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: #fff;
+    padding: 2px;
+    cursor: pointer;
+    overflow: hidden;
+}
+.pd-thumbs button img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; display: block; }
+.pd-thumbs button[aria-current="true"] { border-color: var(--brand); }
+.pd-thumbs button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Hàng nút chia sẻ (chỉ flash sale) */
+.pd-share { display: flex; gap: 8px; margin-top: 12px; }
+.pd-share[hidden] { display: none; }
+.pd-share__label { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.pd-share__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    transition: background .15s, transform .15s;
+}
+.pd-share__btn:hover { background: var(--bg); transform: translateY(-1px); }
+.pd-share__btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.pd-share__btn img { display: block; }
+
+.pd-share__btn--fb { color: #1877f2; border-color: #1877f2; }
+.pd-share__btn--zalo { color: #0068ff; border-color: #0068ff; }
+.pd-share__btn--fb:hover, .pd-share__btn--zalo:hover { background: #f0f5ff; }
+
+.pd-share__btn--native { color: var(--leaf); border-color: #0068ff; background: var(--leaf-soft); }
+.pd-share__btn--copy:hover, .pd-share__btn--native:hover { background: #f3efe4; }

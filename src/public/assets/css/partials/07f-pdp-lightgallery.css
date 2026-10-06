@@ -1,0 +1,84 @@
+/* =====================================================================
+   07f — PDP: LIGHTGALLERY (phóng to ảnh) — theme + @font-face icon "lg"
+   Selector đặc trưng: .lg-outer, .lg-toolbar, .lg-icon, .lg-sub-html,
+                      .lg-thumb-*, .lg-gallery-root, .lg-dynamic-host, [data-pd-zoom="stage"]
+   Blade tương ứng: resources/views/components/product/gallery.blade.php,
+                    web/product.blade.php (@push vendorStyles / vendorScripts)
+   JS tương ứng:    assets/js/app-product.js (khởi tạo lightGallery dynamic mode)
+   Vendor CSS:      assets/vendor/lightgallery/lightgallery-bundle.min.css (nạp <link> riêng)
+   Lưu ý: file này giữ @font-face icon "lg" với đường dẫn TƯƠNG ĐỐI so với
+          partials/ (../../vendor/...) — nếu di chuyển file, cập nhật lại url().
+   ===================================================================== */
+
+/* =====================================================================
+   PHÓNG TO ẢNH = LIGHTGALLERY.JS (THAY lightbox tự chế #pdZoomViewer —
+   khối đó cùng mọi selector .pd-zoom* đã XÓA khỏi Blade/CSS/JS).
+   Vendor tự host tại public/assets/vendor/lightgallery/ (core + 6 plugin +
+   fonts/). Nạp riêng cho PDP qua @push('vendorStyles')/@push('vendorScripts')
+   trong web/product.blade.php — KHÔNG @import vào style.css (style.css đã có
+   @import fonts ở partial 01-base.css; @import đứng sau sẽ bị browser bỏ).
+
+   SỬA LỖI FONT Ô VUÔNG □ TRÊN CÁC NÚT: icon lightgallery vẽ bằng font-symbol
+   "lg" (escape \e0xx). Trước đây file font không tồn tại trong docroot ->
+   /assets/vendor/lightgallery/fonts/lg.woff2 trả 404 -> glyph khuyết thiếu.
+   Sau Bước 0 file font đã có; rule @font-face dưới chốt lại đường dẫn
+   TUYỆT ĐỐI theo asset() để không phụ thuộc vị trí file CSS (phòng khi cấu
+   trúc thư mục vendor lệch bản).
+   ===================================================================== */
+@font-face {
+    font-family: 'lg';
+    src: url('../../vendor/lightgallery/fonts/lg.woff2?io9a6k') format('woff2'),
+        url('../../vendor/lightgallery/fonts/lg.woff?io9a6k') format('woff'),
+        url('../../vendor/lightgallery/fonts/lg.ttf?io9a6k') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+}
+
+/* Container nguồn slide dynamic mode: ẩn hoàn toàn -> không ảnh hưởng LCP/CLS/SEO */
+.lg-gallery-root { display: none !important; }
+
+/* Wrapper tạm承载 dynamic items (app-product.js tạo khi mở, xóa khi đóng) */
+.lg-dynamic-host { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Con trỏ trên ảnh to: HÌNH BÀN TAY (hover = bàn tay báo "bấm được";
+   chỉ nhấn chuột trái mới mở phóng to — hàng thumbs giữ hành vi cũ). */
+[data-pd-zoom="stage"] { cursor: pointer; }
+
+/* ==== Theme xanh Thảo Mộc cho UI lightgallery ==== */
+.lg-outer .lg-toolbar,
+.lg-outer .lg-thumb-outer,
+.lg-outer .lg-dropdown { background: rgb(20 28 22 / .9); }
+
+.lg-outer .lg-toobar-detail,
+.lg-outer .lg-counter,
+.lg-outer .lg-sub-html,
+.lg-outer .lg-dropdown-text,
+.lg-outer .lg-icon { color: #f2efe6; }
+
+.lg-outer .lg-icon:hover,
+.lg-outer .lg-dropdown-control:hover { color: var(--gold); }
+
+.lg-outer .lg-icon:focus-visible,
+.lg-outer .lg-dropdown-control:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+
+.lg-outer .lg-sub-html {
+    background-image: linear-gradient(to bottom, rgb(0 0 0 / 0), rgb(15 20 17 / .78));
+    font-size: 13px;
+    padding: 24px 48px 12px;
+}
+
+.lg-outer .lg-thumb-item.active,
+.lg-outer .lg-thumb-item:hover { border-color: var(--gold); }
+
+.lg-outer .lg-image, .lg-outer .lg-img-wrap { background: transparent; }
+
+/* Toolbar phải nổi trên header/floatnav/toast của dự án (z-index cao nhất) */
+.lg-on .lg-outer { z-index: 9999; }
+
+/* Mobile: caption gọn, chữ dễ đọc */
+@media (max-width: 640px) {
+    .lg-outer .lg-sub-html { padding: 20px 12px 10px; font-size: 12px; }
+    .lg-outer .lg-toobar-detail { font-size: 12px; }
+    .lg-outer .lg-thumb-outer { padding-bottom: 8px; }
+}

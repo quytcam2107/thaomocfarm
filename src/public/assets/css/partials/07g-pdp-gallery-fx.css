@@ -1,0 +1,44 @@
+/* =====================================================================
+   07g — PDP: HIỆU ỨNG CHUYỂN ẢNH (2 lớp phủ .pd-stage__fx + keyframes)
+   Selector đặc trưng: .pd-stage__fx(--back/--front), .pd-in-left/.pd-in-right,
+                      @keyframes pdImgOut / pdImgInFromLeft / pdImgInFromRight
+   Blade tương ứng: resources/views/components/product/gallery.blade.php (2 div .pd-stage__fx)
+   JS tương ứng:    assets/js/app-product.js (fxPlay thêm .is-animating + hướng trái/phải)
+   Lưu ý: pointer-events:none để không chắn vùng vuốt/nút prev-next (xem 07b).
+   ===================================================================== */
+
+/* =====================================================================
+   HIỆU ỨNG CHUYỂN ẢNH TRÊN 2 LỚP PHỦ .pd-stage__fx (app-product.js fxPlay)
+   - pointer-events:none => không chắn vùng vuốt / nút prev-next.
+   - visibility:hidden mặc định: lớp rỗng vô hình; JS thêm .is-animating
+     => visible + chạy keyframe tương ứng.
+   ===================================================================== */
+.pd-stage__fx {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+}
+.pd-stage__fx img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    -webkit-user-drag: none;
+    user-select: none;
+}
+.pd-stage__fx--back.is-animating, .pd-stage__fx--front.is-animating { visibility: visible; }
+.pd-stage__fx--back { visibility: hidden; }
+.pd-stage__fx--front { visibility: hidden; }
+.pd-stage__fx--back.is-animating { animation: pdImgOut .6s cubic-bezier(.22,.61,.36,1); }
+.pd-stage__fx--front.pd-in-left.is-animating { animation: pdImgInFromLeft .6s cubic-bezier(.22,.61,.36,1); }
+.pd-stage__fx--front.pd-in-right.is-animating { animation: pdImgInFromRight .6s cubic-bezier(.22,.61,.36,1); }
+
+@keyframes pdImgOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.985); } }
+@keyframes pdImgInFromLeft { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+@keyframes pdImgInFromRight { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }

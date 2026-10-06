@@ -1,0 +1,138 @@
+/* =====================================================================
+   07d — PDP: TABS + "XEM THÊM MÔ TẢ" (desc-collapse) + FLASH BLOCK (.pd-flash)
+   Selector đặc trưng: .tabs(__nav/__panel), .desc-collapse*, .desc-more*,
+                      .pd-flash*, #pdStageImg.is-swipe, biến --pd-nav-*
+   Blade tương ứng: resources/views/components/product/tabs.blade.php,
+                    components/product/flash-block.blade.php
+   JS tương ứng:    assets/js/app-product.js (tabs ARIA + đo desc-collapse + countdown)
+   Lưu ý: .pd-flash chỉ là KHUNG PDP; class flash toàn cục (.flash__prog...) ở 14-flash-sale.css.
+   ===================================================================== */
+
+/* Tabs & Reviews */
+.tabs { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.tabs__nav { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.tabs__nav [role="tab"] { padding: 13px 20px; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; border-bottom: 3px solid transparent; }
+.tabs__nav [role="tab"][aria-selected="true"] { color: var(--leaf); border-bottom-color: var(--gold); }
+.tabs__panel { padding: 18px; font-size: 14px; line-height: 1.75; color: #40514a; }
+.tabs__panel[hidden] { display: none; }
+
+/* =====================================================================
+   NEW XEM THÊM MÔ TẢ (PDP tab Mô tả): description longtext rất dài ->
+   collapse bằng max-height + mặt nạ fade chuyển dần vào nền card.
+   - Mặc định .is-collapsed (không phụ thuộc JS): chiều cao chốt theo token
+     --desc-clamp (mobile 320px, desktop 420px) => UX tốt ngay cả khi JS lỗi.
+   - JS (app-product.js) đo scrollHeight: nội dung KHÔNG tràn -> body mất
+     class is-foldable => hết clamp, footer nút [hidden] (ẩn hoàn toàn).
+   - Khi mở: body vẫn overflow:hidden nhưng max-height = scrollHeight px do
+     JS gán => transition mượt, không nhảy layout (CLS thấp).
+   - .desc-more: nút dạng pill viền lá, hover nâng + bóng; icon mũi tên xoay
+     180deg khi mở; prefers-reduced-motion -> tắt animation.
+   ===================================================================== */
+.desc-collapse { position: relative; }
+.desc-collapse__body {
+    position: relative;
+    overflow: hidden;
+    transition: max-height .45s cubic-bezier(.22, .61, .36, 1);
+}
+.desc-collapse.is-collapsed .desc-collapse__body.is-foldable {
+    max-height: var(--desc-clamp, 320px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 62%, rgb(0 0 0 / .55) 82%, rgb(0 0 0 / 0) 100%);
+    mask-image: linear-gradient(to bottom, #000 62%, rgb(0 0 0 / .55) 82%, rgb(0 0 0 / 0) 100%);
+}
+@media (min-width: 768px) {
+    .desc-collapse.is-collapsed .desc-collapse__body.is-foldable { --desc-clamp: 420px; }
+}
+/* Nội dung mô tả: hạn chế table/blockquote tràn ngang trong panel */
+.desc-collapse__body table { max-width: 100%; overflow-wrap: break-word; }
+.desc-collapse__body img { max-width: 100%; height: auto; }
+.desc-collapse__body details summary { cursor: pointer; font-weight: 600; }
+
+/* Gradient "tàn" phủ đáy khối khi đang gập — đẹp hơn mask đơn thuần */
+.desc-collapse.is-collapsed .desc-collapse__body.is-foldable::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 110px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgb(255 253 249 / 0), rgb(255 253 249 / .72) 55%, var(--card) 100%);
+}
+.desc-collapse:not(.is-collapsed) .desc-collapse__body::after { content: none; }
+
+.desc-collapse__foot {
+    display: flex;
+    justify-content: center;
+    padding-top: 14px;
+}
+.desc-collapse__foot[hidden] { display: none; }
+
+.desc-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid var(--leaf);
+    background: #fff;
+    color: var(--leaf);
+    border-radius: 999px;
+    padding: 10px 22px;
+    min-height: 44px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgb(34 48 42 / .04);
+    transition: background .2s, color .2s, transform .15s, box-shadow .2s;
+}
+.desc-more:hover {
+    background: var(--leaf);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgb(46 125 79 / .22);
+}
+.desc-more:active { transform: scale(.97); }
+.desc-more:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Mũi tên xuống thuần CSS (2 cạnh xoay 45deg) — xoay ngược khi đang mở */
+.desc-more__icon {
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform .3s cubic-bezier(.22, .61, .36, 1);
+}
+.desc-more[aria-expanded="true"] .desc-more__icon {
+    transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .desc-collapse__body { transition: none; }
+    .desc-more, .desc-more__icon { transition: none; }
+    .desc-more:hover { transform: none; }
+}
+
+/* Flash Sale (khung PDP — block .pd-flash trong flash-block.blade.php) */
+.pd-flash { background: linear-gradient(135deg, #fff4ec, #fdf0f2); border: 1px solid var(--rose); border-radius: 12px; padding: 12px 14px; margin: 4px 0 14px; }
+.pd-flash.is-ended { display: none; }
+.pd-flash__head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 10px; }
+.pd-flash__badge {
+    background: var(--rose); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .06em;
+    padding: 4px 10px; border-radius: 999px; animation: pdFlashPulse 1.6s ease-in-out infinite;
+}
+@keyframes pdFlashPulse { 50% { opacity: .75; } }
+.pd-flash__name { font-size: 13px; color: var(--leaf-deep); }
+.pd-flash__cd { color: #40514a; }
+.pd-flash__facts { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #40514a; }
+.pd-flash__facts b { color: var(--rose); }
+
+/* Gallery Navigation & Animations (token kích thước nút prev/next — dùng bởi 07b) */
+.pd-gallery { --pd-nav-size: 30px; --pd-nav-icon: 15px; --pd-nav-sm-size: 26px; --pd-nav-edge: 6px; }
+@media (min-width: 480px) {
+    .pd-gallery { --pd-nav-size: 34px; --pd-nav-icon: 17px; --pd-nav-sm-size: 28px; --pd-nav-edge: 8px; }
+    .pd-flash__cd { margin-left: auto; }
+}
+@media (min-width: 768px) {
+    .pd-gallery { --pd-nav-size: 40px; --pd-nav-icon: 22px; --pd-nav-sm-size: 32px; --pd-nav-edge: 10px; }
+}
+
+#pdStageImg.is-swipe { animation: none; }
