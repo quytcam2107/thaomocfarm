@@ -30,7 +30,7 @@
         if ($category) {
             $techSpecs[] = ['label' => 'Danh mục', 'value' => (string) ($category['name'] ?? ''), 'url' => (string) ($category['url'] ?? '')];
         }
-        $techSpecs[] = ['label' => 'Tình trạng kho', 'value' => ((int) ($product->stock ?? 0) > 0) ? 'Còn hàng (' . number_format((int) $product->stock) . ' sản phẩm)' : 'Tạm hết hàng'];
+        // $techSpecs[] = ['label' => 'Tình trạng kho', 'value' => ((int) ($product->stock ?? 0) > 0) ? 'Còn hàng (' . number_format((int) $product->stock) . ' sản phẩm)' : 'Tạm hết hàng'];
         $techSpecs[] = ['label' => 'Đã bán', 'value' => number_format((int) ($product->sold_count ?? 0)) . ' sản phẩm'];
         $techSpecs[] = ['label' => 'Đánh giá', 'value' => number_format($rvAvg, 1) . '/5 (' . $rvTotal . ' đánh giá)'];
     }
@@ -76,7 +76,6 @@
                             <th scope="col">Quy cách</th>
                             <th scope="col">Giá bán</th>
                             <th scope="col">Giá niêm yết</th>
-                            <th scope="col">Tồn kho</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -87,7 +86,6 @@
                                 <td><b>{{ number_format((int) $v['price']) }}₫</b></td>
                                 <td>@if(!empty($v['old_price']) && (int) $v['old_price'] > (int) $v['price'])<s>{{ number_format((int) $v['old_price']) }}₫</s>@else
                                 — @endif</td>
-                                <td>{{ number_format((int) $v['stock']) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
