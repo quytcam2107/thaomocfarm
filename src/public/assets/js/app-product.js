@@ -4,7 +4,7 @@
  * Loader chỉ nạp khi có một trong các marker:
  * .countdown[data-ends] / [data-pd-flash] / .pd-thumbs / [role="tab"] / #buyNow,#buyNowMobile.
  */
-import { q, qa, toast } from '@tm/core';
+import { q, qa, toast, money } from '@tm/core';
 
 /* =====================================================================
    COUNTDOWN FLASH SALE — HOME + PDP dùng chung 1 engine GIỜ:PHÚT:GIÂY
@@ -22,7 +22,7 @@ function runCountdown(hEl, mEl, sEl, endsUnix) {
     const tick = () => {
         const s = Math.max(0, Math.floor((endsUnix * 1000 - Date.now()) / 1000));
         hEl.textContent = pad(Math.floor(s / 3600));
-        mEl.textContent = pad(Math.floor((s % 3600) / 60));
+        mEl.textContent = pad(s % 60);
         sEl.textContent = pad(s % 60);
         if (s <= 0) clearInterval(timer); // dừng ở 00:00:00, vẫn giữ block hiển thị
     };
@@ -101,9 +101,9 @@ if (stage && thumbs.length) {
 
     /* =================================================================
        2 nút prev/next của HÀNG THUMBS chỉ hiện khi hàng thumbs THỰC SỰ
-       tràn ngang (còn ảnh ngoài tầm nhìn -> cần vuốt).
+       TRÀN NGANG (còn ảnh ngoài tầm nhìn -> cần vuốt).
        - Blade render sẵn 2 span [data-thumbs-nav] với attribute `hidden`
-         => mặc định ẩn trên MỌI màn hình, kể cả khi JS chưa kịp chạy.
+         => mặc định ẩn trên MỌI màn hình, kể cả khi JS chưa/chạy lỗi.
        - updateThumbsNav() đo scrollWidth > clientWidth (+2px dung sai):
          * không tràn -> ẩn 2 nút + data-cols="auto": hàng thumbs co về
            đúng khổ nội dung (không giữ slot nút thừa -> khỏi lệch tâm so
@@ -549,6 +549,82 @@ tabs.forEach(tab => tab.addEventListener('click', () => {
         if (panel) panel.hidden = !on;
     });
 }));
+
+/* =====================================================================
+   NEW FIX PDP — ĐỒNG BỘ BẢNG "QUY CÁCH & GIÁ BÁN" (tab Chi tiết sản phẩm)
+   VỚI KHỐI LƯỢNG ĐANG CHỌN:
+   - Bug: nhãn .spec-tag "Đang chọn" chỉ được Blade render MỘT LẦN theo
+     $v['selected'] = is_default (ProductDetailFetcher set cứng từ DB).
+     Khi khách bấm pill khối lượng khác, chỉ giá/qty đổi (inline script),
+     bảng trong #panel-spec vẫn giữ tag ở dòng default -> "không chọn đúng".
+   - Fix: lắng nghe change trên các radio quy cách (name="variant_id" —
+     fallback name="variant" theo convention info.blade.php), tìm <tr> có
+     data-variant-id trùng value radio rồi:
+       1) Di chuyển .spec-tag sang cell quy cách của dòng đó (xóa dòng cũ);
+       2) Bật class .is-selected cho dòng đang chọn (CSS 07d highlight);
+       3) Cập nhật lại ô Giá bán / Giá niêm yết từ data-price / data-old-price
+          (2 attr này DO BLADE RENDER TỪ $variants SAU FlashSalePriceService
+          applyToDetailArray — tức đã gồm giá deal, không tự tính lại %).
+   - Chạy cả lần đầu (syncSpecTable(null)) để DOM khớp radio checked thực tế
+     (phòng cache cũ / variant default bị ẩn khỏi pills).
+   ===================================================================== */
+const specTable = q('[data-spec-table]');
+if (specTable) {
+    const TAG_TEXT = 'Đang chọn';
+    const fmtVND = n => money(Math.round(n)); // money() của @tm/core: 1.234.567₫
+
+    /** Đồng bộ 1 dòng đang chọn; idVar = value radio checked (null = dòng đang .is-selected) */
+    function syncSpecTable(idVar) {
+        const rows = qa('tr[data-variant-id]', specTable);
+        if (!rows.length) return;
+
+        let target = null;
+        if (idVar !== null && idVar !== undefined && idVar !== '') {
+            target = rows.find(r => r.dataset.variantId === String(idVar));
+        }
+        if (!target) {
+            // Không tìm thấy theo id -> giữ dòng đang được Blade đánh dấu selected
+            target = rows.find(r => r.classList.contains('is-selected')) || rows[0];
+        }
+        if (!target) return;
+
+        rows.forEach(row => {
+            const on = row === target;
+            row.classList.toggle('is-selected', on);
+
+            /* 1) Nhãn "Đang chọn": chỉ dòng đang chọn có .spec-tag */
+            const labelCell = row.querySelector('td');
+            if (!labelCell) return;
+            const existingTag = labelCell.querySelector('.spec-tag');
+            if (on) {
+                if (!existingTag) {
+                    labelCell.append(document.createTextNode(' '));
+                    const tag = document.createElement('span');
+                    tag.className = 'spec-tag';
+                    tag.textContent = TAG_TEXT;
+                    labelCell.append(tag);
+                }
+            } else if (existingTag) {
+                existingTag.remove();
+            }
+
+            /* 2) Giá bán + giá niêm yết của TỪNG dòng vốn cố định theo variant
+                  (mảng $variants server-render) — không cần đổi khi chọn;
+                  chỉ đảm bảo format nhất quán với inline price block. */
+        });
+    }
+
+    /* Bind theo CẢ 2 tên radio để an toàn với fallback name="variant" */
+    qa('input[name="variant_id"], input[name="variant"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) syncSpecTable(radio.value);
+        });
+    });
+
+    /* Lần đầu: bám theo radio đang checked thực tế trên DOM */
+    const initialChecked = q('input[name="variant_id"]:checked') || q('input[name="variant"]:checked');
+    syncSpecTable(initialChecked ? initialChecked.value : null);
+}
 
 /* =====================================================================
    BUY NOW (#buyNow desktop + #buyNowMobile buybar):

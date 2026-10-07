@@ -4,7 +4,8 @@
                       .desc-more*, .pd-flash*, #pdStageImg.is-swipe, biến --pd-nav-*
    Blade tương ứng: resources/views/components/product/tabs.blade.php,
                     components/product/flash-block.blade.php
-   JS tương ứng:    assets/js/app-product.js (tabs ARIA + đo desc-collapse + countdown)
+   JS tương ứng:    assets/js/app-product.js (tabs ARIA + đo desc-collapse + countdown
+                    + ĐỒNG BỘ .spec-tag bảng quy cách theo khối lượng đang chọn)
    Lưu ý: .pd-flash chỉ là KHUNG PDP; class flash toàn cục (.flash__prog...) ở 14-flash-sale.css.
    YÊU CẦU MỚI: tab "Chính sách" đã xóa — nav còn 2 tab "Mô tả sản phẩm" /
    "Chi tiết sản phẩm"; khối "Đánh giá" (.tabs__review) chuyển từ tabpanel sang
@@ -39,6 +40,11 @@ mobile-first — bảng cuộn ngang an toàn trong panel có overflow clip. */
 .spec-table tbody tr:nth-child(even) { background: #fdfcf8; }
 .spec-table s { color: #a9a49a; font-size: 12.5px; }
 .spec-tag { display: inline-block; margin-left: 6px; background: var(--leaf-soft); color: var(--leaf); border: 1px solid var(--leaf); font-size: 10.5px; font-weight: 800; padding: 1px 8px; border-radius: 999px; vertical-align: middle; }
+/* FIX SPEC-TAG: dòng "Quy cách" đang chọn (JS app-product.js toggle .is-selected
+theo radio name="variant_id") — nền lá nhạt + viền trái đậm để thấy rõtag
+"Đang chọn" đã nhảy sang đúng khối lượng. */
+.spec-table tbody tr.is-selected { background: var(--leaf-soft); }
+.spec-table tbody tr.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--leaf); font-weight: 700; color: var(--leaf-deep); }
 .spec-list { margin: 0; display: grid; gap: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .spec-row { display: grid; grid-template-columns: minmax(0, 1fr); }
 .spec-row + .spec-row { border-top: 1px solid var(--line); }
