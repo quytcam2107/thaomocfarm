@@ -21,6 +21,20 @@ document.addEventListener('click', e => {
     if (a) e.preventDefault();
 });
 
+/* ===== Floatnav "Flash sale": cuộn mượt tới section #flash trên trang chủ =====
+   - Ở home (#flash tồn tại): chặn nhảy neo mặc định, scrollIntoView mượt
+     (neo dưới .flash đã có scroll-margin-top trong 14-flash-sale.css).
+   - Trang khác: để mặc định — href="/#flash" đưa về home rồi trình duyệt tự cuộn. */
+document.addEventListener('click', e => {
+    const a = e.target.closest('a[data-fn="flash"]');
+    if (!a) return;
+    const target = document.getElementById('flash');
+    if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    }
+});
+
 /* ===== Reveal khi cuộn (IntersectionObserver, tự unobserve → rẻ) ===== */
 const revealEls = qa('.reveal');
 if ('IntersectionObserver' in window && revealEls.length && !reduceMotion) {

@@ -89,7 +89,8 @@
     z-index: 45;
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    /* 4 ô: Gọi điện · Zalo · Flash sale · Giỏ hàng */
+    grid-template-columns: repeat(4, 1fr);
     background: #fff;
     border: 0;
     border-top: 1px solid var(--line);
@@ -108,15 +109,20 @@
     justify-content: center;
     gap: 1px;
     min-height: 48px;
-    padding: 6px 0;
+    padding: 6px 2px;
     /* Bỏ bo tròn pill của từng ô — chỉ còn nền is-active vuông theo thanh */
     border-radius: 0;
     font-size: 10.5px;
     color: var(--muted);
+    /* Nhãn chữ ngắn cạnh icon, chống tràn chữ trên màn hẹp */
+    white-space: nowrap;
 }
 
-.floatnav a span {
-    font-size: 19px;
+/* Icon SVG (link từ assets/images/svg) thay emoji cũ — siết nhỏ vì thanh có 4 ô */
+.floatnav a img {
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
 .floatnav a.is-active {
@@ -129,7 +135,10 @@
 .floatnav .cart-count {
     position: absolute;
     top: 4px;
-    right: calc(50% - 34px);
+    /* neo theo mép phải icon 20px -> không lệch khi chiều dài nhãn thay đổi */
+    left: calc(50% + 10px);
+    right: auto;
+    transform: translateX(-50%);
     min-width: 18px;
     height: 16px;
     padding: 0 4px;
