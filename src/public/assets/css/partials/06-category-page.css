@@ -75,10 +75,12 @@
 }
 
 .filter-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     height: 40px;
+    min-height: 40px;
     padding: 0 16px;
     /* Sửa: nút lọc bo vuông tròn nhẹ theo token chung */
     border-radius: var(--r-btn);
@@ -86,6 +88,27 @@
     color: #fff;
     font-size: 13px;
     font-weight: 600;
+    /* Sửa lỗi text lệch trên mobile: không cho nhãn xuống dòng, cắt tràn an toàn */
+    white-space: nowrap;
+    line-height: 1;
+    flex: none;
+}
+
+/* Icon ⚙ của nút Bộ lọc: span riêng để baseline emoji không kéo chữ "Bộ lọc"
+   lệch lên/xuống trong hàng flex (nguyên nhân lỗi lệch text trên mobile) */
+.filter-btn__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.filter-btn__label {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
 }
 
 .chips {

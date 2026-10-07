@@ -15,7 +15,11 @@
                 <option value="{{ $key }}" @selected($currentSort === $key)>{{ $optionLabel }}</option>
             @endforeach
         </select>
+        {{-- Sửa lỗi text lệch trên mobile: icon ⚙ là span trang trí (aria-hidden),
+        nhãn "Bộ lọc" nằm trong span riêng để flex căn giữa ổn định, không bị
+        baseline emoji kéo chữ lệch lên/xuống --}}
         <button class="filter-btn" type="button" data-drawer-open="#filterDrawer" aria-expanded="false"
-            aria-controls="filterDrawer">⚙ Bộ lọc</button>
+            aria-controls="filterDrawer"><span class="filter-btn__icon" aria-hidden="true">⚙</span><span
+                class="filter-btn__label">Bộ lọc</span></button>
     </div>
 </div>

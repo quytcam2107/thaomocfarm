@@ -11,7 +11,10 @@
 <div class="drawer" id="filterDrawer" role="dialog" aria-modal="true" aria-label="Bộ lọc sản phẩm">
     <div class="drawer__overlay" data-drawer-close></div>
     <div class="drawer__panel drawer__panel--right">
-        <p class="drawer__head">⚙ Bộ lọc
+        {{-- Sửa lỗi text lệch trên mobile: icon ⚙ tách span riêng (aria-hidden),
+        nhãn bọc span flex để không bị baseline emoji kéo lệch so với nút ✕ --}}
+        <p class="drawer__head"><span class="drawer__head-icon" aria-hidden="true">⚙</span><span
+                class="drawer__head-label">Bộ lọc</span>
             <button class="drawer__close" type="button" data-drawer-close aria-label="Đóng bộ lọc">✕</button>
         </p>
         <div class="drawer__filter">
