@@ -49,7 +49,8 @@
         {{-- NEW REVIEW: truyền slug + tên SP để khối đánh giá gọi đúng route
         web.product.reviews.store / web.review.helpful --}}
         <x-product.tabs :description="$product->description" :reviews="$reviews" :ratingStats="$ratingStats"
-            :product-slug="$product->slug" :product-name="$product->name" />
+            :product-slug="$product->slug" :product-name="$product->name" :product="$product" :variants="$variants"
+            :category="$category ?? null" />
 
         <x-product.related :products="$relatedProducts" />
     </div>

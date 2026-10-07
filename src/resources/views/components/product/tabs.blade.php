@@ -1,21 +1,37 @@
-@props(['description' => '', 'reviews' => [], 'ratingStats' => [], 'productSlug' => '', 'productName' => ''])
+@props(['description' => '', 'reviews' => [], 'ratingStats' => [], 'productSlug' => '', 'productName' => '', 'product' => null, 'variants' => [], 'category' => null])
 
 @php
     // Thống kê an toàn: total/by_star luôn tồn tại nhờ ProductDetailFetcher::fetchReviews
     $rvTotal = (int) ($ratingStats['total'] ?? 0);
     $rvAvg = (float) ($ratingStats['avg'] ?? $ratingStats['average'] ?? 0);
     $byStar = $ratingStats['by_star'] ?? [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+
+    /* YÊU CẦU MỚI: tab "Chính sách" đã XÓA khỏi nav + panel.
+       Tab "Đánh giá" đẩy xuống DƯỚI 2 tab "Mô tả" / "Chi tiết sản phẩm":
+       .tabs đổi layout grid 1 cột (xem 07d-pdp-tabs.css) -> nav (2 tab) nằm
+       trên, khối đánh giá (.rv-zone) là hàng thứ 2, LUÔN hiển thị bên dưới
+       mà không cần bấm tab. Panel review bỏ role=tabpanel để khỏi bị JS
+       tabs ARIA ([role="tab"]) ẩn/hiện theo tab. */
+    $specs = [];
+    if ($product) {
+        $specs[] = ['label' => 'Mã sản phẩm (SKU)', 'value' => (string) ($product->sku ?? '')];
+        if (!empty($product->subtitle)) {
+            $specs[] = ['label' => 'Mô tả ngắn', 'value' => (string) $product->subtitle];
+        }
+        if ($category) {
+            $specs[] = ['label' => 'Danh mục', 'value' => (string) ($category['name'] ?? ''), 'url' => (string) ($category['url'] ?? '')];
+        }
+        $specs[] = ['label' => 'Tình trạng kho', 'value' => ((int) ($product->stock ?? 0) > 0) ? 'Còn hàng (' . number_format((int) $product->stock) . ' sản phẩm)' : 'Tạm hết hàng'];
+        $specs[] = ['label' => 'Đã bán', 'value' => number_format((int) ($product->sold_count ?? 0)) . ' sản phẩm'];
+        $specs[] = ['label' => 'Đánh giá', 'value' => number_format($rvAvg, 1) . '/5 (' . $rvTotal . ' đánh giá)'];
+    }
 @endphp
 
 <div class="tabs">
     <div class="tabs__nav" role="tablist" aria-label="Thông tin sản phẩm">
-        <button role="tab" id="tab-desc" aria-controls="panel-desc" aria-selected="true">Mô tả</button>
-        <button role="tab" id="tab-review" aria-controls="panel-review" aria-selected="false" tabindex="-1">
-            Đánh giá ({{ $rvTotal }})
-        </button>
-        <button role="tab" id="tab-policy" aria-controls="panel-policy" aria-selected="false" tabindex="-1">
-            Chính sách
-        </button>
+        <button role="tab" id="tab-desc" aria-controls="panel-desc" aria-selected="true">Mô tả sản phẩm</button>
+        <button role="tab" id="tab-spec" aria-controls="panel-spec" aria-selected="false" tabindex="-1">Chi tiết sản
+            phẩm</button>
     </div>
 
     <div class="tabs__panel" id="panel-desc" role="tabpanel" aria-labelledby="tab-desc">
@@ -38,7 +54,63 @@
             </div>
     </div>
 
-    <div class="tabs__panel" id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
+    {{-- NEW TAB CHI TIẾT SẢN PHẨM: bảng thông số quy cách (từ product_variants thật
+    qua $variants của ProductDetailFetcher) + đặc tính (SKU/danh mục/kho/đã bán).
+    Component tự ẩn từng khối khi data rỗng — không render "không có dữ liệu". --}}
+    <div class="tabs__panel" id="panel-spec" role="tabpanel" aria-labelledby="tab-spec" hidden>
+        @if(count($variants))
+            <h3 class="spec-title">Quy cách &amp; giá bán</h3>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Quy cách</th>
+                        <th scope="col">Giá bán</th>
+                        <th scope="col">Giá niêm yết</th>
+                        <th scope="col">Tồn kho</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($variants as $v)
+                        <tr>
+                            <td>{{ $v['label'] }}@if(!empty($v['selected'])) <span class="spec-tag">Đang chọn</span>@endif</td>
+                            <td><b>{{ number_format((int) $v['price']) }}₫</b></td>
+                            <td>@if(!empty($v['old_price']) && (int) $v['old_price'] > (int) $v['price'])<s>{{ number_format((int) $v['old_price']) }}₫</s>@else
+                            — @endif</td>
+                            <td>{{ number_format((int) $v['stock']) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
+        @if(count($specs))
+            <h3 class="spec-title">Thông số sản phẩm</h3>
+            <dl class="spec-list">
+                @foreach($specs as $spec)
+                    <div class="spec-row">
+                        <dt>{{ $spec['label'] }}</dt>
+                        <dd>
+                            @if(!empty($spec['url']))
+                                <a href="{{ $spec['url'] }}">{{ $spec['value'] }}</a>
+                            @else
+                                {{ $spec['value'] }}
+                            @endif
+                        </dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
+    </div>
+
+    {{-- ĐÁNH GIÁ ĐẨY XUỐNG DƯỚI: khối .rv-zone đặt NGOÀI khu vực tabpanel, thành
+    hàng thứ 3 của grid .tabs (sau nav + panel) -> luôn nằm dưới 2 tab. Giữ nguyên
+    họ selector .rv-* và marker .rv-zone để app-review.js (@tm/review) hoạt động
+    không đổi (data-product-slug, #reviewList, #rvForm, lọc sao…). --}}
+    <div class="tabs__review">
+        <div class="tabs__review-head">
+            <h3>Đánh giá sản phẩm <span class="tabs__review-count">({{ $rvTotal }})</span></h3>
+        </div>
+
         {{-- KHỐI ĐÁNH GIÁ CHUẨN TMĐT: summary + lọc sao + form + danh sách.
         Data đổ vào #reviewList để JS module @tm/reviews lọc client-side. --}}
         <div class="rv-zone" data-product-slug="{{ $productSlug }}">
@@ -162,10 +234,5 @@
                 @endforelse
             </div>
         </div>
-    </div>
-
-    <div class="tabs__panel" id="panel-policy" role="tabpanel" aria-labelledby="tab-policy" hidden>
-        <p>Đổi trả trong 7 ngày với sản phẩm còn nguyên bao bì hút chân không. Hoàn tiền qua chuyển khoản trong 3–5 ngày
-            làm việc. Sản phẩm đã mở gói vì lý do an toàn thực phẩm sẽ không áp dụng đổi trả.</p>
     </div>
 </div>

@@ -1,20 +1,53 @@
 /* =====================================================================
    07d — PDP: TABS + "XEM THÊM MÔ TẢ" (desc-collapse) + FLASH BLOCK (.pd-flash)
-   Selector đặc trưng: .tabs(__nav/__panel), .desc-collapse*, .desc-more*,
-                      .pd-flash*, #pdStageImg.is-swipe, biến --pd-nav-*
+   Selector đặc trưng: .tabs(__nav/__panel/__review*), .spec-*, .desc-collapse*,
+                      .desc-more*, .pd-flash*, #pdStageImg.is-swipe, biến --pd-nav-*
    Blade tương ứng: resources/views/components/product/tabs.blade.php,
                     components/product/flash-block.blade.php
    JS tương ứng:    assets/js/app-product.js (tabs ARIA + đo desc-collapse + countdown)
    Lưu ý: .pd-flash chỉ là KHUNG PDP; class flash toàn cục (.flash__prog...) ở 14-flash-sale.css.
+   YÊU CẦU MỚI: tab "Chính sách" đã xóa — nav còn 2 tab "Mô tả sản phẩm" /
+   "Chi tiết sản phẩm"; khối "Đánh giá" (.tabs__review) chuyển từ tabpanel sang
+   KHỐI LUÔN HIỂN THỊ nằm DƯỚI khu tab (grid row thứ 3 của .tabs).
    ===================================================================== */
 
 /* Tabs & Reviews */
-.tabs { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.tabs__nav { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); }
+/* NEW: .tabs đổi flex -> grid 1 cột: hàng 1 = nav, hàng 2 = panel đang bật,
+   hàng 3 = khối đánh giá luôn nằm dưới 2 tab (đúng yêu cầu "đẩy Đánh giá xuống"). */
+.tabs { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); }
+.tabs__nav { grid-row: 1; display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); }
 .tabs__nav [role="tab"] { padding: 13px 20px; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; border-bottom: 3px solid transparent; }
 .tabs__nav [role="tab"][aria-selected="true"] { color: var(--leaf); border-bottom-color: var(--gold); }
+/* Panel active chiếm hàng 2; panel [hidden] display:none -> không tạo row */
+.tabs__panel:not([hidden]) { grid-row: 2; }
 .tabs__panel { padding: 18px; font-size: 14px; line-height: 1.75; color: #40514a; }
 .tabs__panel[hidden] { display: none; }
+
+/* NEW: khối ĐÁNH GIÁ đẩy xuống dưới 2 tab — tách khỏi khu tabpanel, có viền
+phân cách + heading riêng; .rv-zone bên trong giữ nguyên họ selector 07e. */
+.tabs__review { grid-row: 3; border-top: 1px solid var(--line); padding: 18px; display: grid; gap: 14px; background: #fffdf9; }
+.tabs__review-head h3 { margin: 0; font-size: 16px; color: var(--leaf-deep); }
+.tabs__review-count { color: var(--muted); font-weight: 600; font-size: 14px; }
+
+/* NEW TAB CHI TIẾT SẢN PHẨM (#panel-spec): bảng quy cách + dl thông số,
+mobile-first — bảng cuộn ngang an toàn trong panel có overflow clip. */
+.spec-title { margin: 0 0 10px; font-size: 14.5px; font-weight: 700; color: var(--leaf-deep); }
+.spec-title + .spec-title, .spec-table + .spec-title { margin-top: 20px; }
+.spec-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.spec-table th, .spec-table td { text-align: left; padding: 9px 12px; border: 1px solid var(--line); }
+.spec-table thead th { background: #faf7ef; color: #40514a; font-weight: 700; white-space: nowrap; }
+.spec-table tbody tr:nth-child(even) { background: #fdfcf8; }
+.spec-table s { color: #a9a49a; font-size: 12.5px; }
+.spec-tag { display: inline-block; margin-left: 6px; background: var(--leaf-soft); color: var(--leaf); border: 1px solid var(--leaf); font-size: 10.5px; font-weight: 800; padding: 1px 8px; border-radius: 999px; vertical-align: middle; }
+.spec-list { margin: 0; display: grid; gap: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.spec-row { display: grid; grid-template-columns: minmax(0, 1fr); }
+.spec-row + .spec-row { border-top: 1px solid var(--line); }
+.spec-row dt { padding: 10px 12px; font-weight: 700; color: #40514a; background: #faf7ef; font-size: 13.5px; }
+.spec-row dd { margin: 0; padding: 10px 12px; font-size: 13.5px; color: #40514a; }
+.spec-row dd a { color: var(--leaf); font-weight: 600; }
+@media (min-width: 640px) {
+    .spec-row { grid-template-columns: 240px minmax(0, 1fr); }
+}
 
 /* =====================================================================
    NEW XEM THÊM MÔ TẢ (PDP tab Mô tả): description longtext rất dài ->
