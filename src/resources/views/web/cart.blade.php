@@ -144,7 +144,7 @@
                         <span>Tổng cộng</span>
                         <span>{{ number_format($total) }}₫</span>
                     </p>
-                    <a class="btn btn--clay btn--block" href="{{ route('web.checkout.index') }}">Thanh toán ngay</a>
+                    <a class="btn btn--clay btn--block" href="{{ route('web.checkout.index') }}">Tiến hành thanh toán</a>
                     <p class="sum-row sum-row--center">
                         <a class="remove-btn" href="{{ route('web.home') }}">← Tiếp tục mua sắm</a>
                     </p>
@@ -257,7 +257,7 @@
                     </section>
 
                     <a class="btn btn--clay btn--block cart-drawer__checkout" href="{{ route('web.checkout.index') }}">
-                        Thanh toán ngay — {{ number_format($total) }}₫
+                        Tiến hành thanh toán — {{ number_format($total) }}₫
                     </a>
                 </div>
             </div>
