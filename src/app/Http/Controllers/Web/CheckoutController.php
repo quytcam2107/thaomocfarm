@@ -9,13 +9,15 @@ use App\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Services\CartService;
 use App\Services\CheckoutService;
+use App\Services\VietnamLocationService;
 use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
     public function __construct(
         private readonly CheckoutService $checkoutService,
-        private readonly CartService $cartService
+        private readonly CartService $cartService,
+        private readonly VietnamLocationService $locations
     ) {
     }
 
@@ -36,6 +38,15 @@ class CheckoutController extends Controller
         if (empty($data)) {
             return redirect()->route('web.cart.index')->with('error', 'Giỏ hàng đang trống, vui lòng thêm sản phẩm.');
         }
+
+        // Địa chính 2 cấp: đổ tỉnh/thành vào select; nếu quay lại do validate fail
+        // thì pre-render luôn xã/phường của tỉnh đã chọn (để selected without JS).
+        $data['provinces'] = $this->locations->provincesForSelect();
+
+        $oldProvince = $request->old('province_code');
+        $data['wards'] = $oldProvince !== null
+            ? $this->locations->wardsForProvince((int) $oldProvince)
+            : [];
 
         return view('web.checkout', $data);
     }

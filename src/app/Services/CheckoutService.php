@@ -13,8 +13,10 @@ use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
+use App\Models\Province;
 use App\Models\Shipment;
 use App\Models\StockMovement;
+use App\Models\Ward;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -163,13 +165,22 @@ class CheckoutService
         $discountAmount = $goodsDiscount + $shippingDiscount;
         $total = max(0, $discountedSubtotal + $shippingFee - $shippingDiscount);
 
+        // Resolve tên hành chính từ code (form submit province_code/ward_code).
+        // Snapshot lưu cả code + tên để đơn cũ vẫn đọc được sau khi dữ liệu đổi.
+        $province = Province::query()->where('code', (int) $validated['province_code'])->first();
+        $ward = Ward::query()->where('code', (int) $validated['ward_code'])->first();
+
         $addressSnapshot = [
             'name' => $validated['name'],
             'phone' => $validated['phone'],
             'email' => $validated['email'] ?? null,
-            'province' => $validated['province'],
-            'district' => $validated['district'],
-            'ward' => $validated['ward'] ?? '',
+            'province' => $province?->name ?? '',
+            'province_code' => (int) $validated['province_code'],
+            // Cấp quận/huyện đã bỏ (mô hình 2 cấp từ 01/07/2025) — giữ key rỗng
+            // để tương thích đơn cũ + view success đọc address_snapshot['district'].
+            'district' => '',
+            'ward' => $ward?->name ?? '',
+            'ward_code' => (int) $validated['ward_code'],
             'detail' => $validated['address'],
         ];
 

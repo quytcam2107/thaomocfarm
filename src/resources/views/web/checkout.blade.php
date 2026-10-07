@@ -55,35 +55,42 @@
                     <div class="form-grid form-grid--2">
                         <p class="field">
                             <label for="province">Tỉnh / thành <span class="req">*</span></label>
-                            <select id="province" name="province" autocomplete="address-level1" required>
-                                <option value="">— Chọn —</option>
-                                <option value="Hồ Chí Minh" {{ old('province') == 'Hồ Chí Minh' ? 'selected' : '' }}>TP.
-                                    Hồ Chí Minh</option>
-                                <option value="Hà Nội" {{ old('province') == 'Hà Nội' ? 'selected' : '' }}>Hà Nội</option>
-                                <option value="Đà Nẵng" {{ old('province') == 'Đà Nẵng' ? 'selected' : '' }}>Đà Nẵng
-                                </option>
-                                <option value="Sơn La" {{ old('province') == 'Sơn La' ? 'selected' : '' }}>Sơn La</option>
+                            {{-- Địa chính 2 cấp: value = provinces.code, đổ từ DB (34 tỉnh/thành) --}}
+                            <select id="province" name="province_code" autocomplete="address-level1" required>
+                                <option value="">— Chọn tỉnh / thành —</option>
+                                @foreach ($provinces as $p)
+                                    <option value="{{ $p['code'] }}"
+                                        {{ (string) old('province_code') === (string) $p['code'] ? 'selected' : '' }}>
+                                        {{ $p['name'] }}
+                                    </option>
+                                @endforeach
                             </select>
-                            @error('province') <small class="error" style="color: #dc2626;">{{ $message }}</small>
+                            @error('province_code') <small class="error" style="color: #dc2626;">{{ $message }}</small>
                             @enderror
                         </p>
                         <p class="field">
-                            <label for="district">Quận / huyện <span class="req">*</span></label>
-                            <select id="district" name="district" autocomplete="address-level2" required>
-                                <option value="">— Chọn —</option>
-                                <option value="Quận 3" {{ old('district') == 'Quận 3' ? 'selected' : '' }}>Quận 3</option>
-                                <option value="Phú Nhuận" {{ old('district') == 'Phú Nhuận' ? 'selected' : '' }}>Phú Nhuận
-                                </option>
-                                <option value="Thủ Đức" {{ old('district') == 'Thủ Đức' ? 'selected' : '' }}>Thủ Đức
-                                </option>
+                            <label for="ward">Xã / phường <span class="req">*</span></label>
+                            {{-- Cascading: nạp động theo tỉnh qua @tm/checkout (GET web.locations.wards).
+                                 Khi back()->withInput(), controller đã pre-render $wards của tỉnh cũ. --}}
+                            <select id="ward" name="ward_code" autocomplete="address-level2" required
+                                data-source="{{ route('web.locations.wards') }}"
+                                data-selected="{{ old('ward_code') }}"
+                                data-placeholder="— Chọn xã / phường —">
+                                <option value="">— Chọn xã / phường —</option>
+                                @foreach ($wards as $w)
+                                    <option value="{{ $w['code'] }}"
+                                        {{ (string) old('ward_code') === (string) $w['code'] ? 'selected' : '' }}>
+                                        {{ $w['name'] }}
+                                    </option>
+                                @endforeach
                             </select>
-                            @error('district') <small class="error" style="color: #dc2626;">{{ $message }}</small>
+                            @error('ward_code') <small class="error" style="color: #dc2626;">{{ $message }}</small>
                             @enderror
                         </p>
                         <p class="field form-grid--2-full">
                             <label for="address">Địa chỉ chi tiết <span class="req">*</span></label>
                             <input id="address" name="address" autocomplete="street-address" required
-                                placeholder="Số nhà, tên đường, phường" value="{{ old('address') }}">
+                                placeholder="Số nhà, tên đường, thôn/xóm" value="{{ old('address') }}">
                             @error('address') <small class="error" style="color: #dc2626;">{{ $message }}</small>
                             @enderror
                         </p>

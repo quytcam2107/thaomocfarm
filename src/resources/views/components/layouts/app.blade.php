@@ -53,7 +53,8 @@
             "@tm/search": "{{ asset('assets/js/app-search.js') }}",
             "@tm/cart-badge": "{{ asset('assets/js/cart-badge.js') }}",
             "@tm/cart-add": "{{ asset('assets/js/cart-add.js') }}",
-            "@tm/review": "{{ asset('assets/js/app-review.js') }}"
+            "@tm/review": "{{ asset('assets/js/app-review.js') }}",
+            "@tm/checkout": "{{ asset('assets/js/app-checkout.js') }}"
         }
     }
     </script>

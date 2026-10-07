@@ -56,10 +56,18 @@
                             <div class="s-card__row">
                                 <dt>Địa chỉ</dt>
                                 <dd>
-                                    {{ $order->address_snapshot['detail'] ?? '' }},
-                                    {{ $order->address_snapshot['ward'] ?? '' }}
-                                    {{ $order->address_snapshot['district'] ?? '' }},
-                                    {{ $order->address_snapshot['province'] ?? '' }}
+                                    @php
+                                        // Ghép các phần khác rỗng — tương thích cả đơn cũ (có district, không ward)
+                                        // lẫn đơn mới (2 cấp: ward + province, district rỗng).
+                                        $snap = $order->address_snapshot ?? [];
+                                        $addrParts = array_filter([
+                                            $snap['detail'] ?? '',
+                                            $snap['ward'] ?? '',
+                                            $snap['district'] ?? '',
+                                            $snap['province'] ?? '',
+                                        ], fn ($v) => trim((string) $v) !== '');
+                                    @endphp
+                                    {{ implode(', ', $addrParts) }}
                                 </dd>
                             </div>
                             @if($order->note)

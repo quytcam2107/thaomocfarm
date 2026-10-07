@@ -77,6 +77,13 @@
     background: #fff7f7;
 }
 
+/* Xã/phường khóa khi chưa chọn tỉnh (cascading select checkout) */
+.field select:disabled {
+    background: #f3f4f6;
+    color: var(--muted);
+    cursor: not-allowed;
+}
+
 .hint {
     display: block;
     font-size: 11.5px;

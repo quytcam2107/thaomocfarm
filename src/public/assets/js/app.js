@@ -38,3 +38,8 @@ if (has('.rv-zone')) {
 if (has('#searchForm') && has('#searchInput') && has('#searchSuggest')) {
     import('@tm/search');
 }
+
+// Checkout: cascading select Tỉnh/Thành → Xã/Phường (chỉ trang thanh toán có đủ 2 select)
+if (has('#province') && has('#ward')) {
+    import('@tm/checkout');
+}

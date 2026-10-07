@@ -162,6 +162,46 @@ class VietnamLocationService
         return ['provinces' => $provinceCount, 'wards' => $wardCount];
     }
 
+    /**
+     * Danh sách tỉnh/thành cho select box: [{code, name}], sắp xếp theo tên.
+     * Dữ liệu hành chính gần như bất biến → cache nhóm `content` 24h.
+     *
+     * @return list<array{code:int,name:string}>
+     */
+    public function provincesForSelect(): array
+    {
+        return remember_group('content', 'provinces_select', 86400, function () {
+            return Province::query()
+                ->ordered()
+                ->get(['code', 'name'])
+                ->map(fn (Province $p) => ['code' => (int) $p->code, 'name' => (string) $p->name])
+                ->all();
+        });
+    }
+
+    /**
+     * Danh sách xã/phường của MỘT tỉnh theo province_code: [{code, name}].
+     * Cache nhóm `content` theo từng tỉnh (khóa wards_select:{code}) 24h.
+     *
+     * @return list<array{code:int,name:string}>
+     */
+    public function wardsForProvince(int|string $provinceCode): array
+    {
+        $code = (int) $provinceCode;
+        if ($code <= 0) {
+            return [];
+        }
+
+        return remember_group('content', "wards_select:{$code}", 86400, function () use ($code) {
+            return Ward::query()
+                ->ofProvince($code)
+                ->ordered()
+                ->get(['code', 'name'])
+                ->map(fn (Ward $w) => ['code' => (int) $w->code, 'name' => (string) $w->name])
+                ->all();
+        });
+    }
+
     /** Gắn FK wards.province_code → provinces.code (chỉ MySQL; driver khác bỏ qua). */
     private function ensureWardProvinceForeignKey(): void
     {

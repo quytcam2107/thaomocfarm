@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\CartController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\CheckoutController;
 use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\LocationController;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ReviewController;
@@ -52,6 +53,9 @@ Route::delete('/gio-hang/ma-giam-gia', [CartController::class, 'removeCoupon'])-
 Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('web.checkout.index');
 Route::post('/thanh-toan', [CheckoutController::class, 'store'])->name('web.checkout.store');
 Route::get('/dat-hang-thanh-cong/{order_number}', [CheckoutController::class, 'success'])->name('web.checkout.success');
+
+// 5a. Địa chính 2 cấp (tỉnh/thành → xã/phường) cho cascading select checkout — TRƯỚC catch-all /{slug}
+Route::get('/dia-chi/xa-phuong', [LocationController::class, 'wards'])->name('web.locations.wards');
 
 // 6. Chi tiet san pham
 Route::get('/san-pham/{slug}', [ProductController::class, 'show'])
