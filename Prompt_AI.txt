@@ -21,4 +21,4 @@ Code phải CHÍNH XÁC, ĐỦ, CHẠY NGAY để tôi copy ghi đè local, test
 4. Liệt kê đủ mắt xích Route↔Controller↔Service↔Blade↔CSS↔JS; comment tiếng Việt tại logic mới.
 5. Kết thúc: tóm tắt luồng + checklist kiểm tra cụ thể trên trình duyệt/DB local.
 
-# YÊU CẦU TIẾP THEO
+# YÊU CẦU TIẾP THEO (VIẾT CODE ĐẦY ĐỦ DƯỚI DẠNG CODE BLOCK ĐỂ COPY)
