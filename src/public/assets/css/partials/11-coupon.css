@@ -285,7 +285,8 @@
 .coupon-toast {
     position: fixed;
     left: 50%;
-    bottom: 24px;
+    /* Nâng trên thanh cart-bar (sticky đáy, cao ~72px) để không bị che */
+    bottom: calc(84px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     background: var(--leaf-deep);
     color: #fff;
