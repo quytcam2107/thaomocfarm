@@ -25,7 +25,7 @@ Menu mới: Gọi điện · Zalo · Ưu đãi · Sản phẩm · Giỏ hàng
 
         {{-- 3. Flash sale: ở home -> JS cuộn tới #flash; trang khác -> về /#flash --}}
         <a href="{{ url('/') }}#flash" data-fn="flash"
-            class="{{ request()->is('/') ? 'is-active' : '' }}"
+            class=""
             {{ request()->is('/') ? 'aria-current="page"' : '' }}>
             <img src="{{ asset('assets/images/svg/icon-fire.svg') }}" alt="" width="20" height="20"
                 aria-hidden="true">Ưu đãi

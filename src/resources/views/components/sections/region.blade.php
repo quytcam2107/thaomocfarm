@@ -12,6 +12,6 @@
             <li>Dược liệu vùng cao</li>
             <li>Đặc sản Tây Bắc</li>
         </ul>
-        <a class="btn btn--clay" href="{{ url('/tat-ca-san-pham') }}">Khám phá ngay</a>
+        <a class="btn btn--clay" href="{{ url('/tat-ca-san-pham') }}">Khám phá sản phẩm</a>
     </div>
 </section>

@@ -8,8 +8,8 @@
                 trà thảo mộc dưỡng sinh. Mỗi sản phẩm là một món quà chăm sóc sức khỏe quý giá, được thu hái thủ công và
                 kiểm định nguồn gốc minh bạch từ vùng trồng.</p>
             <div class="hero__cta">
-                <a class="btn btn--clay" href="{{ url('/tat-ca-san-pham') }}">Khám phá ngay</a>
-                <a class="btn btn--ghost" href="#flash">Xem deal hôm nay</a>
+                <a class="btn btn--clay" href="{{ url('/tat-ca-san-pham') }}">Khám phá sản phẩm</a>
+                <a class="btn btn--ghost" href="#flash">Xem ưu đãi hôm nay</a>
             </div>
             <ul class="hero__usp">
                 <li>
