@@ -1,7 +1,7 @@
 # Bảng `promotions`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-05T11:13:39+00:00
+> Bản cập nhật lúc: 2026-10-07T13:36:44+00:00
 
 ## Thông tin chung
 

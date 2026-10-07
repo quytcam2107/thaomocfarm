@@ -1,0 +1,34 @@
+{"id":35,"code":1,"name":"Thành phố Hà Nội","division_type":"thành phố trung ương","codename":"ha_noi","phone_code":"24","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":36,"code":4,"name":"Tỉnh Cao Bằng","division_type":"tỉnh","codename":"cao_bang","phone_code":"206","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":37,"code":8,"name":"Tỉnh Tuyên Quang","division_type":"tỉnh","codename":"tuyen_quang","phone_code":"207","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":38,"code":11,"name":"Tỉnh Điện Biên","division_type":"tỉnh","codename":"dien_bien","phone_code":"215","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":39,"code":12,"name":"Tỉnh Lai Châu","division_type":"tỉnh","codename":"lai_chau","phone_code":"213","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":40,"code":14,"name":"Tỉnh Sơn La","division_type":"tỉnh","codename":"son_la","phone_code":"212","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":41,"code":15,"name":"Tỉnh Lào Cai","division_type":"tỉnh","codename":"lao_cai","phone_code":"214","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":42,"code":19,"name":"Tỉnh Thái Nguyên","division_type":"tỉnh","codename":"thai_nguyen","phone_code":"208","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":43,"code":20,"name":"Tỉnh Lạng Sơn","division_type":"tỉnh","codename":"lang_son","phone_code":"205","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":44,"code":22,"name":"Tỉnh Quảng Ninh","division_type":"tỉnh","codename":"quang_ninh","phone_code":"203","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":45,"code":24,"name":"Tỉnh Bắc Ninh","division_type":"tỉnh","codename":"bac_ninh","phone_code":"222","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":46,"code":25,"name":"Tỉnh Phú Thọ","division_type":"tỉnh","codename":"phu_tho","phone_code":"210","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":47,"code":31,"name":"Thành phố Hải Phòng","division_type":"thành phố trung ương","codename":"hai_phong","phone_code":"225","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":48,"code":33,"name":"Tỉnh Hưng Yên","division_type":"tỉnh","codename":"hung_yen","phone_code":"221","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":49,"code":37,"name":"Tỉnh Ninh Bình","division_type":"tỉnh","codename":"ninh_binh","phone_code":"229","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":50,"code":38,"name":"Tỉnh Thanh Hóa","division_type":"tỉnh","codename":"thanh_hoa","phone_code":"237","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":51,"code":40,"name":"Tỉnh Nghệ An","division_type":"tỉnh","codename":"nghe_an","phone_code":"238","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":52,"code":42,"name":"Tỉnh Hà Tĩnh","division_type":"tỉnh","codename":"ha_tinh","phone_code":"239","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":53,"code":44,"name":"Tỉnh Quảng Trị","division_type":"tỉnh","codename":"quang_tri","phone_code":"233","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":54,"code":46,"name":"Thành phố Huế","division_type":"thành phố trung ương","codename":"hue","phone_code":"234","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":55,"code":48,"name":"Thành phố Đà Nẵng","division_type":"thành phố trung ương","codename":"da_nang","phone_code":"236","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":56,"code":51,"name":"Tỉnh Quảng Ngãi","division_type":"tỉnh","codename":"quang_ngai","phone_code":"255","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":57,"code":52,"name":"Tỉnh Gia Lai","division_type":"tỉnh","codename":"gia_lai","phone_code":"269","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":58,"code":56,"name":"Tỉnh Khánh Hòa","division_type":"tỉnh","codename":"khanh_hoa","phone_code":"258","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":59,"code":66,"name":"Tỉnh Đắk Lắk","division_type":"tỉnh","codename":"dak_lak","phone_code":"262","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":60,"code":68,"name":"Tỉnh Lâm Đồng","division_type":"tỉnh","codename":"lam_dong","phone_code":"263","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":61,"code":75,"name":"Tỉnh Đồng Nai","division_type":"tỉnh","codename":"dong_nai","phone_code":"251","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":62,"code":79,"name":"Thành phố Hồ Chí Minh","division_type":"thành phố trung ương","codename":"ho_chi_minh","phone_code":"28","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":63,"code":80,"name":"Tỉnh Tây Ninh","division_type":"tỉnh","codename":"tay_ninh","phone_code":"276","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":64,"code":82,"name":"Tỉnh Đồng Tháp","division_type":"tỉnh","codename":"dong_thap","phone_code":"277","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":65,"code":86,"name":"Tỉnh Vĩnh Long","division_type":"tỉnh","codename":"vinh_long","phone_code":"270","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":66,"code":91,"name":"Tỉnh An Giang","division_type":"tỉnh","codename":"an_giang","phone_code":"296","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":67,"code":92,"name":"Thành phố Cần Thơ","division_type":"thành phố trung ương","codename":"can_tho","phone_code":"292","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
+{"id":68,"code":96,"name":"Tỉnh Cà Mau","division_type":"tỉnh","codename":"ca_mau","phone_code":"290","created_at":"2026-10-07 13:35:28","updated_at":"2026-10-07 13:35:28"}
