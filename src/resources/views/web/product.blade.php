@@ -48,9 +48,13 @@
 
         {{-- NEW REVIEW: truyền slug + tên SP để khối đánh giá gọi đúng route
         web.product.reviews.store / web.review.helpful --}}
+        {{-- NEW SPECS: truyền $product_specs (list ['label','value'] decode từ
+        products.specs_json) để khối "Thông số sản phẩm" đọc DB thay vì tự ghép
+        từ SKU/kho/đã bán. Biến lấy từ khóa 'specs' trong array trả về của
+        ProductDetailHydrator::hydrate() (view receive qua compact của controller). --}}
         <x-product.tabs :description="$product->description" :reviews="$reviews" :ratingStats="$ratingStats"
             :product-slug="$product->slug" :product-name="$product->name" :product="$product" :variants="$variants"
-            :category="$category ?? null" />
+            :category="$category ?? null" :product-specs="$product_specs ?? []" />
 
         <x-product.related :products="$relatedProducts" />
     </div>
@@ -65,8 +69,6 @@
         {{-- FIX TRAN NGANG PDP: XOA script inline trung lap truoc day (gallery thumbs,
         variant, qty, tabs) vi no trung voi module ES public/assets/js/app-product.js
         (duoc app.js loader nap khi DOM co .pd-thumbs / [role="tab"] / #buyNow).
-        Script cu chay bang DOMContentLoaded khong co scrollIntoView -> tranh chap
-        click handler voi module, khi nhieu anh thumb bi cuon vang kho tam nhin.
         Module app-product.js giu nguyen toan bo logic cu + them cuon thumb vao tam
         nhin, nen PDP van chay du thieu script inline nay. --}}
         <script>
@@ -118,12 +120,12 @@
                         let val = parseInt(qtyInput.value) || 1;
                         const max = parseInt(qtyInput.max) || 99;
 
-                        if (step === '1' && val < max) qtyInput.value = val + 1;
-                        if (step === '-1' && val > 1) qtyInput.value = val - 1;
+                        if (step === 'inc') val = Math.min(max, val + 1);
+                        if (step === 'dec') val = Math.max(1, val - 1);
+                        qtyInput.value = val;
                     });
                 }
             });
         </script>
     </x-slot>
-
 </x-layouts.app>

@@ -38,6 +38,8 @@ class Product extends Model
         'status',
         'published_at',
         'seo',
+        // NEW: thông số sản phẩm dạng JSON — nguồn cho khối "Thông số sản phẩm" ở PDP
+        'specs_json',
     ];
 
     /** Quan hệ app-level với category: không FK, không auto cascade */
@@ -134,6 +136,8 @@ class Product extends Model
             'published_at' => 'datetime',
             'seo' => 'array',
             'is_featured' => 'boolean',
+            // NEW: Eloquent tự decode json -> array (null khi cột NULL)
+            'specs_json' => 'array',
         ];
     }
 }

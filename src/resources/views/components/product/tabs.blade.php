@@ -1,4 +1,4 @@
-@props(['description' => '', 'reviews' => [], 'ratingStats' => [], 'productSlug' => '', 'productName' => '', 'product' => null, 'variants' => [], 'category' => null])
+@props(['description' => '', 'reviews' => [], 'ratingStats' => [], 'productSlug' => '', 'productName' => '', 'product' => null, 'variants' => [], 'category' => null, 'productSpecs' => []])
 
 @php
     // Thống kê an toàn: total/by_star luôn tồn tại nhờ ProductDetailFetcher::fetchReviews
@@ -12,18 +12,27 @@
        trên, khối đánh giá (.rv-zone) là hàng thứ 2, LUÔN hiển thị bên dưới
        mà không cần bấm tab. Panel review bỏ role=tabpanel để khỏi bị JS
        tabs ARIA ([role="tab"]) ẩn/hiện theo tab. */
-    $specs = [];
+
+    /* NEW SPECS: "Thông số sản phẩm" giờ đọc JSON từ DB (products.specs_json)
+       qua ProductDetailHydrator::buildSpecRows() -> $product->specs
+       (list ['label','value']). Nguồn ưu tiên: prop :product-specs (nếu view
+       truyền tường minh), fallback DTO. Các dòng kỹ thuật cũ (SKU / kho / đã bán /
+       đánh giá) chuyển xuống khối riêng "$techSpecs" để KHÔNG lẫn với thông số
+       nhà sản phẩm — vẫn giữ đủ thông tin như trước. */
+    $dbSpecs = $productSpecs !== [] ? $productSpecs : (array) ($product->specs ?? []);
+
+    $techSpecs = [];
     if ($product) {
-        $specs[] = ['label' => 'Mã sản phẩm (SKU)', 'value' => (string) ($product->sku ?? '')];
+        $techSpecs[] = ['label' => 'Mã sản phẩm (SKU)', 'value' => (string) ($product->sku ?? '')];
         if (!empty($product->subtitle)) {
-            $specs[] = ['label' => 'Mô tả ngắn', 'value' => (string) $product->subtitle];
+            $techSpecs[] = ['label' => 'Mô tả ngắn', 'value' => (string) $product->subtitle];
         }
         if ($category) {
-            $specs[] = ['label' => 'Danh mục', 'value' => (string) ($category['name'] ?? ''), 'url' => (string) ($category['url'] ?? '')];
+            $techSpecs[] = ['label' => 'Danh mục', 'value' => (string) ($category['name'] ?? ''), 'url' => (string) ($category['url'] ?? '')];
         }
-        $specs[] = ['label' => 'Tình trạng kho', 'value' => ((int) ($product->stock ?? 0) > 0) ? 'Còn hàng (' . number_format((int) $product->stock) . ' sản phẩm)' : 'Tạm hết hàng'];
-        $specs[] = ['label' => 'Đã bán', 'value' => number_format((int) ($product->sold_count ?? 0)) . ' sản phẩm'];
-        $specs[] = ['label' => 'Đánh giá', 'value' => number_format($rvAvg, 1) . '/5 (' . $rvTotal . ' đánh giá)'];
+        $techSpecs[] = ['label' => 'Tình trạng kho', 'value' => ((int) ($product->stock ?? 0) > 0) ? 'Còn hàng (' . number_format((int) $product->stock) . ' sản phẩm)' : 'Tạm hết hàng'];
+        $techSpecs[] = ['label' => 'Đã bán', 'value' => number_format((int) ($product->sold_count ?? 0)) . ' sản phẩm'];
+        $techSpecs[] = ['label' => 'Đánh giá', 'value' => number_format($rvAvg, 1) . '/5 (' . $rvTotal . ' đánh giá)'];
     }
 @endphp
 
@@ -54,39 +63,59 @@
             </div>
     </div>
 
-    {{-- NEW TAB CHI TIẾT SẢN PHẨM: bảng thông số quy cách (từ product_variants thật
-    qua $variants của ProductDetailFetcher) + đặc tính (SKU/danh mục/kho/đã bán).
-    Component tự ẩn từng khối khi data rỗng — không render "không có dữ liệu". --}}
+    {{-- NEW TAB CHI TIẾT SẢN PHẨM: bảng quy cách (từ product_variants thật
+    qua $variants của ProductDetailFetcher) + "Thông số sản phẩm" đọc JSON DB
+    + khối thông tin kỹ thuật. Component tự ẩn từng khối khi data rỗng. --}}
     <div class="tabs__panel" id="panel-spec" role="tabpanel" aria-labelledby="tab-spec" hidden>
         @if(count($variants))
             <h3 class="spec-title">Quy cách &amp; giá bán</h3>
-            <table class="spec-table">
-                <thead>
-                    <tr>
-                        <th scope="col">Quy cách</th>
-                        <th scope="col">Giá bán</th>
-                        <th scope="col">Giá niêm yết</th>
-                        <th scope="col">Tồn kho</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($variants as $v)
+            <div class="spec-table-wrap">
+                <table class="spec-table">
+                    <thead>
                         <tr>
-                            <td>{{ $v['label'] }}@if(!empty($v['selected'])) <span class="spec-tag">Đang chọn</span>@endif</td>
-                            <td><b>{{ number_format((int) $v['price']) }}₫</b></td>
-                            <td>@if(!empty($v['old_price']) && (int) $v['old_price'] > (int) $v['price'])<s>{{ number_format((int) $v['old_price']) }}₫</s>@else
-                            — @endif</td>
-                            <td>{{ number_format((int) $v['stock']) }}</td>
+                            <th scope="col">Quy cách</th>
+                            <th scope="col">Giá bán</th>
+                            <th scope="col">Giá niêm yết</th>
+                            <th scope="col">Tồn kho</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach($variants as $v)
+                            <tr>
+                                <td>{{ $v['label'] }}@if(!empty($v['selected'])) <span class="spec-tag">Đang chọn</span>@endif
+                                </td>
+                                <td><b>{{ number_format((int) $v['price']) }}₫</b></td>
+                                <td>@if(!empty($v['old_price']) && (int) $v['old_price'] > (int) $v['price'])<s>{{ number_format((int) $v['old_price']) }}₫</s>@else
+                                — @endif</td>
+                                <td>{{ number_format((int) $v['stock']) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
 
-        @if(count($specs))
+        {{-- NEW: THÔNG SỐ SẢN PHẨM TỪ DATABASE (products.specs_json) — 11 field:
+        Thương hiệu / Xuất xứ / Hạn sử dụng / Thành phần / Hương vị / Hướng dẫn
+        bảo quản / Công dụng / Hướng dẫn sử dụng / Tổ chức sản xuất / Phân phối
+        độc quyền / Thông tin liên hệ. Value escape mặc định của Blade ({{ }}) —
+        an toàn XSS vì nội dung do admin nhập. --}}
+        @if(count($dbSpecs))
             <h3 class="spec-title">Thông số sản phẩm</h3>
+            <dl class="spec-list spec-list--db">
+                @foreach($dbSpecs as $spec)
+                    <div class="spec-row">
+                        <dt>{{ $spec['label'] }}</dt>
+                        <dd>{{ $spec['value'] }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
+
+        @if(count($techSpecs))
+            <h3 class="spec-title">Thông tin mua hàng</h3>
             <dl class="spec-list">
-                @foreach($specs as $spec)
+                @foreach($techSpecs as $spec)
                     <div class="spec-row">
                         <dt>{{ $spec['label'] }}</dt>
                         <dd>

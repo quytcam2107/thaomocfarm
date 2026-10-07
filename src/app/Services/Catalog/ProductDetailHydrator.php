@@ -17,6 +17,25 @@ use App\Services\Promotion\FlashSalePriceService;
 class ProductDetailHydrator
 {
     /**
+     * Bảng ánh xạ key JSON trong products.specs_json -> nhãn hiển thị.
+     * THỨ TỰ mảng = thứ tự dòng trong bảng "Thông số sản phẩm".
+     * Field mới chỉ cần thêm 1 dòng ở đây (Fetcher/Hydrator/View không đổi).
+     */
+    private const SPEC_LABELS = [
+        'thuong_hieu' => 'Thương hiệu',
+        'xuat_xu' => 'Xuất xứ',
+        'han_su_dung' => 'Hạn sử dụng',
+        'thanh_phan' => 'Thành phần',
+        'huong_vi' => 'Hương vị',
+        'bao_quan' => 'Hướng dẫn bảo quản',
+        'cong_dung' => 'Công dụng sản phẩm',
+        'cach_dung' => 'Hướng dẫn sử dụng',
+        'san_xuat' => 'Tên tổ chức chịu trách nhiệm sản xuất',
+        'phan_phoi' => 'Phân phối độc quyền',
+        'lien_he' => 'Thông tin liên hệ',
+    ];
+
+    /**
      * @param array<string, mixed> $cached Mảng thô từ ProductDetailFetcher::fetch()
      * @param array{reviews: list<array<string, mixed>|ReviewViewDTO>, stats: array<string, mixed>} $reviewData
      * @param FlashSalePriceService|null $flashPricing NEW: gắn block flash sale (countdown) cho PDP
@@ -48,6 +67,15 @@ class ProductDetailHydrator
         // NEW: block flash sale cho PDP — null nếu SP không thuộc deal => component tự ẩn
         $flashBlock = $flashPricing?->pdpBlockFor((int) $cached['product_id']);
 
+        /* NEW: decode thông số sản phẩm từ JSON trong DB.
+           - Fetcher đã trả sẵn $cached['product']['specs'] (array phẳng key=>string).
+           - Cache CŨ còn TTL (sinh trước deploy) không có key 'specs' -> tự đọc
+             fallback các key dạng chuỗi JSON thô ($cached['product']['specs_json'])
+             để trang không lỗi và vẫn hiện đúng dữ liệu sau khi bump cache.
+           - Kết quả: list ['label' => ..., 'value' => ...] theo đúng thứ tự SPEC_LABELS,
+             bỏ qua field trống; field lạ (không có trong map) vẫn được giữ cuối bảng. */
+        $specRows = self::buildSpecRows($cached['product'] ?? []);
+
         $productDTO = new ProductViewDTO(
             id: $cached['product']['id'],
             slug: (string) ($cached['product']['slug'] ?? ''),
@@ -66,6 +94,7 @@ class ProductDetailHydrator
             meta_description: $cached['product']['meta_description'],
             category: $categoryDTO,
             flashSale: $flashBlock,
+            specs: $specRows,
         );
 
         $relatedDTOs = array_map(fn($r) => new RelatedProductDTO(
@@ -126,5 +155,60 @@ class ProductDetailHydrator
             'reviews' => $reviewDTOs,
             'ratingStats' => $reviewData['stats'],
         ];
+    }
+
+    /**
+     * NEW: gộp JSON specs từ DB thành list ['label','value'] cho Blade.
+     * Ưu tiên key 'specs' (Fetcher bản mới); nếu thiếu (cache cũ) thì decode
+     * 'specs_json' (chuỗi JSON hoặc array). Không bao giờ ném exception khi
+     * JSON hỏng — coi như chưa có thông số.
+     *
+     * @param array<string, mixed> $product
+     * @return list<array{label: string, value: string}>
+     */
+    private static function buildSpecRows(array $product): array
+    {
+        $raw = $product['specs'] ?? null;
+
+        if (!is_array($raw) || $raw === []) {
+            $fallback = $product['specs_json'] ?? null;
+            if (is_string($fallback) && $fallback !== '') {
+                $decoded = json_decode($fallback, true);
+                $raw = is_array($decoded) ? $decoded : [];
+            } elseif (is_array($fallback)) {
+                $raw = $fallback;
+            } else {
+                $raw = [];
+            }
+        }
+
+        // Chuẩn hóa key/value về chuỗi (chống value là array/null do dữ liệu lạ)
+        $normalized = [];
+        foreach ($raw as $k => $v) {
+            if (is_scalar($v)) {
+                $normalized[(string) $k] = trim((string) $v);
+            }
+        }
+
+        $rows = [];
+        $usedKeys = [];
+        foreach (self::SPEC_LABELS as $key => $label) {
+            $value = $normalized[$key] ?? '';
+            if ($value === '') {
+                continue; // field trống -> không render dòng rỗng
+            }
+            $rows[] = ['label' => $label, 'value' => $value];
+            $usedKeys[$key] = true;
+        }
+
+        // Field extra admin tự thêm ngoài 11 field chuẩn -> hiển thị cuối bảng
+        foreach ($normalized as $key => $value) {
+            if ($value === '' || isset(self::SPEC_LABELS[$key]) || isset($usedKeys[$key])) {
+                continue;
+            }
+            $rows[] = ['label' => $key, 'value' => $value];
+        }
+
+        return $rows;
     }
 }

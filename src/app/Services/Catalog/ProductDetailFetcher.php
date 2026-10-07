@@ -117,6 +117,18 @@ class ProductDetailFetcher
             })
             ->all();
 
+        /* NEW: specs_json — cột json bảng products (migration 2026_10_07_000001).
+           Eloquent cast 'array' nên $product->specs_json là array|null; ép về array
+           thuần để an toàn cache file. Hy sinh 1 vòng normalize: mọi value phải là
+           string scalar (chống kiểu bất thường do admin nhập JSON lồng nhau). */
+        $specsRaw = is_array($product->specs_json) ? $product->specs_json : [];
+        $specsFlat = [];
+        foreach ($specsRaw as $k => $v) {
+            if (is_scalar($v)) {
+                $specsFlat[(string) $k] = trim((string) $v);
+            }
+        }
+
         return [
             'product_id' => $product->id,
             'product' => [
@@ -135,6 +147,8 @@ class ProductDetailFetcher
                 'stock' => $currentStock,
                 'image' => $coverImage,
                 'meta_description' => $product->seo['description'] ?? $product->subtitle ?? $product->name,
+                // NEW: mảng thông số đã chuẩn hóa (key => string), rỗng khi cột NULL
+                'specs' => $specsFlat,
             ],
             'category' => $product->category ? [
                 'name' => $product->category->name,

@@ -169,3 +169,15 @@ mobile-first — bảng cuộn ngang an toàn trong panel có overflow clip. */
 }
 
 #pdStageImg.is-swipe { animation: none; }
+/* NEW SPECS DB (products.specs_json) */
+.spec-list--db .spec-row dt { background: #f6f3ea; }
+.spec-list--db .spec-row dd { overflow-wrap: anywhere; word-break: break-word; }
+
+/* NEW: khung cuộn ngang bảng quy cách trên mobile */
+.spec-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.spec-table-wrap .spec-table { min-width: 520px; }
+
+@media (min-width: 640px) {
+    .spec-row { grid-template-columns: 240px minmax(0, 1fr); }          /* rule cũ giữ nguyên */
+    .spec-list--db .spec-row { grid-template-columns: 260px minmax(0, 1fr); } /* dòng mới thêm */
+}

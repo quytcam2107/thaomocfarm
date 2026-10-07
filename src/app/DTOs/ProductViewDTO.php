@@ -26,6 +26,10 @@ class ProductViewDTO
         public readonly ?CategoryViewDTO $category = null,
         // Block flash sale PDP (null khi SP không thuộc deal => UI giữ nguyên như cũ)
         public readonly ?array $flashSale = null,
+        // NEW: danh sách "Thông số sản phẩm" đã decode + map nhãn tiếng Việt từ
+        // cột products.specs_json. Mỗi phần tử: ['label' => string, 'value' => string].
+        // Rỗng khi sản phẩm chưa nhập thông số => component tự ẩn khối.
+        public readonly array $specs = [],
     ) {
     }
 }

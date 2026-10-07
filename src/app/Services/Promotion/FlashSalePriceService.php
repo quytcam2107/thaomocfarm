@@ -233,6 +233,12 @@ class FlashSalePriceService
     /**
      * Áp giá flash sale lên mảng thô PDP (chạy NGOÀI cache => giá luôn tươi).
      *
+     * FIX AN TOÀN DATA MỚI: hàm này CHỈ ghi đè các key giá (price/old_price/
+     * discount_percent) trên bản sao mảng — các key khác của $cached['product']
+     * (đặc biệt là 'specs' vừa thêm cho khối "Thông số sản phẩm") được PHP copy
+     * theo value semantics nên vẫn còn nguyên. Không cần sửa gì thêm, giữ comment
+     * để ai sau đừng "tối ưu" bằng cách rebuild mảng product từ đầu.
+     *
      * @param array<string, mixed> $cached
      * @return array<string, mixed>
      */
