@@ -353,8 +353,7 @@ if (stage && thumbs.length) {
         data-sub-html do core render -> không nạp, không khai báo.
       - settings.download:true -> core tự thêm nút Tải ảnh (không phải plugin).
       - mobileSettings.controls:true -> trên điện thoại toolbar VẪN hiện đủ
-        (mặc định của lib là ẨN toolbar trên mobile = "thiếu công cụ" trên
-        mobile, phải ghi đè).
+        (mặc định của lib là ẨN toolbar trên mobile, phải ghi đè).
    - Nguồn slide: các <a data-src/data-thumb/data-sub-html/data-download-url>
      trong #lgGalleryRoot (Blade render từ $images).
    - Dynamic mode + create/destroy mỗi lần mở -> không tồn tại DOM lightgallery
@@ -372,7 +371,7 @@ if (stage && thumbs.length) {
     let wrapper = null;   // element tạm承载 dynamic items (chỉ tồn tại khi mở)
     let lgInstance = null;
 
-    /* Đọc danh sách ảnh từ Blade (nguồn duy nhất, trùng data-full hàng thumbs)
+    /* Danh sách ảnh từ Blade (nguồn duy nhất, trùng data-full hàng thumbs)
        -> mảng dynamic mode của lightgallery */
     function collectItems() {
         return qa('a[data-src]', lgRoot).map(a => ({
@@ -562,9 +561,13 @@ tabs.forEach(tab => tab.addEventListener('click', () => {
      data-variant-id trùng value radio rồi:
        1) Di chuyển .spec-tag sang cell quy cách của dòng đó (xóa dòng cũ);
        2) Bật class .is-selected cho dòng đang chọn (CSS 07d highlight);
-       3) Cập nhật lại ô Giá bán / Giá niêm yết từ data-price / data-old-price
-          (2 attr này DO BLADE RENDER TỪ $variants SAU FlashSalePriceService
-          applyToDetailArray — tức đã gồm giá deal, không tự tính lại %).
+       3) Vẽ lại Ô "Giá bán" của dòng đang chọn: <b>giá bán</b> + (nếu có)
+          <s>giá niêm yết gạch ngang</s>.
+   - YÊU CẦU MỚI (PDP): bảng ĐÃ BỎ CỘT "Giá niêm yết"; giá niêm yết (lấy từ
+     data-old-price = compare_price / flash_price sau FlashSalePriceService
+     applyToDetailArray — tức đã gồm giá deal, KHÔNG tự tính lại %) giờ nằm
+     GẠCH NGANG NGAY TRONG CỘT "Giá bán" của dòng đang chọn, giống khối
+     .pd-price của x-product.info. Dòng không được chọn chỉ hiện giá bán.
    - Chạy cả lần đầu (syncSpecTable(null)) để DOM khớp radio checked thực tế
      (phòng cache cũ / variant default bị ẩn khỏi pills).
    ===================================================================== */
@@ -572,6 +575,26 @@ const specTable = q('[data-spec-table]');
 if (specTable) {
     const TAG_TEXT = 'Đang chọn';
     const fmtVND = n => money(Math.round(n)); // money() của @tm/core: 1.234.567₫
+
+    /** Vẽ ô "Giá bán" của 1 dòng: <b>giá bán</b> + <s>niêm yết gạch ngang</s> (cột cũ gộp vào đây) */
+    function renderRowPrice(row, isSelected) {
+        const priceCell = row.cells[1];
+        if (!priceCell) return;
+        const price = parseInt(row.dataset.price, 10) || 0;
+        const oldPrice = parseInt(row.dataset.oldPrice, 10) || 0;
+
+        const strong = document.createElement('b');
+        strong.textContent = fmtVND(price);
+        priceCell.replaceChildren(strong);
+
+        /* Chỉ gạch niêm yết khi dòng ĐANG CHỌN và niêm yết CAO HƠN giá bán
+           (đúng điều kiện cột "Giá niêm yết" cũ) */
+        if (isSelected && oldPrice > price) {
+            const strike = document.createElement('s');
+            strike.textContent = fmtVND(oldPrice);
+            priceCell.append(' ', strike);
+        }
+    }
 
     /** Đồng bộ 1 dòng đang chọn; idVar = value radio checked (null = dòng đang .is-selected) */
     function syncSpecTable(idVar) {
@@ -608,9 +631,10 @@ if (specTable) {
                 existingTag.remove();
             }
 
-            /* 2) Giá bán + giá niêm yết của TỪNG dòng vốn cố định theo variant
-                  (mảng $variants server-render) — không cần đổi khi chọn;
-                  chỉ đảm bảo format nhất quán với inline price block. */
+            /* 2) Ô Giá bán: dòng đang chọn kèm giá niêm yết gạch ngang
+                  (thay cho cột "Giá niêm yết" đã bỏ) — đồng bộ đúng .pd-price
+                  của x-product.info sau khi đổi khối lượng. */
+            renderRowPrice(row, on);
         });
     }
 
