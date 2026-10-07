@@ -1,6 +1,6 @@
 {{-- =====================================================================
 FLOATNAV — Thanh điều hướng nhanh dính đáy (chỉ mobile; desktop ẩn qua CSS)
-Menu mới: Gọi điện · Zalo · Flash sale · Giỏ hàng
+Menu mới: Gọi điện · Zalo · Ưu đãi · Sản phẩm · Giỏ hàng
 - Mọi icon là SVG link từ public/assets/images/svg (không còn emoji).
 - Hotline/Zalo fix cứng 0362 795 897 (khớp topbar header + trang Liên hệ).
 - Giữ hợp đồng JS: badge .cart-count/.js-cart-count (cart-badge.js);
@@ -31,7 +31,15 @@ Menu mới: Gọi điện · Zalo · Flash sale · Giỏ hàng
                 aria-hidden="true">Ưu đãi
         </a>
 
-        {{-- 4. Giỏ hàng: badge .cart-count do cart-badge.js cập nhật (mobile ẩn
+        {{-- 4. Sản phẩm: về trang /tat-ca-san-pham (route web.products.index);
+        is-active khi đang ở trang sản phẩm / phân loại --}}
+        <a href="{{ route('web.products.index') }}"
+            class="{{ request()->is('tat-ca-san-pham*') ? 'is-active' : '' }}">
+            <img src="{{ asset('assets/images/svg/icon-products.svg') }}" alt="" width="20" height="20"
+                aria-hidden="true">Sản phẩm
+        </a>
+
+        {{-- 5. Giỏ hàng: badge .cart-count do cart-badge.js cập nhật (mobile ẩn
         header__acts nên badge floatnav hoạt động thay thế) --}}
         <a href="{{ route('web.cart.index') }}" class="{{ request()->is('gio-hang*') ? 'is-active' : '' }}">
             <img src="{{ asset('assets/images/svg/icon-cart.svg') }}" alt="" width="20" height="20"
