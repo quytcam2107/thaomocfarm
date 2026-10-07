@@ -4,6 +4,26 @@
     border-bottom: 1px solid var(--line);
 }
 
+/* ---- Mobile <768px: FIX CỨNG "cả" header (header__main + thanh catnav) ở đầu màn hình ----
+   - Dùng position:sticky thuần CSS, KHÔNG toggle class bằng JS trong event scroll
+     -> hết lỗi "nhấp nháy cả khối header__main" khi vuốt lên/xuống (nguyên nhân kinh
+     điển: JS thêm/xóa position:fixed|sticky hoặc đổi top/transform mỗi frame).
+   - top:0 + z-index:40: y hệt quy tắc desktop cũ, chỉ mở rộng cho mobile; drawer(60)/
+     toast(70)/lightGallery(9999) vẫn nằm trên, floatnav(45) neo đáy màn hình nên
+     không đổi thứ tự lớp.
+   - KHÔNG khai báo will-change / transform / transition cho header: header đã có con
+     em .search tạo stacking context (z-index riêng khi spotlight) nên không cần "tạo
+     layer sớm"; layer do will-change ép buộc chính là nguồn gây nhấp nháy trên iOS Safari.
+   - Trang không render catnav (:hide-catnav="true") vẫn an toàn: header ngắn lại,
+     sticky top:0 luôn hợp lệ. */
+@media (max-width: 767.98px) {
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+    }
+}
+
 .topbar {
     background: var(--leaf-deep);
     color: #eaf3ee;
