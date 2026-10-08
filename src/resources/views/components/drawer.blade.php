@@ -118,6 +118,12 @@
             <p class="drawer__section-title">Tiện ích</p>
             <ul class="drawer__util">
                 <li>
+                    <a href="{{ route('web.order-lookup.index') }}">
+                        <span class="drawer__link-icon" aria-hidden="true">🧾</span>
+                        <span class="drawer__util-label">Tra cứu đơn hàng</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('web.cart.index') }}">
                         <span class="drawer__link-icon" aria-hidden="true">🛒</span>
                         <span class="drawer__util-label">Giỏ hàng</span>

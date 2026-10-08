@@ -10,7 +10,7 @@
             <p>🚚 Miễn phí vận chuyển cho đơn từ 300K </p>
             <nav class="topbar__nav" aria-label="Liên kết nhanh">
                 <a href="tel:0362795897">Hotline mua hàng: 📞 0362 795 897</a>
-                <a href="{{ route('web.order-lookup.index') }}">🧾 Tra cứu đơn</a>
+                {{-- <a href="{{ route('web.order-lookup.index') }}">🧾 Tra cứu đơn</a> --}}
                 <a href="#">📍 Cửa hàng</a>
             </nav>
         </div>
@@ -41,8 +41,8 @@
             {{-- Thay nút "Đăng nhập": Tra cứu đơn hàng bằng số điện thoại (không cần tài khoản) --}}
             <a class="act {{ request()->routeIs('web.order-lookup.index') ? 'is-active' : '' }}"
                 href="{{ route('web.order-lookup.index') }}" aria-label="Tra cứu đơn hàng">
-                <img src="{{ asset('assets/images/svg/icon-user.svg') }}" alt="" width="20" height="20">
-                <span>Tra cứu đơn</span>
+                <img src="{{ asset('assets/images/svg/find.png') }}" alt="" width="20" height="20">
+                <span>Tra cứu đơn hàng</span>
             </a>
 
             {{-- Icon Giỏ hàng --}}
