@@ -32,7 +32,7 @@ nhằm quyết định render khung; nội dung card/stats do JS cập nhật re
             {{-- Server-render dự phòng (SEO / JS tắt): vẫn đổ 1 lần nếu controller có data,
             sau đó JS ghi đè khi fetch về. --}}
             @if($products && !empty($products['items']))
-                @foreach($products['items'] as $product)
+                @foreach(($products['items'] ?? []) as $product)
                     <x-ui.flash-card :url="$product['url']" :image="$product['image']" :name="$product['name']"
                         :price="$product['flash_price_formatted']" :oldPrice="$product['original_price_formatted']"
                         :discount="$product['discount_percent']" :rating="$product['rating_avg']" :sold="$product['sold_text']"
