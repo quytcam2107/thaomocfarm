@@ -13,6 +13,9 @@
  *    - Button #coBarSubmit nằm NGOÀI <form id="checkoutForm"> → gán thuộc tính form
  *      trong HTML; với trình duyệt không hỗ trợ, bind click fallback requestSubmit().
  *    - Thêm class body.has-co-bar để CSS chừa padding-bottom khỏi che nội dung.
+ *    - VALIDATE 2 TẦNG khi bấm CTA: client check trước bằng reportValidity() — fail
+ *      thì chặn hẳn, KHÔNG gửi request sang BE; pass thì submit thường và BE vẫn
+ *      chạy CheckoutRequest validate lại lần 2 (nguồn chuẩn cuối).
  */
 import { q, toast } from '@tm/core';
 
@@ -26,6 +29,42 @@ if (coBar) {
     const coSubmit = q('#coBarSubmit', coBar);
 
     if (coSubmit && coForm) {
+        /* ===== VALIDATE 2 TẦNG khi bấm CTA #coBarSubmit:
+           1) CLIENT: form mang novalidate nên trình duyệt KHÔNG tự chặn submit →
+              gọi coForm.reportValidity() thủ công. Trả false ⇒ browser bật tooltip
+              ngay tại field lỗi đầu tiên + preventDefault DỪNG hẳn, không gửi
+              request sang BE + toast hướng dẫn.
+           2) SERVER: client pass thì submit thường, CheckoutRequest vẫn validate
+              lại lần 2 (nguồn chuẩn cuối: exists provinces/wards, cross-check
+              phường thuộc tỉnh, whitelist shipping/payment…).
+
+           Handler click bind BUBBLE và đặt TRƯỚC handler fallback bên dưới ⇒ khi
+           client fail, stopImmediatePropagation() khiến fallback không kịp
+           requestSubmit(); khi client pass, fallback vẫn chạy đúng vai trò của nó.
+           Chặn cả Enter-to-submit bằng listener 'keydown' trên form (Enter không
+           đi qua click của CTA). ===== */
+        const coClientGate = () => {
+            const ok = coForm.reportValidity();
+            if (!ok) toast('Vui lòng kiểm tra lại các trường được đánh dấu.');
+            return ok;
+        };
+
+        // Chặn Enter-to-submit (submit native do phím) — client fail thì cancel
+        coForm.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !eShiftKeyGuard(e)) {
+                if (!coClientGate()) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        coSubmit.addEventListener('click', (e) => {
+            if (!coClientGate()) {
+                e.preventDefault(); // client fail → không gửi request sang BE
+                e.stopImmediatePropagation();
+            }
+        });
+
         // Fallback trình duyệt cũ không hỗ trợ attribute form="..." trên button ngoài form
         coSubmit.addEventListener('click', (e) => {
             if (coSubmit.form !== coForm) {
@@ -41,6 +80,18 @@ if (coBar) {
         // Chặn double-submit sau khi bấm đặt hàng (tránh tạo 2 đơn)
         coForm.addEventListener('submit', () => {
             coSubmit.disabled = true;
+        });
+
+        /* Server validate fail quay lại (back()->withInput(), <small class="error">
+           render trong field) → mở khóa sẵn CTA; đồng thời tái kích hoạt ngay khi
+           người dùng bắt đầu sửa bất kỳ trường nào (không cần reload trang). */
+        if (q('small.error', coForm)) {
+            coSubmit.disabled = false;
+        }
+        ['input', 'change'].forEach((evt) => {
+            coForm.addEventListener(evt, () => {
+                if (coSubmit.disabled) coSubmit.disabled = false;
+            }, true);
         });
     }
 }
