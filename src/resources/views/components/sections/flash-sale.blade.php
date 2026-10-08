@@ -9,17 +9,18 @@
             countdown nowrap + flex-shrink:0 nên không bao giờ rơi xuống dòng chồng title
             (xem partials/14-flash-sale.css)
             - ĐÃ XÓA link .flash__all "Xem tất cả ưu đãi →" (href trỏ về đúng trang chủ, vô nghĩa)
-            - data-ends = unix giây MỐC ĐẾM server đã clamp <= 24h — app.js đếm về mốc này qua contract
-                .countdown[data-ends] + #cdH/#cdM/#cdS (KHÔNG đổi id/class/data-ends) - Label đếm ngược tách 2 bản:
-                .cd-label--full ("Kết thúc sau") hiện trên màn thường, .cd-label--short ("Còn") chỉ hiện ở màn rất hẹp
-                <360px (CSS display:none) — JS không đụng vào phần label này nên an toàn contract --}} <div
+            - data-ends = MARKER để app.js dynamic import @tm/product + giá trị SEED; từ bản sửa
+            này JS KHÔNG đếm theo data-ends nữa mà tự tính tới 00:00:00 nửa đêm theo giờ máy
+            người xem (23:59:59 -> 00:00:00, lặp hằng ngày). KHÔNG đổi selector/id/data-ends.
+            - Label đếm ngược tách 2 bản:
+            .cd-label--full ("Kết thúc sau") hiện trên màn thường, .cd-label--short ("Còn") chỉ
+            hiện ở màn rất hẹp <360px (CSS display:none) — JS không đụng phần label nên an toàn --}} <div
                 class="flash__head">
                 <h2 class="flash__title" id="flashTitle">⚡ Flash Sale</h2>
 
                 <p class="countdown" data-ends="{{ $products['ends_at_unix'] }}" role="timer" aria-live="polite">
-                    <span
-                        class="cd-label cd-label--full">{{ !empty($products['is_ended']) ? 'Ưu đãi kết thúc sau' : 'Kết thúc sau' }}</span>
-                    <b class="cd" id="cdH">00</b>:<b class="cd" id="cdM">00</b>:<b class="cd" id="cdS">00</b>
+                    <span class="cd-label cd-label--full">Kết thúc sau</span>
+                    <b class="cd" id="cdH">--</b>:<b class="cd" id="cdM">--</b>:<b class="cd" id="cdS">--</b>
                 </p>
         </div>
 

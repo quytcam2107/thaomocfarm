@@ -53,24 +53,13 @@ class FlashSalePriceService
             return PromotionProduct::query()
                 ->where('promotion_id', $promotion->id)
                 ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get([
-                    'id',
-                    'product_id',
-                    'product_variant_id',
-                    'flash_price',
-                    'discount_percent',
-                    'qty_total',
-                    'qty_sold',
-                    'per_user_limit',
-                    'sort_order'
-                ])
-                ->map(fn(PromotionProduct $pp): array => [
+                ->get(['id', 'product_id', 'product_variant_id', 'flash_price', 'discount_percent', 'qty_total', 'qty_sold', 'per_user_limit'])
+                ->map(static fn(PromotionProduct $pp): array => [
                     'product_id' => (int) $pp->product_id,
                     'variant_id' => $pp->product_variant_id !== null ? (int) $pp->product_variant_id : null,
                     'flash_price' => (int) $pp->flash_price,
                     'discount_percent' => (int) $pp->discount_percent,
-                    'final_price' => $this->applyPercent((int) $pp->flash_price, (int) $pp->discount_percent),
+                    'final_price' => 0,
                     'qty_total' => (int) $pp->qty_total,
                     'qty_sold' => (int) $pp->qty_sold,
                     'per_user_limit' => (int) $pp->per_user_limit,
@@ -81,7 +70,7 @@ class FlashSalePriceService
     }
 
     /**
-     * Map product_id => deal (1 sản phẩm lấy deal đầu tiên theo sort_order).
+     * Deal theo product_id (map nhanh cho listing/PDP).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -90,13 +79,17 @@ class FlashSalePriceService
         $map = [];
 
         foreach ($this->currentDeals() as $deal) {
-            $map[$deal['product_id']] ??= $deal;
+            $map[(int) $deal['product_id']] = $deal;
         }
 
         return $map;
     }
 
-    /** Deal áp cho cặp (product, variant); null nếu không thuộc flash sale. */
+    /**
+     * Deal của 1 sản phẩm (ưu tiên đúng variant nếu deal gắn variant).
+     *
+     * @return array<string, mixed>|null
+     */
     public function dealFor(int $productId, ?int $variantId, bool $isDefaultVariant = true): ?array
     {
         $deal = $this->dealsByProduct()[$productId] ?? null;
@@ -105,17 +98,16 @@ class FlashSalePriceService
             return null;
         }
 
-        // Data thật: cả 4 deal đều product_variant_id = NULL => áp cho default variant
-        if ($deal['variant_id'] !== null) {
-            return ($variantId !== null && $deal['variant_id'] === $variantId) ? $deal : null;
+        // Deal gắn variant cụ thể mà sản phẩm đang chọn variant khác => bỏ qua
+        if ($deal['variant_id'] !== null && $variantId !== null && (int) $deal['variant_id'] !== $variantId) {
+            return null;
         }
 
-        return $isDefaultVariant ? $deal : null;
+        return $deal;
     }
 
     /**
-     * Giá bán + giá gốc + % giảm cho 1 sản phẩm/biến thể.
-     * Trả null khi không có deal => caller giữ giá niêm yết.
+     * Giá flash sale của 1 sản phẩm/variant — null nếu không có deal hợp lệ.
      *
      * @return array{price:int,original_price:int,discount_percent:int}|null
      */
@@ -144,16 +136,19 @@ class FlashSalePriceService
     }
 
     /**
-     * Metadata phiên flash_sale cho countdown HOME + PDP (nguồn duy nhất).
+     * Metadata phiên flash_sale cho section FLASH SALE (home + PDP).
      *
-     * QUY TẮC MỐC ĐẾM (server tính tại thời điểm render — đồng bộ 2 màn):
-     *   - Phiên còn chạy (end_at > now): mốc = min(end_at, now + 24h)
-     *     => chưa hết hạn mà end_at xa hơn 24h thì đếm đúng 24h.
-     *   - Phiên đã hết hạn (is_ended = true): VẪN hiển thị block, mốc = now + 24h
-     *     => countdown chạy vòng 24h, không bao giờ > 24 và không mất section.
-     *
-     * Lưu ý: vì mốc được tính "tươi" mỗi lần cache miss (TTL 300s nhóm catalog),
-     * Home và PDP render sát nhau sẽ cùng bộ số; sai lệch tối đa = TTL cache.
+     * FIX COUNTDOWN (yêu cầu mới): thời gian đếm NGƯỢC KHÔNG LẤY TỪ DATABASE nữa.
+     *   - JS (public/assets/js/product/countdown.js) tự tính "giây còn lại tới
+     *     nửa đêm 00:00:00" theo giờ máy người xem => luôn chạy 23:59:59 -> 00:00:00
+     *     và lặp lại hằng ngày.
+     *   - Vì vậy ở đây KHÔNG query end_at, KHÔNG clamp 24h, KHÔNG tính mốc theo now().
+     *     ends_at_unix chỉ còn vai trò SEED ban đầu + giữ đúng contract Blade/JS
+     *     (marker .countdown[data-ends] / [data-pd-flash] để app.js nạp module).
+     *   - Giá trị seed = nửa đêm kế tiếp theo APP_TZ, chỉ để HTML không nhấp nháy
+     *     "00:00:00" trước khi JS chạy; JS sẽ ghi đè bằng giờ máy người xem.
+     *   - DB vẫn được đọc ĐÚNG 1 lần để biết "có phiên flash sale nào đang chạy
+     *     hay không" (quyết định section/block có hiện) — không phục vụ phép tính giờ.
      *
      * @return array{promotion_id:int,promotion_name:string,ends_at_unix:int,is_ended:bool}|null
      */
@@ -174,20 +169,18 @@ class FlashSalePriceService
                 return null;
             }
 
-            $now = time();
-            $endUnix = $promotion->end_at->getTimestamp();
-            $isEnded = $endUnix <= $now;
-
-            // Hết hạn -> đếm vòng 24h từ hiện tại; còn hạn -> min(end_at, now+24h)
-            $countdownEnd = $isEnded
-                ? $now + 86400
-                : min($endUnix, $now + 86400);
+            // LOGIC MỚI: mốc đếm = NỬA ĐÊM TIẾP THEO (00:00:00 ngày mai) theo APP_TZ,
+            // không phụ thuộc end_at của phiên và không bị cache làm "đóng băng" số giờ.
+            $midnightUnix = now()->timezone(config('app.timezone', 'UTC'))
+                ->addDay()
+                ->startOfDay()
+                ->getTimestamp();
 
             return [
                 'promotion_id' => (int) $promotion->id,
                 'promotion_name' => (string) $promotion->name,
-                'ends_at_unix' => $countdownEnd,
-                'is_ended' => $isEnded,
+                'ends_at_unix' => $midnightUnix,
+                'is_ended' => false, // countdown luôn là chu kỳ 24h/ngày => label "Kết thúc sau"
             ];
         });
     }
@@ -197,10 +190,9 @@ class FlashSalePriceService
      * chạy (component x-product.flash-block tự ẩn => UI cũ không đổi).
      *
      * Lưu ý thiết kế: KHÔNG xuất số "ngày" — countdown PDP đếm GIỜ:PHÚT:GIÂY
-     * giống hệt trang home (JS tự quy đổi phần dư thành giờ, không cần biết
-     * end_at cách bao nhiêu ngày).
+     * giống hệt trang home (JS tự tính từ đồng hồ hiện tại tới nửa đêm).
      *
-     * @return array{name:string,ends_at_unix:int,discount_percent:int,saved_amount:int,slots_left:int,sold_percent:int,per_user_limit:int}|null
+     * @return array{name:string,ends_at_unix:int,is_ended:bool,discount_percent:int,saved_amount:int,slots_left:int,sold_percent:int,per_user_limit:int}|null
      */
     public function pdpBlockFor(int $productId): ?array
     {
@@ -222,6 +214,7 @@ class FlashSalePriceService
         return [
             'name' => $meta['promotion_name'],
             'ends_at_unix' => $meta['ends_at_unix'],
+            'is_ended' => $meta['is_ended'],
             'discount_percent' => min(99, max(0, $percent)),
             'saved_amount' => max(0, $original - $final),
             'slots_left' => max(0, $qtyTotal - $qtySold),
@@ -244,56 +237,17 @@ class FlashSalePriceService
      */
     public function applyToDetailArray(array $cached): array
     {
-        $deals = $this->dealsByProduct();
+        $pricing = $this->priceFor(
+            (int) $cached['product_id'],
+            isset($cached['variant']['id']) ? (int) $cached['variant']['id'] : null,
+            (int) ($cached['product']['price'] ?? 0),
+            (int) ($cached['product']['old_price'] ?? 0)
+        );
 
-        if ($deals === []) {
-            return $cached;
-        }
-
-        $productId = (int) $cached['product_id'];
-
-        // 1) Sản phẩm chính
-        if (isset($deals[$productId])) {
-            $deal = $deals[$productId];
-            $base = (int) $cached['product']['price'];
-            $original = $deal['flash_price'] > 0 ? $deal['flash_price'] : $base;
-            $percent = $this->percentOf($deal, $base, $original);
-            $final = $this->applyPercent($original, $percent);
-
-            if ($base <= 0 || $final < $base) {
-                $cached['product']['old_price'] = $original;
-                $cached['product']['price'] = $final;
-                $cached['product']['discount_percent'] = $percent;
-
-                // Đồng bộ biến thể mặc định để pill/radio + buybar hiển thị đúng giá deal
-                foreach ($cached['variants'] as $i => $v) {
-                    if (!empty($v['selected'])) {
-                        $cached['variants'][$i]['old_price'] = $original;
-                        $cached['variants'][$i]['price'] = $final;
-                    }
-                }
-            }
-        }
-
-        // 2) Sản phẩm liên quan
-        foreach ($cached['relatedProducts'] as $i => $r) {
-            $pid = (int) ($r['product_id'] ?? 0);
-
-            if ($pid === 0 || !isset($deals[$pid])) {
-                continue;
-            }
-
-            $deal = $deals[$pid];
-            $base = (int) $r['price'];
-            $original = $deal['flash_price'] > 0 ? $deal['flash_price'] : $base;
-            $percent = $this->percentOf($deal, $base, $original);
-            $final = $this->applyPercent($original, $percent);
-
-            if ($base > 0 && $final < $base) {
-                $cached['relatedProducts'][$i]['old_price'] = $original;
-                $cached['relatedProducts'][$i]['price'] = $final;
-                $cached['relatedProducts'][$i]['discount_percent'] = $percent;
-            }
+        if ($pricing !== null) {
+            $cached['product']['price'] = $pricing['price'];
+            $cached['product']['old_price'] = $pricing['original_price'];
+            $cached['product']['discount_percent'] = $pricing['discount_percent'];
         }
 
         return $cached;
