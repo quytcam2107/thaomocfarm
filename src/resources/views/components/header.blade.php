@@ -7,7 +7,7 @@
 
     <div class="topbar">
         <div class="container topbar__in">
-            <p>🚚 Miễn phí vận chuyển cho đơn từ 300K 🚀 Giao nhanh 2h nội thành</p>
+            <p>🚚 Miễn phí vận chuyển cho đơn từ 300K </p>
             <nav class="topbar__nav" aria-label="Liên kết nhanh">
                 <a href="tel:0362795897">Hotline mua hàng: 📞 0362 795 897</a>
                 <a href="#">🧾 Tra cứu đơn</a>
@@ -66,8 +66,8 @@
             <div class="container catnav__in no-scrollbar">
                 <a href="{{ url('/thao-moc') }}">Thảo mộc & Dược liệu</a>
                 <a href="{{ url('/tra-hoa-thao-moc') }}">Trà hoa Thảo Mộc</a>
-                <a href="{{ url('/gia-vi-tay-bac') }}">Gia vị Tây Bắc</a>
-                <a href="{{ url('/thit-gac-bep') }}">Thịt gác bếp</a>
+                <a href="{{ url('/dac-san-tay-bac') }}">Đặc sản Tây Bắc</a>
+                {{-- <a href="{{ url('/thit-gac-bep') }}">Thịt gác bếp</a> --}}
                 <a class="is-hot" href="{{ url('/deal-hot') }}">🔥 Deal hot</a>
             </div>
         </nav>
