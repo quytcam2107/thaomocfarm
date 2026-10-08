@@ -1,7 +1,7 @@
 # Bảng `stock_movements`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-08T08:53:42+00:00
+> Bản cập nhật lúc: 2026-10-08T10:53:35+00:00
 
 ## Thông tin chung
 

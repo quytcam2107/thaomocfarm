@@ -1,10 +1,10 @@
 # Chỉ mục Database — bản xuất cho AI
 
 > Sinh tự động bởi `php artisan ai:export-database`. KHÔNG SỬA THỦ CÔNG — chạy lại lệnh để cập nhật.
-- Thời điểm xuất: 2026-10-08T08:53:42+00:00
+- Thời điểm xuất: 2026-10-08T10:53:36+00:00
 - Kết nối: `mysql` (driver: `mysql`, database: `laravel`)
-- Tổng số bảng: 94
-- Tổng số bản ghi: 4,876
+- Tổng số bảng: 95
+- Tổng số bản ghi: 4,883
 
 ## Cách đọc các file
 
@@ -25,9 +25,9 @@
 | [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
 | [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
 | [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
-| [carts](tables/carts.md) | 320 | tables/carts.md | data/carts.jsonl |
-| [carts](tables/carts.md) | 320 | tables/carts.md | data/carts.jsonl |
-| [carts](tables/carts.md) | 320 | tables/carts.md | data/carts.jsonl |
+| [carts](tables/carts.md) | 321 | tables/carts.md | data/carts.jsonl |
+| [carts](tables/carts.md) | 321 | tables/carts.md | data/carts.jsonl |
+| [carts](tables/carts.md) | 321 | tables/carts.md | data/carts.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
@@ -43,6 +43,7 @@
 | [coupons](tables/coupons.md) | 4 | tables/coupons.md | data/coupons.jsonl |
 | [coupons](tables/coupons.md) | 4 | tables/coupons.md | data/coupons.jsonl |
 | [coupons](tables/coupons.md) | 4 | tables/coupons.md | data/coupons.jsonl |
+| [flash_sale_fake_configs](tables/flash_sale_fake_configs.md) | 4 | tables/flash_sale_fake_configs.md | data/flash_sale_fake_configs.jsonl |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
