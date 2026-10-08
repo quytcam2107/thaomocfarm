@@ -16,8 +16,10 @@
  *    - VALIDATE 2 TẦNG khi bấm CTA: client check trước bằng reportValidity() — fail
  *      thì chặn hẳn, KHÔNG gửi request sang BE; pass thì submit thường và BE vẫn
  *      chạy CheckoutRequest validate lại lần 2 (nguồn chuẩn cuối).
+ *    - Khi client fail: CUỘN + HOVER (highlight .co-field-hover) + focus đúng trường
+ *      còn thiếu/ sai định dạng đầu tiên, toast nêu rõ tên trường ("X còn thiếu").
  */
-import { q, toast } from '@tm/core';
+import { q, qa, toast, reduceMotion } from '@tm/core';
 
 /* ================= CO-BAR STICKY (Đặt hàng đáy trang) ================= */
 const coBar = q('#coBar');
@@ -32,8 +34,9 @@ if (coBar) {
         /* ===== VALIDATE 2 TẦNG khi bấm CTA #coBarSubmit:
            1) CLIENT: form mang novalidate nên trình duyệt KHÔNG tự chặn submit →
               gọi coForm.reportValidity() thủ công. Trả false ⇒ browser bật tooltip
-              ngay tại field lỗi đầu tiên + preventDefault DỪNG hẳn, không gửi
-              request sang BE + toast hướng dẫn.
+              tại field lỗi đầu tiên + preventDefault DỪNG hẳn, không gửi request
+              sang BE; đồng thời (xem coClientGate bên dưới) cuộn + hover + focus và
+              toast nêu đích danh trường còn thiếu.
            2) SERVER: client pass thì submit thường, CheckoutRequest vẫn validate
               lại lần 2 (nguồn chuẩn cuối: exists provinces/wards, cross-check
               phường thuộc tỉnh, whitelist shipping/payment…).
@@ -43,9 +46,72 @@ if (coBar) {
            requestSubmit(); khi client pass, fallback vẫn chạy đúng vai trò của nó.
            Chặn cả Enter-to-submit bằng listener 'keydown' trên form (Enter không
            đi qua click của CTA). ===== */
+        /* ===== TRỢ GIÚP "CHỈ VÀO TRƯỜNG CÒN THIẾU" cho CTA #coBarSubmit =====
+           coFieldLabel(el): nhãn hiển thị của field — ưu <label for=id>, rồi
+             fallback legend của fieldset (radio), cuối cùng là name.
+           coMissingFields(): mọi control có el.checkValidity() === false (bỏ qua
+             control disabled — gồm cả #ward bị khóa khi chưa chọn tỉnh, vì lỗi gốc
+             nằm ở tỉnh, tránh toast nhầm "Xã/phường còn thiếu").
+           coHoverField(el): thêm class .co-field-hover (CSS highlight mô phỏng
+             hover ở partial 09) + scrollIntoView mượt + focus({preventScroll}) để
+             bàn phím sẵn sàng gõ; timer 2.6s tự gỡ highlight, bấm lặp không mất sớm.
+           coClientGate(): reportValidity() fail → hover/focus trường ĐẦU TIÊN trong
+             danh sách thiếu và toast "⚠️ {Nhãn} còn thiếu." (input đã có dữ liệu
+             nhưng sai định dạng, vd SĐT regex → "…chưa hợp lệ."). */
+        const coHoverTimers = new Map();
+
+        const coFieldLabel = (el) => {
+            // Radio/checkbox: nhãn đẹp nhất là legend của fieldset ("3. Phương thức vận chuyển")
+            if (el.type === 'radio' || el.type === 'checkbox') {
+                const fsLb = el.closest('fieldset.fs');
+                if (fsLb && fsLb.legend) return fsLb.legend.textContent.trim();
+            }
+            if (el.id) {
+                const lb = coForm.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+                if (lb) {
+                    return lb.textContent.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+                }
+            }
+            const fs = el.closest('fieldset.fs');
+            if (fs && fs.legend) return fs.legend.textContent.trim();
+            return el.name || 'Trường bắt buộc';
+        };
+
+        /* Danh sách control KHÔNG đạt: bỏ qua element disabled (kể cả #ward bị khóa
+           khi chưa chọn tỉnh — lỗi gốc nằm ở tỉnh), lấy theo thứ tự DOM. */
+        const coMissingFields = () =>
+            qa('input, select, textarea', coForm).filter(el => !el.disabled && !el.checkValidity());
+
+        const coHoverField = (el) => {
+            const prev = coHoverTimers.get(el);
+            if (prev) clearTimeout(prev);
+            el.classList.add('co-field-hover');
+            el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+            try { el.focus({ preventScroll: true }); } catch { el.focus(); }
+            coHoverTimers.set(el, setTimeout(() => {
+                el.classList.remove('co-field-hover');
+                coHoverTimers.delete(el);
+            }, 2600));
+        };
+
         const coClientGate = () => {
             const ok = coForm.reportValidity();
-            if (!ok) toast('Vui lòng kiểm tra lại các trường được đánh dấu.');
+            if (!ok) {
+                const missing = coMissingFields();
+                if (missing.length) {
+                    const first = missing[0];
+                    const label = coFieldLabel(first);
+                    // Input đã có giá trị ⇒ sai ĐỊNH DẠNG (vd regex SĐT), ngược lại ⇒ thiếu
+                    const isFormat = first.matches('input, textarea')
+                        && String(first.value ?? '').trim() !== '';
+                    const verb = isFormat ? 'chưa hợp lệ' : 'còn thiếu';
+                    const suffix = missing.length > 1 ? ` (+${missing.length - 1} trường khác)` : '';
+                    toast(`⚠️ ${label} ${verb}${suffix}.`);
+                    coHoverField(first);
+                } else {
+                    toast('Vui lòng kiểm tra lại các trường được đánh dấu.');
+                }
+            }
             return ok;
         };
 

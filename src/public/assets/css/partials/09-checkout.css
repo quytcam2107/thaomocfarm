@@ -77,6 +77,47 @@
     background: #fff7f7;
 }
 
+/* Trường bị "chỉ mặt" khi bấm CTA #coBarSubmit mà còn thiếu/sai định dạng
+   (JS app-checkout.js thêm tạm class .co-field-hover ~2.6s): highlight mô phỏng
+   hover — viền đỏ + nền hồng + bóng vòng + lắc nhẹ, tự hết khi gỡ class. */
+.field :is(input, select, textarea).co-field-hover {
+    border-color: var(--rose);
+    background: #fdf1f3;
+    box-shadow: 0 0 0 3px rgb(212 88 109 / 0.22);
+    animation: co-field-shake 0.45s ease;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+@keyframes co-field-shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-4px);
+    }
+
+    40% {
+        transform: translateX(4px);
+    }
+
+    60% {
+        transform: translateX(-3px);
+    }
+
+    80% {
+        transform: translateX(3px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .field :is(input, select, textarea).co-field-hover {
+        animation: none;
+    }
+}
+
 /* Xã/phường khóa khi chưa chọn tỉnh (cascading select checkout) */
 .field select:disabled {
     background: #f3f4f6;
