@@ -20,6 +20,10 @@ class HomeController extends Controller
     /**
      * Trang chủ: render các block featured, flash sale, coupons, best sellers, trà hoa.
      * Controller mỏng – toàn bộ logic nằm trong HomeService/BlogService.
+     *
+     * FLASH LIVE: 'flashProducts' chỉ còn là SEED lần đầu cho section (JS sẽ
+     * gọi /flash-sale cập nhật mỗi 3 phút). Lấy trực tiếp từ FlashSaleRenderService
+     * để KHÔNG đụng cache 'home' 5 phút — dữ liệu seed luôn khớp API.
      */
     public function index(): View
     {

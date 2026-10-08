@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\BlogController;
 use App\Http\Controllers\Web\CartController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\CheckoutController;
+use App\Http\Controllers\Web\FlashSaleController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\LocationController;
 use App\Http\Controllers\Web\OrderLookupController;
@@ -31,6 +32,13 @@ Route::get('/tat-ca-san-pham', [ProductController::class, 'index'])->name('web.p
 // 2b. Tìm kiếm — phải đặt TRƯỚC route {slug} bên dưới
 Route::get('/tim-kiem', [SearchController::class, 'index'])->name('web.search.index');
 Route::get('/tim-kiem/goi-y', [SearchController::class, 'suggest'])->name('web.search.suggest');
+
+// 2c. NEW FLASH LIVE: JSON nguồn cho JS cập nhật Flash Sale mỗi 3 phút
+// (home + PDP) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} cuối file.
+Route::get('/flash-sale', [FlashSaleController::class, 'home'])->name('web.flash-sale.home');
+Route::get('/flash-sale/san-pham/{id}', [FlashSaleController::class, 'product'])
+    ->whereNumber('id')
+    ->name('web.flash-sale.product');
 
 // 3. Danh mục — URL chuẩn /danh-muc/{slug}
 Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])
@@ -78,7 +86,7 @@ Route::post('/danh-gia/{review}/phan-hoi', [ReviewController::class, 'reply'])
     ->where('review', '[0-9]+')
     ->name('web.review.reply');
 
-// 6b. Cac trang tinh "Ho tro" (footer) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} bên dưới
+// 6b. Cac trang tinh "Ho trợ" (footer) — BẮT BUỘC đặt TRƯỚC catch-all /{slug} bên dưới
 Route::get('/huong-dan-dat-hang', [PageController::class, 'orderGuide'])->name('web.page.order-guide');
 Route::get('/chinh-sach-doi-tra', [PageController::class, 'returnPolicy'])->name('web.page.return-policy');
 Route::get('/chinh-sach-bao-mat', [PageController::class, 'privacyPolicy'])->name('web.page.privacy');

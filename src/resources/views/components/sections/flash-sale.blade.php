@@ -1,60 +1,48 @@
 @props(['products' => null])
 
-@if($products && !empty($products['items']))
-    <section class="flash reveal" id="flash" aria-labelledby="flashTitle">
+{{-- CƠ CHẾ RENDER MỚI (theo yêu cầu): section Flash Sale KHÔNG còn do PHP đổ
+dữ liệu chi tiết nữa. Blade chỉ in KHUNG (head + đếm ngược + rail rỗng) kèm:
+- data-flash-home : marker để flash-live.js nhận diện & fetch
+- data-flash-url : URL API web.flash-sale.home (JS gọi mỗi 3 phút)
+- data-ends : VẪN giữ contract — marker app.js dynamic import @tm/product
+(countdown.js đếm tới nửa đêm theo giờ máy người xem)
+$products (nếu controller còn truyền) chỉ dùng để biết "có phiên hay không"
+nhằm quyết định render khung; nội dung card/stats do JS cập nhật realtime. --}}
+@if($products !== null || true)
+    <section class="flash reveal" id="flash" aria-labelledby="flashTitle" data-flash-home
+        data-flash-url="{{ route('web.flash-sale.home') }}">
         <div class="container">
             {{-- HEAD: [tiêu đề] ..... [đếm ngược] — 2 thành phần LUÔN ngang hàng trên mọi
-            responsive (kể cả điện thoại):
-            - CSS .flash__head bỏ flex-wrap:wrap -> nowrap; title co lại bằng min-width:0,
-            countdown nowrap + flex-shrink:0 nên không bao giờ rơi xuống dòng chồng title
-            (xem partials/14-flash-sale.css)
-            - ĐÃ XÓA link .flash__all "Xem tất cả ưu đãi →" (href trỏ về đúng trang chủ, vô nghĩa)
-            - data-ends = MARKER để app.js dynamic import @tm/product + giá trị SEED; từ bản sửa
-            này JS KHÔNG đếm theo data-ends nữa mà tự tính tới 00:00:00 nửa đêm theo giờ máy
-            người xem (23:59:59 -> 00:00:00, lặp hằng ngày). KHÔNG đổi selector/id/data-ends.
-            - Label đếm ngược tách 2 bản:
-            .cd-label--full ("Kết thúc sau") hiện trên màn thường, .cd-label--short ("Còn") chỉ
-            hiện ở màn rất hẹp <360px (CSS display:none) — JS không đụng phần label nên an toàn --}} <div
-                class="flash__head">
+            responsive (kể cả điện thoại): CSS .flash__head nowrap (partials/14-flash-sale.css).
+            Label đếm ngược tách 2 bản: .cd-label--full / .cd-label--short (<360px). --}} <div class="flash__head">
                 <h2 class="flash__title" id="flashTitle">⚡ Flash Sale</h2>
 
-                <p class="countdown" data-ends="{{ $products['ends_at_unix'] }}" role="timer" aria-live="polite">
+                <p class="countdown" data-ends="{{ $products['ends_at_unix'] ?? now()->addDay()->startOfDay()->timestamp }}"
+                    role="timer" aria-live="polite">
                     <span class="cd-label cd-label--full">Kết thúc sau</span>
                     <b class="cd" id="cdH">--</b>:<b class="cd" id="cdM">--</b>:<b class="cd" id="cdS">--</b>
                 </p>
         </div>
 
-        {{-- STATS: dải social proof tổng của phiên flash sale (data từ HomeService)
-        - Đặt DƯỚI head, sát rail deal: mắt đọc theo thứ tự tiêu đề → đếm giờ → bằng chứng bán chạy → deal
-        - Nếu cả 2 số liệu đều bằng 0 thì ẩn cả dải, tránh dòng rỗng --}}
-        @php
-            $flashSoldToday = (int) ($products['sold_today'] ?? 0);
-            $flashUrgentCount = (int) ($products['urgent_count'] ?? 0);
-        @endphp
-        @if($flashSoldToday > 0 || $flashUrgentCount > 0)
-            <p class="flash__stats">
-                @if($flashSoldToday > 0)
-                    <span class="flash__chip">🔥 Đã bán {{ number_format($flashSoldToday, 0, ',', '.') }} sản phẩm
-                        hôm nay</span>
-                @endif
-                @if($flashUrgentCount > 0)
-                    <span class="flash__chip flash__chip--hot">{{ $flashUrgentCount }} deal sắp cháy hàng</span>
-                @endif
-            </p>
-        @endif
+        {{-- STATS: dải social proof — JS điền nội dung mỗi 3 phút; rỗng thì CSS ẩn --}}
+        <p class="flash__stats" data-flash-stats hidden></p>
 
-        <div class="flash__rail no-scrollbar" role="region" aria-label="Deal chớp nhoáng, cuộn ngang" tabindex="0">
-            {{-- flash-card: thanh tiến độ % đã bán + text hook đầu card --}}
-            @foreach($products['items'] as $product)
-                <x-ui.flash-card :url="$product['url']" :image="$product['image']" :name="$product['name']"
-                    :price="$product['flash_price_formatted']" :oldPrice="$product['original_price_formatted']"
-                    :discount="$product['discount_percent']" :rating="$product['rating_avg']" :sold="$product['sold_text']"
-                    :productId="$product['product_id']" :variantId="$product['variant_id']"
-                    :soldPercent="$product['sold_percent']" :soldTextToday="$product['sold_text_today']"
-                    :urgentText="$product['urgent_text']" :urgentTone="$product['urgent_tone']"
-                    :slotsLeft="$product['slots_left']" :progressText="$product['progress_text']"
-                    :savedAmount="$product['saved_amount'] ?? null" />
-            @endforeach
+        <div class="flash__rail no-scrollbar" role="region" aria-label="Deal chớp nhoáng, cuộn ngang" tabindex="0"
+            data-flash-rail>
+            {{-- Server-render dự phòng (SEO / JS tắt): vẫn đổ 1 lần nếu controller có data,
+            sau đó JS ghi đè khi fetch về. --}}
+            @if($products && !empty($products['items']))
+                @foreach($products['items'] as $product)
+                    <x-ui.flash-card :url="$product['url']" :image="$product['image']" :name="$product['name']"
+                        :price="$product['flash_price_formatted']" :oldPrice="$product['original_price_formatted']"
+                        :discount="$product['discount_percent']" :rating="$product['rating_avg']" :sold="$product['sold_text']"
+                        :productId="$product['product_id']" :variantId="$product['variant_id']"
+                        :soldPercent="$product['sold_percent']" :soldTextToday="$product['sold_text_today']"
+                        :urgentText="$product['urgent_text']" :urgentTone="$product['urgent_tone']"
+                        :slotsLeft="$product['slots_left']" :progressText="$product['progress_text']"
+                        :savedAmount="$product['saved_amount'] ?? null" />
+                @endforeach
+            @endif
         </div>
         </div>
     </section>

@@ -9,7 +9,7 @@
     'sold' => 0,
     'productId' => 0,
     'variantId' => 0,
-    // --- Dữ liệu flash sale (từ HomeService::mapFlashItem) ---
+    // --- Dữ liệu flash sale (từ HomeService::mapFlashItem / API /flash-sale) ---
     'soldPercent' => 0,       // % slot đã bán -> độ đầy thanh tiến độ
     'soldTextToday' => null,  // "Đã bán 200 sản phẩm hôm nay"
     'urgentText' => null,     // Text hook đầu card: "Sắp cháy hàng 🔥" / "Giảm giá sâu -40%" / ...
@@ -20,7 +20,7 @@
 ])
 
 @php
-    // Map tone -> class màu badge (chỉ dùng selector có sẵn trong 04-home.css)
+    // Map tone -> class màu badge (selector trong 04-home.css / 14-flash-sale.css)
     $toneClass = match ($urgentTone) {
         'hot' => 'is-hot',
         'deep' => 'is-deep',
@@ -43,18 +43,20 @@
     $priceText = $rawNumber($price);
     $oldText = $rawNumber($oldPrice);
 
-    // FIX LỆCH #1: chỉ hiện dòng "Tiết kiệm" khi thực sự có tiền giảm (> 0),
-    // tránh render thẻ rỗng làm .pcard__buy cao bất thường giữa các card.
+    // FIX LỆCH #1: chỉ hiện dòng "Tiết kiệm" khi thực sự có tiền giảm (> 0)
     $savedValue = (int) preg_replace('/[^\d]/u', '', (string) ($savedAmount ?? '0'));
     $savedText = $savedValue > 0 ? $rawNumber($savedValue) : null;
 @endphp
 
-<article class="pcard pcard--flash">
+{{-- data-flash-card + data-product-id: mắt xích để flash-live.js cập nhật động
+mỗi 3 phút (giá/số đã bán/tiến độ) mà không cần rebuild toàn bộ DOM. --}}
+<article class="pcard pcard--flash" data-flash-card data-product-id="{{ $productId }}">
     <div class="pcard__media">
-        {{-- Badge hook: nằm CHÍNH GIỮA mép trên ảnh; flag "-X%" ở góc trái
-        (xử lý responsive bằng container query trong 14-flash-sale.css) --}}
+        {{-- Badge hook: nằm CHÍNH GIỮA mép trên ảnh; flag "-X%" ở góc trái --}}
         @if($urgentText)
-            <span class="flash__urgent {{ $toneClass }}">{{ $urgentText }}</span>
+            <span class="flash__urgent {{ $toneClass }}" data-fs-hook>{{ $urgentText }}</span>
+        @else
+            <span class="flash__urgent is-new" data-fs-hook hidden></span>
         @endif
 
         <a href="{{ $url }}" aria-label="Xem {{ $name }}">
@@ -62,7 +64,9 @@
         </a>
 
         @if($discount)
-            <span class="pcard__flag pcard__flag--hot">-{{ $discount }}%</span>
+            <span class="pcard__flag pcard__flag--hot" data-fs-flag>-{{ $discount }}%</span>
+        @else
+            <span class="pcard__flag pcard__flag--hot" data-fs-flag hidden></span>
         @endif
     </div>
 
@@ -70,46 +74,52 @@
         <h3 class="pcard__name"><a href="{{ $url }}">{{ $name }}</a></h3>
         <p class="pcard__rate">
             <span class="stars" aria-label="{{ $rating }} trên 5 sao">★★★★★</span>
-            {{ $rating }} · {{ $sold }} đã bán
+            <span data-fs-rate>{{ $rating }} · {{ $sold }} đã bán</span>
         </p>
 
-        {{-- Thanh tiến độ đã bán theo % (barfill = width inline từ server, JS không cần đụng tới) --}}
-        @if($soldPercent > 0)
-            <div class="flash__prog" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                aria-valuenow="{{ $soldPercent }}" aria-label="Tiến độ bán deal {{ $name }}">
-                <span class="flash__prog-bar {{ $urgentTone === 'hot' ? 'is-hot' : '' }}"
-                    style="width: {{ min(100, max(5, $soldPercent)) }}%;"></span>
-            </div>
-            <p class="flash__prog-meta">
-                <b>{{ $progressText }}</b>
-                @if($slotsLeft !== null && $slotsLeft > 0)
-                    <small>Còn {{ number_format((int) $slotsLeft, 0, ',', '.') }} slot</small>
-                @endif
-            </p>
-        @endif
+        {{-- Thanh tiến độ đã bán theo % — JS cập nhật width/meta mỗi 3 phút --}}
+        <div class="flash__prog" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+            aria-valuenow="{{ $soldPercent }}" aria-label="Tiến độ bán deal {{ $name }}" data-fs-prog-wrap
+            @if($soldPercent <= 0) hidden @endif>
+            <span class="flash__prog-bar {{ $urgentTone === 'hot' ? 'is-hot' : '' }}" data-fs-prog-bar
+                style="width: {{ min(100, max(5, $soldPercent)) }}%;"></span>
+        </div>
+        <p class="flash__prog-meta" data-fs-prog-meta @if($soldPercent <= 0) hidden @endif>
+            <b data-fs-progress-text>{{ $progressText }}</b>
+            @if($slotsLeft !== null && $slotsLeft > 0)
+                <small data-fs-slots>Còn {{ number_format((int) $slotsLeft, 0, ',', '.') }} slot</small>
+            @else
+                <small data-fs-slots></small>
+            @endif
+        </p>
 
         {{-- Text social proof: "Đã bán 200 sản phẩm hôm nay" --}}
         @if($soldTextToday)
-            <p class="flash__sold">{{ $soldTextToday }}</p>
+            <p class="flash__sold" data-fs-sold-today>{{ $soldTextToday }}</p>
+        @else
+            <p class="flash__sold" data-fs-sold-today hidden></p>
         @endif
 
-        {{-- FIX LỆCH #2: .flash__save KHÔNG nằm trong .pcard__buy nữa.
-        .pcard__buy là flex row (price | nút add) -> nhét thêm 1 <p> vào sẽ
-            tạo flex item thứ 3, chữ bị dồn giữa và lệch khỏi giá.
-            Chuyển dòng tiết kiệm lên block riêng ngay trên .pcard__buy. --}}
-            @if($savedText)
-                <p class="flash__save">
-                    {{-- <i>: nhãn chữ, <b>: con số — CSS tự ẩn <i> ở màn rất hẹp --}}
-                                <i class="flash__save-label">Tiết kiệm</i>
-                                <b class="flash__save-value">{{ $savedText }}₫</b>
-                </p>
-            @endif
+        {{-- Dòng tiết kiệm nằm block riêng trên .pcard__buy (FIX LỆCH #2 giữ nguyên) --}}
+        @if($savedText)
+            <p class="flash__save" data-fs-save>
+                <i class="flash__save-label">Tiết kiệm</i>
+                <b class="flash__save-value" data-fs-save-value>{{ $savedText }}₫</b>
+            </p>
+        @else
+            <p class="flash__save" data-fs-save hidden>
+                <i class="flash__save-label">Tiết kiệm</i>
+                <b class="flash__save-value" data-fs-save-value></b>
+            </p>
+        @endif
 
         <div class="pcard__buy">
             <p class="pcard__price">
-                <b>{{ $priceText }}₫</b>
+                <b data-fs-price>{{ $priceText }}₫</b>
                 @if($oldText)
-                    <s>{{ $oldText }}₫</s>
+                    <s data-fs-old>{{ $oldText }}₫</s>
+                @else
+                    <s data-fs-old hidden></s>
                 @endif
             </p>
             {{-- Giữ nguyên contract JS: .add-cart + data-product-id/data-variant-id --}}

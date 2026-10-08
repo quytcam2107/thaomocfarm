@@ -187,3 +187,8 @@ theo radio name="variant_id") — nền lá nhạt + viền trái đậm để t
     .spec-row { grid-template-columns: 240px minmax(0, 1fr); }          /* rule cũ giữ nguyên */
     .spec-list--db .spec-row { grid-template-columns: 260px minmax(0, 1fr); } /* dòng mới thêm */
 }
+/* FLASH LIVE PDP: quy tắc ẩn/hiện cho các node JS bật/tắt mỗi 3 phút */
+.pd-flash[hidden],
+.pd-flash .flash__prog[hidden],
+.pd-flash .flash__prog-meta[hidden],
+.pd-flash [data-fsp-discount][hidden] { display: none !important; }

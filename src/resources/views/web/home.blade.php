@@ -1,4 +1,9 @@
 <x-layouts.app title="Mộc Xanh — Thảo mộc nguyên chất & Đặc sản Tây Bắc" :show-back-to-top="true">
+    <x-slot name="extra">
+        {{-- FLASH LIVE: JS cập nhật section Flash Sale mỗi 3 phút (xem assets/js/flash-live.js) --}}
+        <script type="module" src="{{ asset('assets/js/flash-live.js') }}"></script>
+    </x-slot>
+
     <x-sections.hero />
     <x-sections.usp />
     <x-sections.collections :categories="$featuredCategories ?? null" />

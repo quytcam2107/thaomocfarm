@@ -8,9 +8,7 @@
 
     {{-- NEW LIGHTGALLERY: riêng trang chi tiết sản phẩm nạp vendor CSS + JS
     (self-host public/assets/vendor/lightgallery — xem lệnh tải Bước 0).
-    THỨ TỰ JS PHẢI ĐÚNG: core -> plugin -> (app.js do layout render sau stack).
-    Plugin caption KHÔNG tồn tại trong lightgallery@2.8.x — subHtml do core
-    render nên không cần nạp. --}}
+    THỨ TỰ JS PHẢI ĐÚNG: core -> plugin -> (app.js do layout render sau stack). --}}
     @push('vendorStyles')
         <link rel="stylesheet" href="{{ asset('assets/vendor/lightgallery/lightgallery-bundle.min.css') }}">
         {{-- NEW REVIEW: style widget sao rateyo (self-host, cùng convention lightgallery) --}}
@@ -18,9 +16,7 @@
     @endpush
 
     {{-- NEW REVIEW: vendorScripts chạy TRƯỚC app.js (layout @stack). jQuery full
-    (bản slim thiếu hiệu ứng needed bởi rateyo) + jquery.rateyo.min.js. Chỉ PDP nạp.
-    FIX 404: rateyo dùng bản 2.3.4 path /min/ (npm không có 1.4.2/src); jQuery đặt
-    thẳng tại assets/vendor/jquery.min.js theo cấu trúc folder đã chốt. --}}
+    (bản slim thiếu hiệu ứng needed bởi rateyo) + jquery.rateyo.min.js. Chỉ PDP nạp. --}}
     @push('vendorScripts')
         <script src="{{ asset('assets/vendor/lightgallery/lightgallery.umd.min.js') }}" defer></script>
         <script src="{{ asset('assets/vendor/lightgallery/lg-zoom.umd.min.js') }}" defer></script>
@@ -37,21 +33,14 @@
         <x-ui.breadcrumb :items="$breadcrumbs" />
 
         <div class="pd-layout">
-            {{-- Truyền thêm shareUrl/shareTitle/hasFlashSale: hàng nút chia sẻ chỉ hiện
-            khi sản phẩm thuộc flash sale (lấp khoảng trống dưới pd-thumbs).
-            Route web.product.show dùng đúng $product->slug (cột slug bảng products). --}}
+            {{-- hasFlashSale: seed ban đầu; sau 3 phút JS có thể bật block nếu SP vào deal mới,
+            nhưng vị trí nút chia sẻ giữ nguyên theo dữ liệu render lần đầu. --}}
             <x-product.gallery :images="$images" :thumbs="$imageThumbs ?? null" :alt="$product->name"
                 :share-url="route('web.product.show', $product->slug)" :share-title="$product->name"
                 :has-flash-sale="$product->flashSale !== null" />
             <x-product.info :product="$product" :variants="$variants" />
         </div>
 
-        {{-- NEW REVIEW: truyền slug + tên SP để khối đánh giá gọi đúng route
-        web.product.reviews.store / web.review.helpful --}}
-        {{-- NEW SPECS: truyền $product_specs (list ['label','value'] decode từ
-        products.specs_json) để khối "Thông số sản phẩm" đọc DB thay vì tự ghép
-        từ SKU/kho/đã bán. Biến lấy từ khóa 'specs' trong array trả về của
-        ProductDetailHydrator::hydrate() (view receive qua compact của controller). --}}
         <x-product.tabs :description="$product->description" :reviews="$reviews" :ratingStats="$ratingStats"
             :product-slug="$product->slug" :product-name="$product->name" :product="$product" :variants="$variants"
             :category="$category ?? null" :product-specs="$product_specs ?? []" />
@@ -62,15 +51,9 @@
     <x-slot name="extra">
         <x-product.buybar :product="$product" />
 
-        {{-- FIX ĐỒNG BỘ: countdown PDP do app.js engine dùng chung với home điều khiển
-        (data-ends = unix end_at của phiên) — KHÔNG nạp pdp-flash.js riêng nữa,
-        vì 2 script đếm 2 kiểu khác nhau khiến Home và PDP lệch giờ. --}}
+        {{-- FLASH LIVE: cập nhật block .pd-flash + giá deal mỗi 3 phút (assets/js/flash-live.js) --}}
+        <script type="module" src="{{ asset('assets/js/flash-live.js') }}"></script>
 
-        {{-- FIX TRAN NGANG PDP: XOA script inline trung lap truoc day (gallery thumbs,
-        variant, qty, tabs) vi no trung voi module ES public/assets/js/app-product.js
-        (duoc app.js loader nap khi DOM co .pd-thumbs / [role="tab"] / #buyNow).
-        Module app-product.js giu nguyen toan bo logic cu + them cuon thumb vao tam
-        nhin, nen PDP van chay du thieu script inline nay. --}}
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const variants = @json($variants);

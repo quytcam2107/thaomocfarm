@@ -372,3 +372,27 @@
         grid-template-columns: repeat(4, 1fr);
     }
 }
+/* ===== FLASH LIVE (JS cập nhật mỗi 3 phút) =====
+   - .flash[hidden]: section bị JS ẩn khi API báo không còn phiên/deal đang chạy
+   - [data-flash-stats][hidden]: dải social proof rỗng -> không chiếm chiều cao
+   - Card đang được JS cập nhật: nhấp nhẹ để người dùng thấy dữ liệu vừa đổi */
+.flash[hidden],
+[data-flash-stats][hidden],
+.flash__prog[hidden],
+.flash__prog-meta[hidden],
+.flash__sold[hidden],
+.flash__save[hidden],
+.pcard--flash [data-fs-flag][hidden],
+.pcard--flash [data-fs-old][hidden],
+.pcard--flash [data-fs-hook][hidden] {
+    display: none !important;
+}
+
+.fs-updated {
+    animation: fsUpdated .6s ease;
+}
+
+@keyframes fsUpdated {
+    from { box-shadow: 0 0 0 2px rgb(255 215 128 / .85); }
+    to   { box-shadow: 0 0 0 2px transparent; }
+}
