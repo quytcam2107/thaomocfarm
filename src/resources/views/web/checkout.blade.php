@@ -59,8 +59,7 @@
                             <select id="province" name="province_code" autocomplete="address-level1" required>
                                 <option value="">— Chọn tỉnh / thành —</option>
                                 @foreach ($provinces as $p)
-                                    <option value="{{ $p['code'] }}"
-                                        {{ (string) old('province_code') === (string) $p['code'] ? 'selected' : '' }}>
+                                    <option value="{{ $p['code'] }}" {{ (string) old('province_code') === (string) $p['code'] ? 'selected' : '' }}>
                                         {{ $p['name'] }}
                                     </option>
                                 @endforeach
@@ -71,15 +70,13 @@
                         <p class="field">
                             <label for="ward">Xã / phường <span class="req">*</span></label>
                             {{-- Cascading: nạp động theo tỉnh qua @tm/checkout (GET web.locations.wards).
-                                 Khi back()->withInput(), controller đã pre-render $wards của tỉnh cũ. --}}
+                            Khi back()->withInput(), controller đã pre-render $wards của tỉnh cũ. --}}
                             <select id="ward" name="ward_code" autocomplete="address-level2" required
-                                data-source="{{ route('web.locations.wards') }}"
-                                data-selected="{{ old('ward_code') }}"
+                                data-source="{{ route('web.locations.wards') }}" data-selected="{{ old('ward_code') }}"
                                 data-placeholder="— Chọn xã / phường —">
                                 <option value="">— Chọn xã / phường —</option>
                                 @foreach ($wards as $w)
-                                    <option value="{{ $w['code'] }}"
-                                        {{ (string) old('ward_code') === (string) $w['code'] ? 'selected' : '' }}>
+                                    <option value="{{ $w['code'] }}" {{ (string) old('ward_code') === (string) $w['code'] ? 'selected' : '' }}>
                                         {{ $w['name'] }}
                                     </option>
                                 @endforeach
@@ -180,9 +177,33 @@
                     <span>Tổng cộng</span>
                     <span>{{ number_format($total) }}₫</span>
                 </p>
-                <button class="btn btn--clay btn--block" type="submit">✅ Đặt hàng</button>
+                {{-- Mobile: nút Đặt hàng chính chuyển xuống co-bar sticky đáy trang (JS app-checkout.js),
+                nên bản trong summary ẩn bằng CSS (.summary .co-submit-desktop) --}}
+                <button class="btn btn--clay btn--block co-submit-desktop" type="submit">✅ Đặt hàng</button>
                 <p class="hint sum-row--center">Bằng việc đặt hàng, bạn đồng ý với điều khoản sử dụng.</p>
             </aside>
         </form>
     </div>
+
+    {{-- ============ CO-BAR STICKY ĐÁY TRANG (chỉ mobile < 1024px)============Nút "✅ Đặt hàng" dạng sticky luôn thấy
+        khi cuộn form thanh toán: - Tổng tiền + chip mã giảm giá (nếu có) bên trái, CTA "Đặt hàng" bên phải. - Button
+        nằm NGOÀI <form> → JS gán form="checkoutForm" để submit được không cần reload.
+        - Desktop >=1024px: ẩn bằng CSS (đã có summary sticky bên phải).
+        --}}
+        <div class="co-bar" id="coBar" role="region" aria-label="Xác nhận đặt hàng">
+            <div class="co-bar__left">
+                <div class="co-bar__total">
+                    <span class="co-bar__label">Tổng cộng</span>
+                    <span class="co-bar__amount">{{ number_format($total) }}₫</span>
+                </div>
+                @if($appliedCoupon)
+                    <span class="co-bar__applied">🎟️ {{ $appliedCoupon['code'] }}</span>
+                @endif
+            </div>
+            <div class="co-bar__right">
+                <button class="btn btn--clay co-bar__submit" id="coBarSubmit" type="submit" form="checkoutForm">
+                    ✅ Đặt hàng
+                </button>
+            </div>
+        </div>
 </x-layouts.app>

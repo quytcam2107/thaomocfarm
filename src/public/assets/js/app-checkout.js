@@ -1,18 +1,51 @@
 /**
- * CHECKOUT — cascading select Tỉnh/Thành → Xã/Phường (địa chính 2 cấp, bỏ quận/huyện).
- * Loader app.js CHỈ nạp module này khi trang có cả #province và #ward.
- *
- * Nguồn dữ liệu: GET data-source (route web.locations.wards) ?province_code={code}
- *   → { wards: [{code, name}] } (đã cache nhóm `content` phía server).
- *
- * Quy ước:
- *  - #ward luôn disabled khi chưa chọn tỉnh (không submit value rỗng).
- *  - Khi back()->withInput() do validate fail, server đã pre-render sẵn option
- *    phường của tỉnh cũ + selected → options.length > 1 → KHÔNG fetch lại lần đầu.
- *  - Đổi tỉnh → fetch lại và reset selected.
+ * CHECKOUT — 2 luồng:
+ * 1) Cascading select Tỉnh/Thành → Xã/Phường (địa chính 2 cấp, bỏ quận/huyện).
+ *    Loader app.js CHỈ nạp module này khi trang có cả #province và #ward.
+ *    Nguồn dữ liệu: GET data-source (route web.locations.wards) ?province_code={code}
+ *      → { wards: [{code, name}] } (đã cache nhóm `content` phía server).
+ *    Quy ước:
+ *     - #ward luôn disabled khi chưa chọn tỉnh (không submit value rỗng).
+ *     - Khi back()->withInput() do validate fail, server đã pre-render sẵn option
+ *       phường của tỉnh cũ + selected → options.length > 1 → KHÔNG fetch lại lần đầu.
+ *     - Đổi tỉnh → fetch lại và reset selected.
+ * 2) Co-bar sticky đáy trang (mobile < 1024px): nút "✅ Đặt hàng" luôn thấy khi cuộn.
+ *    - Button #coBarSubmit nằm NGOÀI <form id="checkoutForm"> → gán thuộc tính form
+ *      trong HTML; với trình duyệt không hỗ trợ, bind click fallback requestSubmit().
+ *    - Thêm class body.has-co-bar để CSS chừa padding-bottom khỏi che nội dung.
  */
 import { q, toast } from '@tm/core';
 
+/* ================= CO-BAR STICKY (Đặt hàng đáy trang) ================= */
+const coBar = q('#coBar');
+if (coBar) {
+    // Đệm thân trang để thanh sticky không che khối ghi chú cuối form
+    document.body.classList.add('has-co-bar');
+
+    const coForm = q('#checkoutForm');
+    const coSubmit = q('#coBarSubmit', coBar);
+
+    if (coSubmit && coForm) {
+        // Fallback trình duyệt cũ không hỗ trợ attribute form="..." trên button ngoài form
+        coSubmit.addEventListener('click', (e) => {
+            if (coSubmit.form !== coForm) {
+                e.preventDefault();
+                if (typeof coForm.requestSubmit === 'function') {
+                    coForm.requestSubmit(coSubmit);
+                } else {
+                    coForm.submit();
+                }
+            }
+        });
+
+        // Chặn double-submit sau khi bấm đặt hàng (tránh tạo 2 đơn)
+        coForm.addEventListener('submit', () => {
+            coSubmit.disabled = true;
+        });
+    }
+}
+
+/* ================= CASCADING TỈNH → XÃ/PHƯỜNG ================= */
 const province = q('#province');
 const ward = q('#ward');
 

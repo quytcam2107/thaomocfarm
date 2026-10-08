@@ -146,3 +146,119 @@
     margin-left: auto;
     color: var(--ink);
 }
+
+/* ============ CO-BAR STICKY ĐÁY TRANG (mobile-first, < 1024px) ============
+   Nút "✅ Đặt hàng" luôn dính đáy màn hình khi cuộn form thanh toán.
+   Kết cấu + style đồng bộ .cart-bar (giỏ hàng): fixed đáy, border-top, shadow,
+   padding dưới phủ env(safe-area-inset-bottom) cho iPhone tai thỏ.
+   Desktop >=1024px ẩn (đã có summary sticky bên phải). */
+.co-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 16px rgb(34 48 42 / 0.08);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.co-bar__left {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.co-bar__total {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.co-bar__label {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.co-bar__amount {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--clay);
+    font-family: "Lora", serif;
+    letter-spacing: 0.01em;
+}
+
+/* Chip mã giảm giá đang áp (nếu có) — cùng style coupon-applied/cart-bar__applied */
+.co-bar__applied {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--leaf-deep);
+    background: var(--leaf-soft);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.co-bar__right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.co-bar__submit {
+    min-width: 140px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    min-height: 46px;
+}
+
+/* Mobile: thân trang chừa chỗ để co-bar không che khối ghi chú/hint cuối form */
+body.has-co-bar {
+    padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+/* Mobile: nút Đặt hàng trong summary bị co-bar thay thế → ẩn đi, tránh 2 CTA trùng */
+@media (max-width: 1023.98px) {
+    .summary .co-submit-desktop {
+        display: none;
+    }
+}
+
+/* Desktop: ẩn co-bar, trả body padding về mặc định layout */
+@media (min-width: 1024px) {
+    .co-bar {
+        display: none;
+    }
+
+    body.has-co-bar {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom));
+    }
+}
+
+/* Màn rất hẹp (< 360px): thu gọn chữ "Đặt hàng" khỏi bị cắt */
+@media (max-width: 359px) {
+    .co-bar__submit {
+        min-width: 118px;
+        padding: 11px 12px;
+        font-size: 13px;
+    }
+
+    .co-bar__amount {
+        font-size: 15px;
+    }
+}
