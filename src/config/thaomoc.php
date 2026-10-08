@@ -61,6 +61,10 @@ return [
             'testimonials' => 3600,       // 1 giờ
         ],
         'settings' => 3600,               // 1 giờ
+        'flash_live' => [
+            'ttl' => 180,                 // 3 phút — đúng chu kỳ flash-live.js
+            'stale_ttl' => 86400,         // bản fallback 1 ngày cho nhánh STALE
+        ],
     ],
 
     /*

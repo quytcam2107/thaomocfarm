@@ -39,6 +39,8 @@ Route::get('/flash-sale', [FlashSaleController::class, 'home'])->name('web.flash
 Route::get('/flash-sale/san-pham/{id}', [FlashSaleController::class, 'product'])
     ->whereNumber('id')
     ->name('web.flash-sale.product');
+Route::post('/flash-sale/xoa-cache', [FlashSaleController::class, 'clearCache'])
+    ->name('web.flash-sale.clear');
 
 // 3. Danh mục — URL chuẩn /danh-muc/{slug}
 Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])
