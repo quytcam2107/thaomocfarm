@@ -591,7 +591,7 @@
 }
 /* =====================================================================
    STICKY BOTTOM BAR + DRAWER (chỉ có tác dụng ở mobile < 768px)
-   - Sticky bar cố định đáy màn hình: tổng tiền + nút 🎟️ + nút Thanh toán
+   - Sticky bar cố định đáy màn hình: tổng tiền + nút "Chọn mã" + nút Thanh toán
    - Drawer slide từ dưới lên chứa ô nhập mã + coupon strip + tóm tắt
    - Desktop >=768px: cả 2 ẩn bằng display:none, không ảnh hưởng gì
    ===================================================================== */
@@ -662,16 +662,23 @@
     flex-shrink: 0;
 }
 
+/* Nút "Chọn mã" — trước đây là ô vuông chứa icon 🎟️, nay hiển thị text nên
+   chuyển sang auto width + padding để chữ không bị cắt */
 .cart-bar__coupon {
-    width: 44px;
+    min-width: 44px;
     height: 44px;
+    padding: 0 14px;
     border-radius: 12px;
     background: var(--leaf-soft);
     border: 1.5px solid var(--leaf);
     color: var(--leaf-deep);
-    font-size: 20px;
-    display: grid;
-    place-items: center;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: background .2s, transform .15s;
     flex-shrink: 0;
@@ -870,8 +877,10 @@ body.has-cart-bar {
     }
 
     .cart-bar__coupon {
-        width: 40px;
+        min-width: 40px;
         height: 40px;
+        padding: 0 12px;
+        font-size: 13px;
     }
 }
 

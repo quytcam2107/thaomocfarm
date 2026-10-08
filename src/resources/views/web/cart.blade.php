@@ -156,7 +156,7 @@
     {{-- ============ STICKY BOTTOM BAR (mobile only) ============
     Luôn hiện ở đáy màn hình khi giỏ có sản phẩm:
     - Tổng tiền + tên mã đang áp (nếu có)
-    - Nút 🎟️ mở drawer
+    - Nút "Chọn mã" mở drawer áp mã
     - Nút Thanh toán (CTA chính)
     Desktop (>=768px) ẩn bằng CSS.
     --}}
@@ -172,9 +172,10 @@
                 @endif
             </div>
             <div class="cart-bar__right">
+                {{-- Đổi từ icon 🎟️ sang text "Chọn mã" để khách dễ nhận biết chức năng --}}
                 <button class="cart-bar__coupon" id="openCartDrawer" type="button" aria-label="Mở áp mã giảm giá"
                     title="Áp mã & xem chi tiết">
-                    🎟️
+                    Chọn mã
                 </button>
                 <a class="btn btn--clay cart-bar__checkout" href="{{ route('web.checkout.index') }}">
                     Thanh toán
@@ -444,9 +445,9 @@
                 }
 
                 /**
-        * Áp mã: dùng chung cho cả desktop (#couponCode) và drawer (#drawerCouponCode).
-        * Hiển thị thông báo dạng alert box có icon (không còn text trần).
-        */
+         * Áp mã: dùng chung cho cả desktop (#couponCode) và drawer (#drawerCouponCode).
+         * Hiển thị thông báo dạng alert box có icon (không còn text trần).
+         */
                 async function applyCouponCode(inputId, msgId) {
                     const input = document.getElementById(inputId);
                     const msgEl = document.getElementById(msgId);
