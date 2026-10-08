@@ -1,10 +1,10 @@
 # Chỉ mục Database — bản xuất cho AI
 
 > Sinh tự động bởi `php artisan ai:export-database`. KHÔNG SỬA THỦ CÔNG — chạy lại lệnh để cập nhật.
-- Thời điểm xuất: 2026-10-07T13:36:45+00:00
+- Thời điểm xuất: 2026-10-08T08:53:42+00:00
 - Kết nối: `mysql` (driver: `mysql`, database: `laravel`)
 - Tổng số bảng: 94
-- Tổng số bản ghi: 4,756
+- Tổng số bản ghi: 4,876
 
 ## Cách đọc các file
 
@@ -22,12 +22,12 @@
 | [banners](tables/banners.md) | 0 | tables/banners.md | - |
 | [banners](tables/banners.md) | 0 | tables/banners.md | - |
 | [banners](tables/banners.md) | 0 | tables/banners.md | - |
-| [cart_items](tables/cart_items.md) | 5 | tables/cart_items.md | data/cart_items.jsonl |
-| [cart_items](tables/cart_items.md) | 5 | tables/cart_items.md | data/cart_items.jsonl |
-| [cart_items](tables/cart_items.md) | 5 | tables/cart_items.md | data/cart_items.jsonl |
-| [carts](tables/carts.md) | 300 | tables/carts.md | data/carts.jsonl |
-| [carts](tables/carts.md) | 300 | tables/carts.md | data/carts.jsonl |
-| [carts](tables/carts.md) | 300 | tables/carts.md | data/carts.jsonl |
+| [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
+| [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
+| [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
+| [carts](tables/carts.md) | 320 | tables/carts.md | data/carts.jsonl |
+| [carts](tables/carts.md) | 320 | tables/carts.md | data/carts.jsonl |
+| [carts](tables/carts.md) | 320 | tables/carts.md | data/carts.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
@@ -37,24 +37,24 @@
 | [coupon_products](tables/coupon_products.md) | 0 | tables/coupon_products.md | - |
 | [coupon_products](tables/coupon_products.md) | 0 | tables/coupon_products.md | - |
 | [coupon_products](tables/coupon_products.md) | 0 | tables/coupon_products.md | - |
-| [coupon_usages](tables/coupon_usages.md) | 5 | tables/coupon_usages.md | data/coupon_usages.jsonl |
-| [coupon_usages](tables/coupon_usages.md) | 5 | tables/coupon_usages.md | data/coupon_usages.jsonl |
-| [coupon_usages](tables/coupon_usages.md) | 5 | tables/coupon_usages.md | data/coupon_usages.jsonl |
+| [coupon_usages](tables/coupon_usages.md) | 7 | tables/coupon_usages.md | data/coupon_usages.jsonl |
+| [coupon_usages](tables/coupon_usages.md) | 7 | tables/coupon_usages.md | data/coupon_usages.jsonl |
+| [coupon_usages](tables/coupon_usages.md) | 7 | tables/coupon_usages.md | data/coupon_usages.jsonl |
 | [coupons](tables/coupons.md) | 4 | tables/coupons.md | data/coupons.jsonl |
 | [coupons](tables/coupons.md) | 4 | tables/coupons.md | data/coupons.jsonl |
 | [coupons](tables/coupons.md) | 4 | tables/coupons.md | data/coupons.jsonl |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
-| [order_items](tables/order_items.md) | 24 | tables/order_items.md | data/order_items.jsonl |
-| [order_items](tables/order_items.md) | 24 | tables/order_items.md | data/order_items.jsonl |
-| [order_items](tables/order_items.md) | 24 | tables/order_items.md | data/order_items.jsonl |
+| [order_items](tables/order_items.md) | 28 | tables/order_items.md | data/order_items.jsonl |
+| [order_items](tables/order_items.md) | 28 | tables/order_items.md | data/order_items.jsonl |
+| [order_items](tables/order_items.md) | 28 | tables/order_items.md | data/order_items.jsonl |
 | [order_status_histories](tables/order_status_histories.md) | 0 | tables/order_status_histories.md | - |
 | [order_status_histories](tables/order_status_histories.md) | 0 | tables/order_status_histories.md | - |
 | [order_status_histories](tables/order_status_histories.md) | 0 | tables/order_status_histories.md | - |
-| [orders](tables/orders.md) | 9 | tables/orders.md | data/orders.jsonl |
-| [orders](tables/orders.md) | 9 | tables/orders.md | data/orders.jsonl |
-| [orders](tables/orders.md) | 9 | tables/orders.md | data/orders.jsonl |
+| [orders](tables/orders.md) | 12 | tables/orders.md | data/orders.jsonl |
+| [orders](tables/orders.md) | 12 | tables/orders.md | data/orders.jsonl |
+| [orders](tables/orders.md) | 12 | tables/orders.md | data/orders.jsonl |
 | [payments](tables/payments.md) | 0 | tables/payments.md | - |
 | [payments](tables/payments.md) | 0 | tables/payments.md | - |
 | [payments](tables/payments.md) | 0 | tables/payments.md | - |
@@ -91,12 +91,12 @@
 | [settings](tables/settings.md) | 0 | tables/settings.md | - |
 | [settings](tables/settings.md) | 0 | tables/settings.md | - |
 | [settings](tables/settings.md) | 0 | tables/settings.md | - |
-| [shipments](tables/shipments.md) | 9 | tables/shipments.md | data/shipments.jsonl |
-| [shipments](tables/shipments.md) | 9 | tables/shipments.md | data/shipments.jsonl |
-| [shipments](tables/shipments.md) | 9 | tables/shipments.md | data/shipments.jsonl |
-| [stock_movements](tables/stock_movements.md) | 24 | tables/stock_movements.md | data/stock_movements.jsonl |
-| [stock_movements](tables/stock_movements.md) | 24 | tables/stock_movements.md | data/stock_movements.jsonl |
-| [stock_movements](tables/stock_movements.md) | 24 | tables/stock_movements.md | data/stock_movements.jsonl |
+| [shipments](tables/shipments.md) | 12 | tables/shipments.md | data/shipments.jsonl |
+| [shipments](tables/shipments.md) | 12 | tables/shipments.md | data/shipments.jsonl |
+| [shipments](tables/shipments.md) | 12 | tables/shipments.md | data/shipments.jsonl |
+| [stock_movements](tables/stock_movements.md) | 28 | tables/stock_movements.md | data/stock_movements.jsonl |
+| [stock_movements](tables/stock_movements.md) | 28 | tables/stock_movements.md | data/stock_movements.jsonl |
+| [stock_movements](tables/stock_movements.md) | 28 | tables/stock_movements.md | data/stock_movements.jsonl |
 | [stores](tables/stores.md) | 0 | tables/stores.md | - |
 | [stores](tables/stores.md) | 0 | tables/stores.md | - |
 | [stores](tables/stores.md) | 0 | tables/stores.md | - |

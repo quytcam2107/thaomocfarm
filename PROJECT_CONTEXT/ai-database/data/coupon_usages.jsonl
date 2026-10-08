@@ -3,3 +3,5 @@
 {"id":3,"coupon_id":2,"user_id":null,"order_id":7,"discount_amount":9000,"created_at":"2026-10-04 10:32:24","updated_at":"2026-10-04 10:32:24"}
 {"id":4,"coupon_id":2,"user_id":null,"order_id":8,"discount_amount":9000,"created_at":"2026-10-04 14:43:50","updated_at":"2026-10-04 14:43:50"}
 {"id":5,"coupon_id":1,"user_id":null,"order_id":9,"discount_amount":69000,"created_at":"2026-10-05 13:00:10","updated_at":"2026-10-05 13:00:10"}
+{"id":6,"coupon_id":1,"user_id":null,"order_id":12,"discount_amount":69000,"created_at":"2026-10-08 04:42:13","updated_at":"2026-10-08 04:42:13"}
+{"id":7,"coupon_id":4,"user_id":null,"order_id":13,"discount_amount":30000,"created_at":"2026-10-08 04:44:08","updated_at":"2026-10-08 04:44:08"}
