@@ -31,6 +31,8 @@ return [
         'apply_coupon' => env('RATE_LIMIT_APPLY_COUPON', 10),
         'search' => env('RATE_LIMIT_SEARCH', 30),
         'send_otp' => env('RATE_LIMIT_SEND_OTP', 3),
+        // NEW: tra cứu đơn hàng bằng SĐT (chống dò số hàng loạt theo IP)
+        'order_lookup' => env('RATE_LIMIT_ORDER_LOOKUP', 10),
     ],
 
     /*

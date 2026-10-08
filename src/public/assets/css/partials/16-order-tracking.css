@@ -1,0 +1,461 @@
+/* =====================================================================
+   16-ORDER-TRACKING.CSS — Trang tra cứu đơn hàng bằng SĐT (/tra-cuu-don-hang)
+   - Mobile-first, tái dùng token màu trong 01-base.css (:root) + .btn/.btn--leaf.
+   - Prefix lớp: ol- (order lookup). Không đụng selector trang khác.
+   ===================================================================== */
+
+/* ---------- HERO + FORM ---------- */
+.ol-hero {
+    padding: 20px 0 8px;
+    max-width: 640px;
+    margin-inline: auto;
+    text-align: center;
+}
+
+.ol-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--clay);
+    background: color-mix(in srgb, var(--clay) 10%, #fff);
+    border: 1px solid color-mix(in srgb, var(--clay) 25%, #fff);
+    border-radius: 999px;
+    padding: 5px 12px;
+}
+
+.ol-hero h1 {
+    margin-top: 12px;
+    font-family: "Lora", Georgia, serif;
+    font-size: clamp(22px, 4.6vw, 32px);
+    line-height: 1.25;
+    color: var(--leaf-deep);
+}
+
+.ol-hero__lead {
+    margin-top: 10px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--ink);
+}
+
+.ol-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.ol-field {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.ol-input {
+    width: 100%;
+    border: 1.5px solid var(--line);
+    border-radius: var(--r-btn);
+    background: #fff;
+    padding: 11px 14px;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+}
+
+.ol-input:focus {
+    border-color: var(--leaf);
+    box-shadow: 0 0 0 3px rgba(46, 125, 79, .15);
+}
+
+.ol-submit {
+    flex: 0 0 auto;
+}
+
+.ol-hint {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.ol-hint a {
+    color: var(--leaf);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* ---------- ALERT ---------- */
+.ol-alert {
+    max-width: 640px;
+    margin: 14px auto 0;
+    padding: 12px 14px;
+    background: #fdf3ec;
+    border: 1px dashed var(--clay);
+    border-radius: var(--r-btn);
+    color: #8a4320;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.ol-count {
+    margin: 16px 0 10px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* ---------- CARD ĐƠN ---------- */
+.ol-list {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.ol-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    padding: clamp(14px, 3vw, 20px);
+}
+
+.ol-card--abnormal {
+    border-color: color-mix(in srgb, var(--rose) 45%, var(--line));
+}
+
+.ol-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed var(--line);
+}
+
+.ol-card__no {
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.ol-card__no b {
+    color: var(--clay);
+    font-family: "Be Vietnam Pro", monospace;
+    letter-spacing: .02em;
+}
+
+.ol-card__date {
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+/* Badge trạng thái theo enum OrderStatus */
+.ol-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: var(--leaf-soft);
+    color: var(--leaf-deep);
+}
+
+.ol-badge--confirmed {
+    background: #e8f0fe;
+    color: #1a4fa3;
+}
+
+.ol-badge--packing {
+    background: #fdf6e7;
+    color: #9a6b00;
+}
+
+.ol-badge--shipping {
+    background: #fdeee6;
+    color: var(--clay);
+}
+
+.ol-badge--delivered {
+    background: var(--leaf-soft);
+    color: var(--leaf-deep);
+}
+
+.ol-badge--cancelled {
+    background: #fbecef;
+    color: var(--rose);
+}
+
+.ol-badge--returning {
+    background: #f3ecfb;
+    color: #6b3fa0;
+}
+
+/* ---------- GRID THÔNG TIN ---------- */
+.ol-card__grid {
+    display: grid;
+    gap: 12px;
+}
+
+.ol-line {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+    font-size: 14px;
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--line);
+}
+
+.ol-line:last-child {
+    border-bottom: 0;
+}
+
+.ol-line span {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.ol-line code {
+    font-family: "Be Vietnam Pro", monospace;
+    background: var(--paper);
+    padding: 1px 6px;
+    border-radius: 6px;
+}
+
+.ol-card__money {
+    background: var(--paper);
+    border-radius: var(--r-btn);
+    padding: 10px 12px;
+    align-self: start;
+}
+
+.ol-money__line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: #40514a;
+    padding: 3px 0;
+}
+
+.ol-money__line--discount {
+    color: var(--rose);
+}
+
+.ol-money__total {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px dashed var(--line);
+    margin-top: 6px;
+    padding-top: 8px;
+    font-size: 15px;
+}
+
+.ol-money__total b {
+    color: var(--clay);
+    font-family: "Lora", serif;
+    font-size: 17px;
+}
+
+.ol-money__method {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+}
+
+/* ---------- ITEMS ---------- */
+.ol-items {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+}
+
+.ol-item {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.ol-item__img {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f3efe4;
+    border: 1px solid var(--line);
+}
+
+.ol-item__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ol-item__name {
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ol-item__name small {
+    display: block;
+    color: var(--muted);
+    font-size: 11.5px;
+    margin-top: 2px;
+}
+
+.ol-item__price {
+    font-size: 13.5px;
+    color: var(--clay);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ---------- TIMELINE NGANG/DỌC ---------- */
+.ol-steps {
+    display: grid;
+    gap: 0;
+    margin-top: 14px;
+    padding-left: 8px;
+    border-left: 2px dashed var(--line);
+}
+
+.ol-step {
+    position: relative;
+    padding: 0 0 14px 18px;
+}
+
+.ol-step:last-child {
+    padding-bottom: 0;
+}
+
+.ol-step__dot {
+    position: absolute;
+    left: -11px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--line);
+}
+
+.ol-step.is-done .ol-step__dot {
+    background: var(--leaf);
+    border-color: var(--leaf);
+}
+
+.ol-step.is-active .ol-step__dot {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(231, 178, 58, .2);
+}
+
+.ol-step__body b {
+    display: block;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.ol-step.is-done .ol-step__body b,
+.ol-step.is-active .ol-step__body b {
+    color: var(--leaf-deep);
+}
+
+.ol-step__body small {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1px;
+}
+
+.ol-card__note {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #8a4320;
+    background: #fdf3ec;
+    border-radius: var(--r-btn);
+    padding: 10px 12px;
+}
+
+.ol-card__note a {
+    color: var(--clay);
+    text-decoration: underline;
+}
+
+/* ---------- EMPTY STATE ---------- */
+.ol-empty {
+    text-align: center;
+    padding: 34px 16px 44px;
+    color: var(--muted);
+}
+
+.ol-empty__icon {
+    font-size: 40px;
+}
+
+.ol-empty h2 {
+    margin-top: 8px;
+    font-family: "Lora", Georgia, serif;
+    font-size: 19px;
+    color: var(--leaf-deep);
+}
+
+.ol-empty p {
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (min-width: 768px) {
+    .ol-card__grid {
+        grid-template-columns: 1.2fr 1fr;
+        gap: 16px;
+    }
+
+    .ol-form {
+        flex-wrap: nowrap;
+    }
+
+    .ol-steps {
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        border-left: 0;
+        padding-left: 0;
+        gap: 0;
+    }
+
+    .ol-step {
+        padding: 22px 8px 0 0;
+    }
+
+    .ol-step__dot {
+        left: 0;
+        top: 2px;
+    }
+
+    /* đường nối ngang giữa các dot */
+    .ol-step::before {
+        content: "";
+        position: absolute;
+        left: 18px;
+        right: 0;
+        top: 9px;
+        border-top: 2px dashed var(--line);
+    }
+
+    .ol-step:last-child::before {
+        display: none;
+    }
+}

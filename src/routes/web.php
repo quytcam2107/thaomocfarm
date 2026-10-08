@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\CheckoutController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\LocationController;
+use App\Http\Controllers\Web\OrderLookupController;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ReviewController;
@@ -56,6 +57,9 @@ Route::get('/dat-hang-thanh-cong/{order_number}', [CheckoutController::class, 's
 
 // 5a. Địa chính 2 cấp (tỉnh/thành → xã/phường) cho cascading select checkout — TRƯỚC catch-all /{slug}
 Route::get('/dia-chi/xa-phuong', [LocationController::class, 'wards'])->name('web.locations.wards');
+
+// 5b. NEW: Tra cứu đơn hàng bằng SĐT (thay nút Đăng nhập ở header) — TRƯỚC catch-all /{slug}
+Route::get('/tra-cuu-don-hang', [OrderLookupController::class, 'index'])->name('web.order-lookup.index');
 
 // 6. Chi tiet san pham
 Route::get('/san-pham/{slug}', [ProductController::class, 'show'])

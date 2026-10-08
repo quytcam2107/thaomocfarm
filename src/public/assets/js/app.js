@@ -43,3 +43,8 @@ if (has('#searchForm') && has('#searchInput') && has('#searchSuggest')) {
 if (has('#province') && has('#ward')) {
     import('@tm/checkout');
 }
+
+// NEW ORDER LOOKUP: lọc SĐT + toast trên trang /tra-cuu-don-hang (marker #orderLookupForm)
+if (has('#orderLookupForm')) {
+    import('@tm/order-lookup');
+}
