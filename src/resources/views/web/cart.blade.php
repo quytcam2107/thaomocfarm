@@ -175,7 +175,7 @@
                 {{-- Đổi từ icon 🎟️ sang text "Chọn mã" để khách dễ nhận biết chức năng --}}
                 <button class="cart-bar__coupon" id="openCartDrawer" type="button" aria-label="Mở áp mã giảm giá"
                     title="Áp mã & xem chi tiết">
-                    Chọn mã
+                    Chọn mã giảm giá
                 </button>
                 <a class="btn btn--clay cart-bar__checkout" href="{{ route('web.checkout.index') }}">
                     Thanh toán

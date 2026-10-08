@@ -672,7 +672,7 @@
     background: var(--leaf-soft);
     border: 1.5px solid var(--leaf);
     color: var(--leaf-deep);
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
     white-space: nowrap;
@@ -880,7 +880,7 @@ body.has-cart-bar {
         min-width: 40px;
         height: 40px;
         padding: 0 12px;
-        font-size: 13px;
+        font-size: 10px;
     }
 }
 
