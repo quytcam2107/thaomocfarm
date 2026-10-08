@@ -40,13 +40,13 @@
                             @error('phone') <small class="error" style="color: #dc2626;">{{ $message }}</small>
                             @enderror
                         </p>
-                        <p class="field form-grid--2-full">
+                        {{-- <p class="field form-grid--2-full">
                             <label for="email">Email (nhận mã đơn)</label>
                             <input id="email" name="email" type="email" autocomplete="email" placeholder="ban@email.com"
                                 value="{{ old('email', auth()->user()?->email) }}">
                             @error('email') <small class="error" style="color: #dc2626;">{{ $message }}</small>
                             @enderror
-                        </p>
+                        </p> --}}
                     </div>
                 </fieldset>
 
