@@ -1,8 +1,8 @@
 {{-- =====================================================================
 TRANG CHI TIẾT BÀI VIẾT CẨM NANG (/cam-nang/{slug}).
 SEO: Article JSON-LD + BreadcrumbList + canonical (layout) + og article.
-Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import SQL/seeder), render {} !!}.
-Sidebar: 3 widget theo thứ tự — Bài viết mới / Có thể bạn sẽ thích (sản phẩm) / Chuyên mục.
+Nội dung: $post->content là HTML an toàn do biên tập viên nhập (import SQL/seeder), render {} !!}.\nSidebar: 3 widget
+theo thứ tự — Bài viết mới / Có thể bạn sẽ thích (sản phẩm) / Chuyên mục.
 ===================================================================== --}}
 @php
     use Illuminate\Support\Str;
@@ -41,7 +41,15 @@ Sidebar: 3 widget theo thứ tự — Bài viết mới / Có thể bạn sẽ t
         : asset('assets/images/placeholder.svg');
 @endphp
 
-<x-layouts.app :title="$post->title . ' | Cẩm nang Mộc Xanh'" :seoDescription="Str::limit(strip_tags((string) $post->excerpt ?: $post->title), 155)" ogType="article" :ogImage="$coverUrl" :hide-catnav="true">
+<x-layouts.app :title="$post->title . ' | Cẩm nang Mộc Xanh'" :seoDescription="Str::limit(strip_tags((string) $post->excerpt ?: $post->title), 155)" ogType="article" :ogImage="$coverUrl" bodyClass="page-blog-post"
+    :hide-catnav="true">
+
+    {{-- CSS RIÊNG CHO BÀI VIẾT: chỉ trang này (và trang danh sách /cam-nang) nạp
+    blog-post.css qua stack 'styles' của layout — cùng convention @push('vendorStyles')
+    của PDP (lightgallery/rateyo). Trang khác không tốn request. --}}
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/css/blog-post.css') }}">
+    @endpush
 
     <x-slot name="schema">
         <script

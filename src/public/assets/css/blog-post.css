@@ -1,0 +1,695 @@
+/* =====================================================================
+   BLOG-POST.CSS — CSS RIÊNG CHO BÀI VIẾT CẨM NANG, chỉ nạp ở 2 trang:
+     - /cam-nang                (resources/views/web/blog/index.blade.php)
+     - /cam-nang/{slug}         (resources/views/web/blog/show.blade.php)
+   Cơ chế nạp: 2 view Blade @push('styles') -> <link rel="stylesheet"> vào
+   stack 'styles' trong layout (components/layouts/app.blade.php).
+   Trang khác KHÔNG nạp file này -> không tốn request, không ảnh hưởng cascade.
+
+   QUY ƯỚC (giống convention vendor lightgallery/rateyo: link riêng, không @import):
+     - File này là BẢN ĐÓNG GÓI của partials/15-blog.css để link trực tiếp;
+       vì vậy nội dung PHẢI ĐỒNG BỘ với partials/15-blog.css.
+     - Khi sửa style bài viết: sửa CẢ HAI nơi (partials/15-blog.css + blog-post.css)
+       hoặc chỉ dùng file này rồi gỡ block 15 khỏi style.css (thao tác sau, có chủ đích).
+     - Token màu (--paper/--card/--ink/--leaf/...) lấy từ :root trong
+       partials/01-base.css do style.css đã nạp trước đó trên cùng trang.
+     - Mobile-first; breakpoint min-width đặt CUỐI file (giữ đúng cascade cũ).
+   ===================================================================== */
+
+/* ============ 15. BLOG / CẨM NANG (trang danh sách + chi tiết) ============ */
+
+/* Link "Xem tất cả bài viết" dưới block tips trang chủ */
+.tips__more {
+    margin-top: 14px;
+    text-align: right;
+}
+
+.tips__more a {
+    color: var(--leaf);
+    font-weight: 700;
+    font-size: 13.5px;
+}
+
+.tips__more a:hover {
+    text-decoration: underline;
+}
+
+/* ---- Chips chuyên mục (trang danh sách) ---- */
+.bl-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 18px;
+}
+
+.bl-chip {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.bl-chip small {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.bl-chip:hover {
+    border-color: var(--leaf);
+    color: var(--leaf-deep);
+}
+
+.bl-chip.is-active {
+    background: var(--leaf);
+    border-color: var(--leaf);
+    color: #fff;
+}
+
+.bl-chip.is-active small {
+    color: #d9ecdf;
+}
+
+/* ---- Grid card danh sách ---- */
+.bl-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.bl-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+
+.bl-card:hover {
+    border-color: var(--leaf);
+    box-shadow: 0 10px 26px rgb(30 60 45 / .12);
+    transform: translateY(-2px);
+}
+
+.bl-card__media {
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--leaf-soft);
+}
+
+.bl-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bl-card__body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.bl-card__cat {
+    align-self: flex-start;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--leaf-deep);
+    background: var(--leaf-soft);
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.bl-card__cat:hover {
+    background: var(--leaf);
+    color: #fff;
+}
+
+.bl-card__title {
+    font-family: "Lora", serif;
+    font-size: 16.5px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.bl-card__title a {
+    color: var(--ink);
+}
+
+.bl-card__title a:hover {
+    color: var(--leaf-deep);
+}
+
+.bl-card__excerpt {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0;
+}
+
+.bl-card__meta {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.bl-card__link {
+    margin-top: auto;
+    color: var(--leaf);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.bl-card__link:hover {
+    text-decoration: underline;
+}
+
+.bl-empty {
+    background: var(--card);
+    border: 1px dashed var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.bl-seo-text p {
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.65;
+}
+
+/* ---- Layout trang chi tiết: article + sidebar ---- */
+.bs-article {
+    max-width: 100%;
+}
+
+.bs-head__cat {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: var(--leaf-deep);
+    background: var(--leaf-soft);
+    border-radius: 999px;
+    padding: 5px 12px;
+    margin-bottom: 10px;
+}
+
+.bs-head h1 {
+    font-family: "Lora", serif;
+    font-size: 24px;
+    line-height: 1.35;
+    color: var(--ink);
+    margin: 0 0 8px;
+}
+
+.bs-head__meta {
+    color: var(--muted);
+    font-size: 12.5px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 0 0 14px;
+}
+
+.bs-cover {
+    margin: 0 0 16px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+
+.bs-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+.bs-lead {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink);
+    background: var(--leaf-soft);
+    border-left: 4px solid var(--leaf);
+    border-radius: 0 12px 12px 0;
+    padding: 12px 16px;
+    margin: 0 0 18px;
+}
+
+/* Nội dung HTML bài viết — style typography mobile-first */
+.bs-content {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--ink);
+}
+
+.bs-content h2 {
+    font-family: "Lora", serif;
+    font-size: 20px;
+    margin: 26px 0 10px;
+    color: var(--leaf-deep);
+}
+
+.bs-content h3 {
+    font-size: 16.5px;
+    margin: 20px 0 8px;
+}
+
+.bs-content p {
+    margin: 0 0 14px;
+}
+
+.bs-content ul,
+.bs-content ol {
+    margin: 0 0 14px;
+    padding-left: 22px;
+}
+
+.bs-content li {
+    margin-bottom: 6px;
+}
+
+.bs-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    margin: 8px 0;
+}
+
+.bs-content blockquote {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-left: 4px solid var(--gold);
+    background: #faf6ea;
+    border-radius: 0 12px 12px 0;
+    font-style: italic;
+    color: #5b5341;
+}
+
+.bs-content a {
+    color: var(--leaf);
+    text-decoration: underline;
+}
+
+.bs-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 14px;
+    font-size: 13.5px;
+}
+
+.bs-content th,
+.bs-content td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    text-align: left;
+}
+
+.bs-content th {
+    background: var(--leaf-soft);
+    color: var(--leaf-deep);
+}
+
+/* Nút chia sẻ cuối bài */
+.bs-share {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.bs-share a {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--card);
+}
+
+.bs-share a:hover {
+    border-color: var(--leaf);
+    color: var(--leaf-deep);
+}
+
+/* Sidebar */
+.bs-side {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bs-widget {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+/* Title widget: chữ Lora + gạch chân lá ngắn (đồng bộ phong cách sec-title) */
+.bs-widget h2,
+.bs-widget__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Lora", serif;
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--leaf-deep);
+    margin: 0 0 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+}
+
+.bs-widget__title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 42px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--leaf);
+}
+
+.bs-widget ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bs-widget li a {
+    color: var(--ink);
+    font-size: 13.5px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.bs-widget li a:hover {
+    color: var(--leaf-deep);
+}
+
+.bs-widget li a small {
+    color: var(--muted);
+}
+
+.bs-widget__list li a {
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bs-widget__list b {
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+/* ---- Widget "Bài viết mới": thumb vuông + tiêu đề 2 dòng + meta ---- */
+.bs-latest {
+    gap: 12px !important;
+}
+
+.bs-latest li a {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 6px;
+    margin: -6px;
+    border-radius: 12px;
+    transition: background .15s ease;
+}
+
+.bs-latest li a:hover {
+    background: var(--leaf-soft);
+}
+
+.bs-latest__thumb {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--leaf-soft);
+    border: 1px solid var(--line);
+}
+
+.bs-latest__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bs-latest__body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.bs-latest__body b {
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bs-latest__body small {
+    color: var(--muted);
+    font-size: 11.5px;
+}
+
+/* ---- Widget "Chuyên mục": pill đếm số bài căn phải ---- */
+.bs-cats {
+    gap: 4px !important;
+}
+
+.bs-cats li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    margin: 0 -10px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    transition: background .15s ease, color .15s ease;
+}
+
+.bs-cats li a:hover {
+    background: var(--leaf-soft);
+    color: var(--leaf-deep);
+}
+
+.bs-cats__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bs-cats__count {
+    flex: 0 0 auto;
+    min-width: 26px;
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--leaf-deep);
+    background: var(--leaf-soft);
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+
+.bs-cats li a:hover .bs-cats__count {
+    background: var(--leaf);
+    color: #fff;
+}
+
+/* ---- Widget "Có thể bạn sẽ thích" (sản phẩm: ảnh + giá gốc + giá giảm) ---- */
+.bs-widget--products {
+    background: linear-gradient(180deg, var(--card), #f4faf5);
+}
+
+.bsp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bsp {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.bsp:hover {
+    border-color: var(--leaf);
+    box-shadow: 0 8px 20px rgb(30 60 45 / .10);
+    transform: translateY(-1px);
+}
+
+.bsp__media {
+    position: relative;
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+}
+
+.bsp__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bsp__off {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    background: var(--clay);
+    border-radius: 999px;
+    padding: 2px 6px;
+    line-height: 1.3;
+}
+
+.bsp__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.bsp__name {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bsp:hover .bsp__name {
+    color: var(--leaf-deep);
+}
+
+.bsp__prices {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.bsp__price {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--clay);
+}
+
+.bsp__old {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.bs-widget__more {
+    display: block;
+    margin-top: 12px;
+    text-align: right;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--leaf);
+}
+
+.bs-widget__more:hover {
+    text-decoration: underline;
+}
+
+.bs-widget__cta {
+    width: 100%;
+    text-align: center;
+}
+
+/* ---- Desktop ≥ 768px: wrapper 2 cột (breadcrumb full-width) + grid 3 card ---- */
+@media (min-width: 768px) {
+    .bl-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bl-grid--4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .bs-head h1 {
+        font-size: 30px;
+    }
+
+    /* Thay cơ chế .container:has(.bs-article) cũ (giòn, dễ vỡ):
+       wrapper BS-WRAP chủ động grid 2 cột; breadcrumb spans, article + aside là 2 item. */
+    .container.bs-wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 28px;
+        align-items: start;
+    }
+
+    .bs-wrap__top {
+        grid-column: 1 / -1;
+    }
+
+    /* Bỏ scroll + sticky: sidebar hiển thị FULL nội dung, FIX CỨNG tại cột phải
+       (thả theo dòng chảy trang, không có thanh cuộn riêng, không dính theo viewport) */
+    .bs-side {
+        margin-top: 0;
+        position: static;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+@media (min-width: 1024px) {
+    .bl-grid:not(.bl-grid--4) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
