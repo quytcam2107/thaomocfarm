@@ -95,17 +95,32 @@
                 });
 
                 // 3. Quantity Stepper
+                // FIX BUG: nút +/- trong <div class="qty" data-qty> không hoạt động.
+                // Nguyên nhân: Blade (components/product/info.blade.php) render nút với
+                // data-step="-1" và data-step="1" (đúng convention trang Giỏ hàng),
+                // còn code cũ so sánh step === 'inc' / 'dec' -> không khớp bao giờ,
+                // giá trị bị gán lại y nguyên => bấm không thấy phản ứng.
+                // Fix: đọc data-step bằng parseInt (hỗ trợ "-1"/"1", đồng thời vẫn
+                // tương thích ngược nếu nơi nào đó còn dùng 'inc'/'dec'), clamp
+                // trong khoảng [min, max] lấy từ chính input (min=1, max=stock variant).
                 const qtyContainer = document.querySelector('[data-qty]');
-                if (qtyContainer) {
+                if (qtyContainer && qtyInput) {
                     qtyContainer.addEventListener('click', (e) => {
-                        const step = e.target.dataset.step;
-                        if (!step) return;
-                        let val = parseInt(qtyInput.value) || 1;
-                        const max = parseInt(qtyInput.max) || 99;
+                        const btn = e.target.closest('[data-step]');
+                        if (!btn || btn.disabled) return;
 
-                        if (step === 'inc') val = Math.min(max, val + 1);
-                        if (step === 'dec') val = Math.max(1, val - 1);
-                        qtyInput.value = val;
+                        const raw = btn.dataset.step;
+                        let delta = parseInt(raw, 10);
+                        // Tương thích ngược: bản markup cũ dùng 'inc'/'dec'
+                        if (isNaN(delta)) delta = (raw === 'dec') ? -1 : (raw === 'inc') ? 1 : 0;
+                        if (delta === 0) return;
+
+                        const min = parseInt(qtyInput.min, 10) || 1;
+                        const max = parseInt(qtyInput.max, 10) || 99;
+                        let val = parseInt(qtyInput.value, 10);
+                        if (isNaN(val)) val = min;
+
+                        qtyInput.value = Math.min(max, Math.max(min, val + delta));
                     });
                 }
             });
