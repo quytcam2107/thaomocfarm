@@ -1,7 +1,7 @@
 # Bảng `promotions`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-08T10:53:35+00:00
+> Bản cập nhật lúc: 2026-10-09T02:51:34+00:00
 
 ## Thông tin chung
 
@@ -35,8 +35,8 @@
 - `type`: giá trị phổ biến: `flash_sale` (1)
 - `name`: giá trị phổ biến: `Giá siêu hời` (1)
 - `description`: giá trị phổ biến: `Deal sốc giới hạn slot mỗi ngày cho đặc sản Tây Bắc.` (1)
-- `start_at`: min = 2026-10-01 00:00:00, max = 2026-10-01 00:00:00 — giá trị phổ biến: `2026-10-01 00:00:00` (1)
-- `end_at`: min = 2026-10-01 23:59:59, max = 2026-10-01 23:59:59 — giá trị phổ biến: `2026-10-01 23:59:59` (1)
+- `start_at`: min = 2026-10-08 00:00:00, max = 2026-10-08 00:00:00 — giá trị phổ biến: `2026-10-08 00:00:00` (1)
+- `end_at`: min = 2026-10-15 23:59:59, max = 2026-10-15 23:59:59 — giá trị phổ biến: `2026-10-15 23:59:59` (1)
 - `status`: giá trị phổ biến: `active` (1)
 - `created_at`: min = 2026-09-22 11:21:08, max = 2026-09-22 11:21:08 — giá trị phổ biến: `2026-09-22 11:21:08` (1)
 - `updated_at`: min = 2026-09-22 11:21:08, max = 2026-09-22 11:21:08 — giá trị phổ biến: `2026-09-22 11:21:08` (1)
@@ -45,4 +45,4 @@
 
 | id | type | name | description | start_at | end_at | status | created_at | updated_at
 |---|---|---|---|---|---|---|---|---|
-| 1 | flash_sale | Giá siêu hời | Deal sốc giới hạn slot mỗi ngày cho đặc sản Tây Bắc. | 2026-10-01 00:00:00 | 2026-10-01 23:59:59 | active | 2026-09-22 11:21:08 | 2026-09-22 11:21:08
+| 1 | flash_sale | Giá siêu hời | Deal sốc giới hạn slot mỗi ngày cho đặc sản Tây Bắc. | 2026-10-08 00:00:00 | 2026-10-15 23:59:59 | active | 2026-09-22 11:21:08 | 2026-09-22 11:21:08
