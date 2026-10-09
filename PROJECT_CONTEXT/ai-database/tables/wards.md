@@ -1,7 +1,7 @@
 # Bảng `wards`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-09T02:51:34+00:00
+> Bản cập nhật lúc: 2026-10-09T04:43:28+00:00
 
 ## Thông tin chung
 
