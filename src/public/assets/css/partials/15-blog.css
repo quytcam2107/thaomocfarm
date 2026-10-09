@@ -266,11 +266,67 @@
     margin-bottom: 6px;
 }
 
+/* Ảnh trong nội dung bài viết (HTML import từ CMS/editor): chặn ảnh gốc
+   đặt width/height lớn tràn cột. mobile-first: full chiều rộng cột nội dung,
+   cao tối đa 65vh để không chiếm hết màn hình; object-fit: contain + nền giấy
+   -> ảnh dọc ngang đều hiển thị đủ, không méo, không bị cắt. */
 .bs-content img {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
     max-width: 100%;
     height: auto;
+    max-height: 65vh;
+    object-fit: contain;
+    background: var(--paper);
+    border: 1px solid var(--line);
     border-radius: 14px;
-    margin: 8px 0;
+    margin: 8px auto 16px;
+    padding: 6px;
+}
+
+/* Ảnh nằm trong <figure> (nếu editor xuất figure/figcaption): bỏ khung trùng,
+   để figure lo khung + caption. */
+.bs-content figure img {
+    border: 0;
+    padding: 0;
+    background: none;
+    margin: 0;
+}
+
+.bs-content figcaption {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* Media nhúng trong bài (video/iframe/audio/embed): không bao giờ tràn cột.
+   iframe dùng aspect-ratio 16:9 nên luôn vừa bề rộng cột nội dung. */
+.bs-content video,
+.bs-content iframe,
+.bs-content embed,
+.bs-content object {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 65vh;
+    border: 0;
+    border-radius: 14px;
+    margin: 8px auto 16px;
+}
+
+.bs-content iframe,
+.bs-content embed {
+    aspect-ratio: 16 / 9;
+}
+
+.bs-content audio {
+    width: 100%;
+    max-width: 100%;
+    margin: 8px auto 16px;
 }
 
 .bs-content blockquote {
@@ -658,6 +714,21 @@
 
     .bs-wrap__top {
         grid-column: 1 / -1;
+    }
+
+    /* Ảnh/media trong nội dung bài viết (desktop): siết chiều cao tối đa +
+       căn giữa. Bề rộng đã bị bó bởi grid cột bài viết minmax(0, 1fr). */
+    .bs-content img {
+        max-height: 70vh;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .bs-content video,
+    .bs-content iframe,
+    .bs-content embed,
+    .bs-content object {
+        max-height: 70vh;
     }
 
     /* Bỏ scroll + sticky: sidebar hiển thị FULL nội dung, FIX CỨNG tại cột phải
