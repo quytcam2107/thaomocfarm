@@ -53,6 +53,11 @@ theo thứ tự — Bài viết mới / Có thể bạn sẽ thích (sản phẩ
             type="application/ld+json">{!! json_encode($articleSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
         <script
             type="application/ld+json">{!! json_encode($breadcrumb_schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+        {{-- Schema FAQPage/JSON-LD lưu trong DB (cột posts.schema_json): Model Post::faqSchemaHtml()
+             đã json_decode + re-encode an toàn -> Blade không lỗi "unexpected end of file" vì '@context'. --}}
+        @if ($post->faqSchemaHtml() !== null)
+            <script type="application/ld+json">{!! $post->faqSchemaHtml() !!}</script>
+        @endif
     </x-slot>
 
     {{-- Wrapper 2 cột desktop: breadcrumb full-width, article + aside là 2 item của grid --}}

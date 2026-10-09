@@ -1,7 +1,7 @@
 # Bảng `carts`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-09T04:43:26+00:00
+> Bản cập nhật lúc: 2026-10-09T08:42:58+00:00
 
 ## Thông tin chung
 
