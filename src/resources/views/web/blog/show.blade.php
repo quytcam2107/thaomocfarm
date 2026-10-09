@@ -44,7 +44,8 @@ theo thứ tự — Bài viết mới / Có thể bạn sẽ thích (sản phẩ
 <x-layouts.app :title="$post->title . ' | Cẩm nang Mộc Xanh'" :seoDescription="Str::limit(strip_tags((string) $post->excerpt ?: $post->title), 155)" ogType="article" :ogImage="$coverUrl" bodyClass="page-blog-post"
     :hide-catnav="true">
     @push('styles')
-        {{-- <link rel="stylesheet" href="{{ asset('assets/css/blog-post.css') }}"> --}}
+        {{--
+        <link rel="stylesheet" href="{{ asset('assets/css/blog-post.css') }}"> --}}
     @endpush
 
     <x-slot name="schema">
@@ -87,9 +88,11 @@ theo thứ tự — Bài viết mới / Có thể bạn sẽ thích (sản phẩ
                 <p class="bs-lead">{{ $post->excerpt }}</p>
             @endif
 
-            {{-- Nội dung HTML từ CMS/import SQL (biên tập viên kiểm soát, an toàn) --}}
+            {{-- Nội dung HTML từ CMS/import SQL. FIX: content có thể chứa literal
+            "{{ asset('...') }}" -> render_cms_html() compile Blade expression
+            trong data + sanitize whitelist (app/Support/helpers.php) --}}
             <div class="bs-content">
-                {!! $post->content !!}
+                {!! render_cms_html((string) $post->content) !!}
             </div>
 
             {{-- Nút chia sẻ (không cần JS mới — dùng link native) --}}

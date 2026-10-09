@@ -50,7 +50,12 @@
             Body collapse mang id để aria-controls trỏ đúng (accessibility). --}}
             <div class="desc-collapse is-collapsed" data-desc-collapse>
                 <div class="desc-collapse__body" id="descCollapseBody" data-desc-body>
-                    {!! $description !!}
+                    {{-- FIX CMS IMG: description trong DB có thể chứa literal
+                    "{{ asset('...') }}" — Blade KHÔNG compile chuỗi data khi
+                    xuất bằng {!! !!} => browser in nguyên văn, ảnh không hiện.
+                    render_cms_html(): compile Blade expression + sanitize
+                    whitelist chống XSS (helper tại app/Support/helpers.php) --}}
+                    {!! render_cms_html((string) $description) !!}
                 </div>
 
                 <div class="desc-collapse__foot" data-desc-foot hidden>
@@ -99,7 +104,8 @@
                                         <td>{{ $v['label'] }}@if($vSelected) <span class="spec-tag">Đang chọn</span>@endif
                                         </td>
                                         <td><b>{{ number_format((int) $v['price']) }}₫</b>@if($vSelected && !empty($v['old_price']) && (int) $v['old_price'] > (int) $v['price'])
-                                        <s>{{ number_format((int) $v['old_price']) }}₫</s>@endif</td>
+                                        <s>{{ number_format((int) $v['old_price']) }}₫</s>@endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

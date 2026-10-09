@@ -272,3 +272,11 @@
     list-style: disc;
     margin: 6px 0;
 }
+/* FIX CMS IMG: ảnh nhúng trong SEO text (render_cms_html) hiển thị responsive,
+   khớp quy tắc .bs-content img (15-blog.css) và .desc-collapse__body img (07d) */
+.seo-text img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 8px 0;
+}

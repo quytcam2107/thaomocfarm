@@ -78,7 +78,8 @@ if (!function_exists('remember_group_shared')) {
             }
 
             // Cold start: chưa từng có cache => nhường, chờ ngắn rồi đọc lại
-            usleep(200000);
+            usleep(150000); // 150ms
+
             $fresh = Cache::get($payloadKey);
 
             return [
@@ -141,5 +142,85 @@ if (!function_exists('format_number_compact')) {
         }
 
         return (string) $number;
+    }
+}
+
+if (!function_exists('render_cms_html')) {
+    /**
+     * FIX CMS HTML: nội dung mô tả/bài viết lưu trong DB có thể chứa Blade
+     * expression dạng {{ asset('...') }} do người biên tập paste template vào.
+     * Khi render bằng {!! ... !!} Blade KHÔNG compile lại chuỗi data => browser
+     * in nguyên văn "{{ asset(...) }}" và ảnh không hiển thị.
+     *
+     * Hàm này:
+     *   1. Compile các expression Blade hợp lệ bên trong HTML (chỉ {{ }} —
+     *      @{{ }} được Blade hiểu là escape nên không bị thực thi).
+     *   2. Sanitize whitelist tag/attr để chống XSS từ nội dung nhúng.
+     *   3. Cache kết quả theo md5 (driver file, TTL 1 ngày) để không compile
+     *      lại mỗi request.
+     *
+     * Trả về HtmlString — dùng trực tiếp trong {!! render_cms_html($desc) !!}.
+     */
+    function render_cms_html(?string $html, string $group = 'catalog'): \Illuminate\Support\HtmlString
+    {
+        $html = (string) $html;
+
+        if (trim($html) === '') {
+            return new \Illuminate\Support\HtmlString('');
+        }
+
+        /* Chỉ compile khi phát hiện có Blade expression — tránh chi phí không
+           cần cho HTML thường và tránh Blade::render nuốt ký tự '@' (email...)
+           trong nội dung.
+           FIX BUG "Unknown modifier ')'": trước đây regex dùng '#' làm delimiter
+           mà bản thân pattern cũng chứa '#' (nhánh match anchor '#top' trong
+           url-safe) => PHP cắt pattern sớm tại dấu '#' thứ 2 và coi ')...' là
+           modifier lỗi. Nay dùng delimiter '~' (không xuất hiện trong mọi
+           pattern bên dưới) + escape \\{ \\} + nhóm không bắt (?:...).
+           Lookahead (?<!@): bỏ qua "@{{ ... }}" (Blade escaped literal,
+           không cần compile). */
+        $bladeExprRegex = '~(?<!@)\{\{[^{}]*?\}\}~s';
+        $needCompile = preg_match($bladeExprRegex, $html) === 1;
+
+        $cacheKey = 'cms_html:' . md5(($needCompile ? 'c' : 'r') . ':' . $html);
+
+        $out = remember_group($group, $cacheKey, 86400, function () use ($html, $needCompile): string {
+            $rendered = $needCompile ? \Illuminate\Support\Facades\Blade::render($html) : $html;
+
+            // Sanitize whitelist: giữ tag định dạng thường dùng trong mô tả
+            $allowed = '<p><br><b><strong><i><em><u><s><ul><ol><li><h1><h2><h3><h4><h5><h6>'
+                . '<a><img><table><thead><tbody><tr><td><th><blockquote><pre><code>'
+                . '<div><span><hr><details><summary><figure><figcaption>';
+
+            $cleaned = strip_tags($rendered, $allowed);
+
+            // Loại mọi handler on* (onclick/onerror...) — chống XSS qua attribute
+            $cleaned = preg_replace('~\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)~i', '', $cleaned);
+
+            /* Validate href/src: chỉ cho http(s), absolute path '/', assets/,
+               storage/, anchor '#...' và data:image/.
+               CÙNG FIX DELIMITER: pattern chứa cả '/' lẫn '#' nên dùng '~'
+               (không xung đột) + (?:...) để alternation không nuốt nhầm nhánh. */
+            $urlSafeRegex = '~^(?:https?://|/|assets/|storage/|\#|data:image/)~i';
+
+            $cleaned = preg_replace_callback(
+                '~\s(href|src)\s*=\s*("([^"]*)"|\'([^\']*)\'|([^\s>]+))~i',
+                function (array $m) use ($urlSafeRegex): string {
+                    $attr = strtolower($m[1]);
+                    $url = trim($m[3] ?? $m[4] ?? $m[5] ?? '');
+
+                    $ok = $url === '' || preg_match($urlSafeRegex, $url) === 1;
+
+                    return $ok
+                        ? ' ' . $attr . '="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"'
+                        : '';
+                },
+                $cleaned
+            );
+
+            return (string) $cleaned;
+        });
+
+        return new \Illuminate\Support\HtmlString((string) $out);
     }
 }
