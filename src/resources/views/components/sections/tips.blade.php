@@ -4,7 +4,7 @@ Tự ẩn toàn bộ section khi chưa có bài nào (rule component). --}}
 
 @if (!empty($tips))
     <section class="container tips reveal" aria-labelledby="tipTitle">
-        <h2 class="sec-title" id="tipTitle">Cẩm nang vào bếp & pha trà</h2>
+        <h2 class="sec-title" id="tipTitle">Cẩm nang thảo mộc & pha trà</h2>
         <div class="tips__grid">
             @foreach ($tips as $i => $tip)
                 <a class="tip" href="{{ $tip['url'] }}">

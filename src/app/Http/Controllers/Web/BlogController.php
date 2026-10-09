@@ -42,7 +42,7 @@ class BlogController extends Controller
         $meta = $this->blogService->indexSeoMeta($slug);
 
         // Chuyên mục không tồn tại/không active => 404
-        if ($meta['heading'] === 'Cẩm nang vào bếp & pha trà') {
+        if ($meta['heading'] === 'Cẩm nang thảo mộc & pha trà') {
             throw new NotFoundHttpException();
         }
 

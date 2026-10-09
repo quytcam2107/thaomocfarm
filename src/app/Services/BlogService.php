@@ -201,9 +201,9 @@ class BlogService
         }
 
         return [
-            'title' => 'Cẩm nang vào bếp & pha trà | Mộc Xanh',
+            'title' => 'Cẩm nang thảo mộc & pha trà | Mộc Xanh',
             'description' => "Cẩm nang Mộc Xanh với {$total} bài viết: cách dùng thịt trâu gác bếp, mắc khén, nhiệt độ hãm trà hoa, bảo quản đặc sản mùa nồm ẩm... chuẩn vị Tây Bắc.",
-            'heading' => 'Cẩm nang vào bếp & pha trà',
+            'heading' => 'Cẩm nang thảo mộc & pha trà',
         ];
     }
 
