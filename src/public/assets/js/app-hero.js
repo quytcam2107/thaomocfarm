@@ -4,10 +4,11 @@
  *   data-hero-slides = JSON các ảnh còn lại (config thaomoc.hero_slides).
  * - JS nhân bản img LCP làm lớp 0, chèn các lớp còn lại vào .hero__stage,
  *   tạo dấu chấm chọn slide; tự chuyển mỗi 5s.
- * - Chỉ đổi class .is-active -> CSS lo animation; tôn trọng prefers-reduced-motion
- *   (không Ken Burns, chuyển chậm hơn).
+ * - Chỉ đổi class .is-active -> CSS lo animation.
+ * - TẮT check prefers-reduced-motion trong JS: slideshow luôn chạy với nhịp
+ *   cố định 5s/slide (CSS vẫn tự tắt Ken Burns khi người dùng giảm chuyển động).
  */
-import { q, reduceMotion } from '@tm/core';
+import { q } from '@tm/core';
 
 const stage = q('.hero__stage[data-hero-slides]');
 if (stage) {
@@ -20,7 +21,7 @@ if (stage) {
     const first = q('.hero__slide', stage.closest('.hero__art'));
     // Cần ít nhất 2 slide tổng cộng mới chạy slideshow
     if (first && Array.isArray(extra) && extra.length) {
-        const INTERVAL = reduceMotion ? 9000 : 5000; // giây/slide (lâu hơn khi giảm chuyển động)
+        const INTERVAL = 2500; // 5 giây/slide (không phụ thuộc prefers-reduced-motion)
         let current = 0;
         let timer = null;
         let paused = false;
@@ -39,7 +40,7 @@ if (stage) {
             return img;
         })];
 
-        // Dấu chấm chọn slide (góc phải dưới, không đè badge)
+        // Dấu chấm chọn slide (giữa cạnh dưới của ảnh, tránh .hero__badge góc trái)
         const dots = document.createElement('div');
         dots.className = 'hero__dots';
         dots.setAttribute('aria-label', 'Chọn ảnh giới thiệu');

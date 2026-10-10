@@ -87,7 +87,7 @@
     background: var(--leaf-soft);
 }
 
-/* HERO SLIDESHOW: các lớp ảnh xếp chồng, chỉ lớp .is-active hiện */
+/* HERO SLIDESHOW: các lớp slide xếp chồng, chỉ lớp .is-active hiện */
 .hero__slide {
     position: absolute;
     inset: 0;
@@ -114,10 +114,11 @@
     inset: 0;
 }
 
-/* Dấu chấm chọn slide — góc phải dưới, tránh đè .hero__badge bên trái */
+/* Dấu chấm chọn slide — căn giữa cạnh dưới của ảnh (badge nằm góc trái nên không đè) */
 .hero__dots {
     position: absolute;
-    right: 12px;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: 16px;
     display: flex;
     gap: 8px;
@@ -166,8 +167,8 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: var(--shadow);
-    padding: 8px 14px;
-    font-size: 12px;
+    padding: 2px 7px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--leaf);
 }
