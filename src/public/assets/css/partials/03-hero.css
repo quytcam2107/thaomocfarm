@@ -87,7 +87,8 @@
     background: var(--leaf-soft);
 }
 
-.hero__img {
+/* HERO SLIDESHOW: các lớp ảnh xếp chồng, chỉ lớp .is-active hiện */
+.hero__slide {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -95,7 +96,67 @@
     object-fit: cover;
     border-radius: 24px;
     box-shadow: var(--shadow);
-    animation: heroIn .8s ease both;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .9s ease, visibility .9s;
+}
+
+.hero__slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    /* Ken Burns nhẹ: zoom chậm từ trong ra khi slide hiện */
+    animation: heroZoom 6s ease-out both;
+}
+
+/* Lớp chứa slide do JS sinh (nằm trên img LCP, dưới badge/dots) */
+.hero__stage {
+    position: absolute;
+    inset: 0;
+}
+
+/* Dấu chấm chọn slide — góc phải dưới, tránh đè .hero__badge bên trái */
+.hero__dots {
+    position: absolute;
+    right: 12px;
+    bottom: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+.hero__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    background: rgba(255, 255, 255, .55);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+    cursor: pointer;
+    transition: transform .25s ease, background .25s ease;
+}
+
+.hero__dot.is-active {
+    background: #fff;
+    transform: scale(1.25);
+}
+
+@keyframes heroZoom {
+    from {
+        transform: scale(1.04);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    /* Giảm chuyển động: chỉ crossfade opacity, tắt Ken Burns */
+    .hero__slide.is-active {
+        animation: none;
+    }
 }
 
 .hero__badge {

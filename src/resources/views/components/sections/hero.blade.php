@@ -44,8 +44,14 @@
         </div>
         <div class="hero__art">
             <span class="hero__blob" aria-hidden="true"></span>
-            <img class="hero__img" src="{{ asset('assets/images/banner_head2.png') }}"
+            {{-- HERO SLIDESHOW: ảnh đầu render thẳng trong HTML (giữ LCP), các slide còn lại
+                 do app-hero.js tạo từ JSON data-hero-slides (config thaomoc.hero_slides). --}}
+            @php($heroSlides = config('thaomoc.hero_slides', ['assets/images/banner_head2.png']))
+            <img class="hero__slide is-active" src="{{ asset($heroSlides[0]) }}"
                 alt="Đặc sản Tây Bắc và trà hoa thảo mộc" width="1200" height="900" fetchpriority="high">
+            <div class="hero__stage" data-hero-slides="{{ json_encode(array_slice(array_map(fn ($p) => asset($p), $heroSlides), 1)) }}">
+                {{-- JS chèn các lớp ảnh slide tiếp theo + dấu chấm chọn slide vào đây --}}
+            </div>
             <p class="hero__badge">★ 4.9 / 1.480 đánh giá thực</p>
         </div>
     </div>

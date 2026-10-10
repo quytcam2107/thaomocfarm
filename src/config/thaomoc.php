@@ -103,4 +103,18 @@ return [
         'require_verified_purchase' => true, // Chỉ cho phép đánh giá nếu đã mua hàng
         'auto_approve' => false,             // Cần admin duyệt
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Hero trang chủ — slideshow .hero__art
+    |--------------------------------------------------------------------------
+    |
+    | Đường dẫn ảnh tương đối từ public/ (Blade tự asset()). Thêm/bớt ảnh thoải mái,
+    | JS (app-hero.js) render theo đúng số phần tử của mảng này.
+    |
+    */
+    'hero_slides' => [
+        'assets/images/banner/banner_1.png',
+        'assets/images/banner/banner_2.png',
+        'assets/images/banner/banner_2.png',
+    ],
 ];

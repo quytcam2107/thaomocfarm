@@ -48,3 +48,8 @@ if (has('#province') && has('#ward')) {
 if (has('#orderLookupForm')) {
     import('@tm/order-lookup');
 }
+
+// NEW HERO SLIDESHOW: chỉ trang có khối .hero__art với data-hero-slides (home)
+if (has('.hero__stage[data-hero-slides]')) {
+    import('@tm/hero');
+}
