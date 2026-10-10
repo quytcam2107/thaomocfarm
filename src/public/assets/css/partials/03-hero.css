@@ -78,6 +78,26 @@
 .hero__art {
     position: relative;
     min-height: 250px;
+    /* VUỐT NGANG ĐỔI SLIDE (app-hero.js): pan-y cho phép trang cuộn dọc tự
+       nhiên nhưng trình duyệt KHÔNG cancel pointermove khi vuốt ngang */
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    /* tắt menu/contextmenu giữ ảnh trên iOS */
+}
+
+/* Đang vuốt -> con trỏ "đang nắm" + chặn drag ảnh dự phòng */
+.hero__art.is-swiping {
+    cursor: grabbing;
+}
+
+.hero__art img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+    /* mọi điểm chạm rơi vào khung .hero__art để JS bắt */
 }
 
 .hero__blob {
