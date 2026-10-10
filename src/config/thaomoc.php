@@ -115,6 +115,6 @@ return [
     'hero_slides' => [
         'assets/images/banner/banner_1.png',
         'assets/images/banner/banner_2.png',
-        'assets/images/banner/banner_2.png',
+        'assets/images/banner/banner_3.png',
     ],
 ];
