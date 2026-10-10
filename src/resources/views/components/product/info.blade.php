@@ -60,10 +60,27 @@
             data-product-id="{{ $product->id }}">♡ Yêu thích</button> --}}
     </div>
 
-    <ul class="pd-policy">
-        <li>🚚 Miễn phí vận chuyển cho đơn từ 300K | Giao 1-3 ngày toàn quốc</li>
-        <li>🧊 Được kiểm tra sản phẩm trước khi nhận.</li>
-        <li>🧊 Đóng gói hút chân không</li>
-        <li>🧊 Miễn phí đổi trả nếu có lỗi từ sản phẩm.</li>
+    {{-- NEW: dòng hotline "Gọi đặt mua" ngay dưới 2 nút Thêm vào giỏ / Mua ngay.
+    Nằm NGOÀI .pd-actions (grid 2 cột) để không phá layout cặp nút; tel: mở trực tiếp
+    trên mobile, giữ nguyên contract JS (.add-cart / #buyNow không đổi). --}}
+    <p class="product-hotline mb-0 text-center">Gọi đặt mua <a href="tel:0362795897">0362.795.897</a> (7:30 - 22:00)</p>
+
+    <ul class="pd-policy-pdp">
+        <li>
+            <img src="{{ asset('assets/images/svg/tick-check.svg') }}" alt="Vận chuyển">
+            Miễn phí vận chuyển cho đơn từ 300K | Giao 1-3 ngày toàn quốc
+        </li>
+        <li>
+            <img src="{{ asset('assets/images/svg/tick-check.svg') }}" alt="Kiểm tra">
+            Được kiểm tra sản phẩm trước khi nhận.
+        </li>
+        <li>
+            <img src="{{ asset('assets/images/svg/tick-check.svg') }}" alt="Hút chân không">
+            Đóng gói hút chân không
+        </li>
+        <li>
+            <img src="{{ asset('assets/images/svg/tick-check.svg') }}" alt="Đổi trả">
+            Miễn phí đổi trả nếu có lỗi từ sản phẩm.
+        </li>
     </ul>
 </div>

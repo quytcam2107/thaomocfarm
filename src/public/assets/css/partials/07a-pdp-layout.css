@@ -27,7 +27,7 @@
 
 /* Info & Price */
 .pd-info h1 { font-size: clamp(18px, 3vw, 25px); line-height: 1.35; }
-.pd-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); margin: 10px 0; }
+.pd-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); margin: 5px 0; }
 .pd-price {
     display: flex;
     align-items: baseline;
@@ -70,3 +70,31 @@
 :is(.pd-actions, .buybar) .btn--clay .btn__sub:visited,
 :is(.pd-actions, .buybar) .btn--clay .btn__sub:active { color: #fff; }
 :is(.pd-actions, .buybar) .btn--clay .btn__sub:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+
+/* NEW: dòng hotline "Gọi đặt mua" ngay dưới 2 nút Thêm vào giỏ / Mua ngay (info.blade.php).
+   Markup dùng class mb-0/text-center theo yêu cầu nhưng site KHÔNG nạp Tailwind runtime
+   (chỉ static assets/css/style.css) nên tự định nghĩa tương đương tại đây — chạy ngay. */
+.product-hotline { margin-bottom: 0; text-align: center; font-size: 13.5px; color: #40514a; margin-top: 20px; }
+.product-hotline a { color: #2e7d4f; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.product-hotline a:hover { color: var(--leaf); }
+
+.pd-policy-pdp { 
+    margin-top: 16px; 
+    display: grid; 
+    gap: 8px; 
+    font-size: 13px; 
+    color: #40514a; 
+    list-style: none;
+    padding: 0;
+}
+.pd-policy-pdp li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.pd-policy-pdp img {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    fill: var(--leaf); /* Lấy theo tông màu xanh lá chủ đạo của hệ thống */
+}
