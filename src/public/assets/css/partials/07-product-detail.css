@@ -15,6 +15,7 @@
         07e-pdp-reviews.css       — reviews (rating + comment)
         07f-pdp-lightgallery.css  — lightgallery plugin
         07g-pdp-gallery-fx.css    — gallery animation effect (zoom/fade/slide)
+        07h-pdp-desc-rich.css     — TEMPLATE CSS "Mô tả sản phẩm" (.desc-rich + .desc-link)
    ===================================================================== */
 @import url('07a-pdp-layout.css');
 @import url('07b-pdp-gallery.css');
@@ -23,3 +24,5 @@
 @import url('07e-pdp-reviews.css');
 @import url('07f-pdp-lightgallery.css');
 @import url('07g-pdp-gallery-fx.css');
+/* NEW DESC-RICH: nạp CUỐI nhóm 07 -> override an toàn, chỉ scope .desc-rich */
+@import url('07h-pdp-desc-rich.css');

@@ -144,7 +144,23 @@ if (!function_exists('format_number_compact')) {
         return (string) $number;
     }
 }
+if (!function_exists('compact_number')) {
+    /**
+     * Rút gọn số lớn hiển thị UI: 1500 -> "1.5k", 2000000 -> "2tr"
+     */
+    function compact_number(int|float $number): string
+    {
+        if ($number >= 1_000_000) {
+            return rtrim(rtrim(number_format($number / 1_000_000, 1, '.', ''), '0'), '.') . 'tr';
+        }
 
+        if ($number >= 1_000) {
+            return rtrim(rtrim(number_format($number / 1_000, 1, '.', ''), '0'), '.') . 'k';
+        }
+
+        return (string) $number;
+    }
+}
 if (!function_exists('render_cms_html')) {
     /**
      * FIX CMS HTML: nội dung mô tả/bài viết lưu trong DB có thể chứa Blade
@@ -176,7 +192,7 @@ if (!function_exists('render_cms_html')) {
            mà bản thân pattern cũng chứa '#' (nhánh match anchor '#top' trong
            url-safe) => PHP cắt pattern sớm tại dấu '#' thứ 2 và coi ')...' là
            modifier lỗi. Nay dùng delimiter '~' (không xuất hiện trong mọi
-           pattern bên dưới) + escape \\{ \\} + nhóm không bắt (?:...).
+           pattern bên dưới) + escape \{ \} + nhóm không bắt (?:...).
            Lookahead (?<!@): bỏ qua "@{{ ... }}" (Blade escaped literal,
            không cần compile). */
         $bladeExprRegex = '~(?<!@)\{\{[^{}]*?\}\}~s';
@@ -217,6 +233,29 @@ if (!function_exists('render_cms_html')) {
                 },
                 $cleaned
             );
+
+            /* NEW DESC-RICH (đẹp "Mô tả sản phẩm" PDP): bọc toàn bộ nội dung
+               trong 1 template wrapper .desc-rich — CSS template nằm ở partial
+               mới 07h-pdp-desc-rich.css, chỉ áp dụng bên trong .desc-rich nên
+               KHÔNG ảnh hưởng block nào khác trên site. */
+            $cleaned = '<div class="desc-rich">' . $cleaned . '</div>';
+
+            /* NEW DESC-LINK: mọi <a> có href http(s) mang class desc-link ->
+               CSS vẽ icon 🔗 + gạch chân, người đọc nhận ra ngay đâu là link
+               dẫn chứng khoa học. Link nội bộ (bắt đầu bằng '/') dùng class
+               desc-link--internal (mũi tên nội bộ). BƯỚC NÀY PHẢI ĐẶT SAU BƯỚC
+               strip_tags: DB chưa sanitize có thể chứa tag MỞ CẤM (vd <script>)
+               — nếu chạy trước, regex dưới sẽ cắt tag đó tại '>' và vô tình
+               "mở khoá" tag cấm cho strip_tags. */
+            $cleaned = preg_replace_callback(
+                '~<a\s[^>]*href="(/?)([^"]*)"[^>]*>~i',
+                function (array $m): string {
+                    $isInternal = $m[1] === '/';
+                    $cls = $isInternal ? 'class="desc-link desc-link--internal"' : 'class="desc-link"';
+                    return '<a ' . $cls . ' href="' . $m[1] . $m[2] . '">';
+                },
+                $cleaned
+            ) ?? $cleaned;
 
             return (string) $cleaned;
         });

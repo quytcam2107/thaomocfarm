@@ -1,0 +1,288 @@
+/* =====================================================================
+   07h — PDP: TEMPLATE CSS DÙNG CHUNG CHO "MÔ TẢ SẢN PHẨM" (.desc-rich)
+   Nguồn DOM: render_cms_html() (app/Support/helpers.php) tự bọc toàn bộ
+   HTML description của products.description vào <div class="desc-rich">
+   và gắn class .desc-link / .desc-link--internal cho mọi <a>.
+   => MỌI mô tả sản phẩm trên trang chi tiết dùng chung 1 template,
+      KHÔNG cần sửa dữ liệu DB và KHÔNG cần sửa Blade.
+   Scope: 100% rule nằm trong .desc-rich -> không đụng block nào khác.
+   Nạp CUỐI nhóm 07 (sau 07g) nên override an toàn các kế thừa cũ.
+   ===================================================================== */
+
+/* Khung tổng: nền giấy nhạt + viền mềm, phân biệt với panel trắng */
+.desc-rich {
+    --dr-ink: #3d4b44;
+    --dr-muted: #6d7a72;
+    --dr-accent: var(--leaf);
+    --dr-accent-deep: var(--leaf-deep);
+    --dr-line: var(--line);
+    color: var(--dr-ink);
+    font-size: 14.5px;
+    line-height: 1.8;
+    background: #fffefb;
+    border: 1px solid var(--dr-line);
+    border-radius: 14px;
+    padding: 16px 16px 18px;
+    overflow-wrap: break-word;
+}
+
+@media (min-width: 768px) {
+    .desc-rich { padding: 22px 26px 24px; font-size: 15px; }
+}
+
+/* ---------- TIÊU ĐỀ: biến thành "mục" có thanh nhấn + số thủ công ---------- */
+.desc-rich h1,
+.desc-rich h2,
+.desc-rich h3,
+.desc-rich h4,
+.desc-rich h5,
+.desc-rich h6 {
+    font-family: "Lora", Georgia, serif;
+    color: var(--dr-accent-deep);
+    line-height: 1.35;
+    margin: 26px 0 10px;
+    padding-left: 12px;
+    border-left: 4px solid var(--gold);
+}
+
+.desc-rich h1 {
+    font-size: 21px;
+    margin-top: 4px;
+    border-left-color: var(--dr-accent);
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--dr-line);
+}
+
+.desc-rich h2 { font-size: 18.5px; }
+.desc-rich h3 { font-size: 16.5px; border-left-width: 3px; }
+.desc-rich h4,
+.desc-rich h5,
+.desc-rich h6 { font-size: 15px; border-left-width: 3px; }
+
+.desc-rich > :first-child { margin-top: 0; }
+
+/* ---------- ĐOẠN VĂN / LIST ---------- */
+.desc-rich p { margin: 0 0 14px; }
+
+.desc-rich ul,
+.desc-rich ol { margin: 0 0 16px; padding-left: 24px; }
+
+.desc-rich li { margin-bottom: 7px; }
+.desc-rich li::marker { color: var(--dr-accent); font-weight: 700; }
+
+.desc-rich li > ul,
+.desc-rich li > ol { margin: 7px 0 0; }
+
+.desc-rich strong { color: var(--dr-accent-deep); }
+.desc-rich em { color: #4f5c54; }
+
+/* Highlight <mark> trong DB -> viên thuốc nhạt dễ nhìn, không loè loẹt */
+.desc-rich mark {
+    background: linear-gradient(transparent 58%, rgb(231 178 58 / .45) 58%);
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* ---------- ẢNH / FIGURE ---------- */
+.desc-rich img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--dr-line);
+    border-radius: 12px;
+    margin: 10px auto 14px;
+}
+
+.desc-rich figure { margin: 14px 0; }
+.desc-rich figcaption {
+    font-size: 12.5px;
+    color: var(--dr-muted);
+    text-align: center;
+    margin-top: 6px;
+}
+
+/* ---------- TABLE: mặc định mobile-first, cuộn ngang thay vì tràn ---------- */
+.desc-rich table {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-collapse: collapse;
+    margin: 0 0 16px;
+    font-size: 13.5px;
+}
+
+.desc-rich caption {
+    caption-side: top;
+    text-align: left;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--dr-accent-deep);
+    padding: 0 0 8px;
+}
+
+.desc-rich th,
+.desc-rich td {
+    border: 1px solid var(--dr-line) !important;
+    padding: 9px 12px !important;
+    text-align: left;
+    vertical-align: top;
+}
+
+.desc-rich thead th {
+    background: var(--leaf-soft);
+    color: var(--dr-accent-deep);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.desc-rich tbody tr:nth-child(even) { background: #fbfaf5; }
+
+/* ---------- BLOCKQUOTE: khối trích dẫn nguồn/khoa học ---------- */
+.desc-rich blockquote {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-left: 4px solid var(--dr-accent);
+    background: var(--leaf-soft);
+    border-radius: 0 12px 12px 0;
+    color: #3f5347;
+    font-style: normal;
+}
+
+.desc-rich blockquote p:last-child { margin-bottom: 0; }
+
+/* ---------- FAQ <details>/<summary> ---------- */
+.desc-rich details {
+    margin: 10px 0;
+    border: 1px solid var(--dr-line);
+    border-radius: 12px;
+    background: #fffdf7;
+    padding: 0;
+    overflow: hidden;
+}
+
+.desc-rich summary {
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    color: var(--dr-accent-deep);
+    padding: 12px 40px 12px 14px;
+    position: relative;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.desc-rich summary::-webkit-details-marker { display: none; }
+
+/* Dấu +/- thuần CSS, xoay khi mở */
+.desc-rich summary::after {
+    content: "+";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    translate: 0 -50%;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--dr-accent);
+    border-radius: 50%;
+    color: var(--dr-accent);
+    font-weight: 800;
+    line-height: 1;
+    transition: transform .25s ease, background .2s ease, color .2s ease;
+}
+
+.desc-rich details[open] > summary::after {
+    content: "\2212";
+    background: var(--dr-accent);
+    color: #fff;
+}
+
+.desc-rich details > *:not(summary) { margin-inline: 14px; }
+.desc-rich details > p { margin-block: 0 12px; }
+.desc-rich details[open] > summary { border-bottom: 1px dashed var(--dr-line); }
+
+.desc-rich hr {
+    border: 0;
+    border-top: 1px dashed var(--dr-line);
+    margin: 20px 0;
+}
+
+/* =====================================================================
+   NEW LINK: nhận diện rõ đâu là LINK (đặc biệt dẫn chứng khoa học)
+   - .desc-link ......... external http(s): gạch chân liền + icon 🔗
+   - .desc-link--internal link nội bộ '/...': gạch chân nét đứt + mũi tên
+   Icon vẽ bằng mask SVG inline -> đổi màu theo currentColor, không cần
+   tải thêm asset, không đụng JS.
+   ===================================================================== */
+.desc-rich a {
+    color: var(--dr-accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: rgb(46 125 79 / .45);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    border-radius: 4px;
+    transition: color .18s ease, background .18s ease, text-decoration-color .18s ease;
+}
+
+.desc-rich a:hover,
+.desc-rich a:focus-visible {
+    color: var(--dr-accent-deep);
+    background: rgb(46 125 79 / .08);
+    text-decoration-color: var(--dr-accent-deep);
+}
+
+.desc-rich a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* External: icon 🔗 đứng NGAY SAU chữ (dùng ::after để không phá markup DB) */
+.desc-rich a.desc-link::after {
+    content: "";
+    display: inline-block;
+    flex: none;
+    width: 13px;
+    height: 13px;
+    margin-left: 5px;
+    vertical-align: -2px;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 3h7v7h-2V7.41l-8.3 8.29-1.4-1.4 8.28-8.3H14V3zM5 5h6v2H7.41l8.3 8.29-1.42 1.42L6 8.41V11H4V5h1z'/%3E%3Cpath d='M19 13v6H5V5h6V3H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6h-2z'/%3E%3C/svg%3E") center/contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 3h7v7h-2V7.41l-8.3 8.29-1.4-1.4 8.28-8.3H14V3zM5 5h6v2H7.41l8.3 8.29-1.42 1.42L6 8.41V11H4V5h1z'/%3E%3Cpath d='M19 13v6H5V5h6V3H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6h-2z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* Internal: mũi tên sang phải, gạch nét đứt -> biết là link nhưng ở lại site */
+.desc-rich a.desc-link--internal {
+    text-decoration-style: dashed;
+    color: var(--clay);
+    text-decoration-color: rgb(192 95 44 / .5);
+}
+
+.desc-rich a.desc-link--internal:hover,
+.desc-rich a.desc-link--internal:focus-visible {
+    color: #8f4318;
+    background: rgb(192 95 44 / .08);
+}
+
+.desc-rich a.desc-link--internal::after {
+    content: "→";
+    margin-left: 4px;
+    font-weight: 800;
+}
+
+/* Ảnh nằm trong link: bỏ khoảng trống đường viền dưới ảnh */
+.desc-rich a img { border: 0; }
+
+/* =====================================================================
+   GIỮ TƯƠNG THÍCH desc-collapse (07d): wrapper mới là CON của body nên
+   clamp/mask/fade vẫn tính đúng scrollHeight. Chỉ đảm bảo .desc-rich
+   không tự tạo scroll kép khi mở rộng.
+   ===================================================================== */
+.desc-collapse__body .desc-rich { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+    .desc-rich a,
+    .desc-rich summary::after { transition: none; }
+}
