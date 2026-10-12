@@ -1,10 +1,10 @@
 # Chỉ mục Database — bản xuất cho AI
 
 > Sinh tự động bởi `php artisan ai:export-database`. KHÔNG SỬA THỦ CÔNG — chạy lại lệnh để cập nhật.
-- Thời điểm xuất: 2026-10-09T08:43:00+00:00
+- Thời điểm xuất: 2026-10-12T07:05:54+00:00
 - Kết nối: `mysql` (driver: `mysql`, database: `laravel`)
 - Tổng số bảng: 95
-- Tổng số bản ghi: 4,883
+- Tổng số bản ghi: 4,892
 
 ## Cách đọc các file
 
@@ -62,15 +62,15 @@
 | [post_categories](tables/post_categories.md) | 3 | tables/post_categories.md | data/post_categories.jsonl |
 | [post_categories](tables/post_categories.md) | 3 | tables/post_categories.md | data/post_categories.jsonl |
 | [post_categories](tables/post_categories.md) | 3 | tables/post_categories.md | data/post_categories.jsonl |
-| [posts](tables/posts.md) | 6 | tables/posts.md | data/posts.jsonl |
-| [posts](tables/posts.md) | 6 | tables/posts.md | data/posts.jsonl |
-| [posts](tables/posts.md) | 6 | tables/posts.md | data/posts.jsonl |
+| [posts](tables/posts.md) | 8 | tables/posts.md | data/posts.jsonl |
+| [posts](tables/posts.md) | 8 | tables/posts.md | data/posts.jsonl |
+| [posts](tables/posts.md) | 8 | tables/posts.md | data/posts.jsonl |
 | [product_images](tables/product_images.md) | 39 | tables/product_images.md | data/product_images.jsonl |
 | [product_images](tables/product_images.md) | 39 | tables/product_images.md | data/product_images.jsonl |
 | [product_images](tables/product_images.md) | 39 | tables/product_images.md | data/product_images.jsonl |
-| [product_variants](tables/product_variants.md) | 10 | tables/product_variants.md | data/product_variants.jsonl |
-| [product_variants](tables/product_variants.md) | 10 | tables/product_variants.md | data/product_variants.jsonl |
-| [product_variants](tables/product_variants.md) | 10 | tables/product_variants.md | data/product_variants.jsonl |
+| [product_variants](tables/product_variants.md) | 11 | tables/product_variants.md | data/product_variants.jsonl |
+| [product_variants](tables/product_variants.md) | 11 | tables/product_variants.md | data/product_variants.jsonl |
+| [product_variants](tables/product_variants.md) | 11 | tables/product_variants.md | data/product_variants.jsonl |
 | [products](tables/products.md) | 9 | tables/products.md | data/products.jsonl |
 | [products](tables/products.md) | 9 | tables/products.md | data/products.jsonl |
 | [products](tables/products.md) | 9 | tables/products.md | data/products.jsonl |

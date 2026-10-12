@@ -1,4 +1,4 @@
-{"id":1,"product_id":1,"sku":"TMF-TT-001-500G","label":"Túi 500g","price":1000000,"compare_price":1150000,"stock":44,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-08 04:44:08"}
+{"id":1,"product_id":1,"sku":"TMF-TT-001-500G","label":"Túi 500G loại 32 củ/kg","price":880000,"compare_price":1000000,"stock":999,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-08 04:44:08"}
 {"id":2,"product_id":2,"sku":"TMF-TT-002-500G","label":"Túi 500g","price":230000,"compare_price":265000,"stock":93,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-07 14:45:39"}
 {"id":3,"product_id":3,"sku":"TMF-TGB-001-500G","label":"Túi 500g","price":145000,"compare_price":165000,"stock":74,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-04 10:32:24"}
 {"id":4,"product_id":4,"sku":"TMF-TD-001-500G","label":"Túi 500g","price":225000,"compare_price":255000,"stock":84,"is_default":1,"sort_order":1,"created_at":"2026-09-22 11:21:09","updated_at":"2026-10-08 03:41:53"}
@@ -8,3 +8,4 @@
 {"id":8,"product_id":8,"sku":"TMF-LX-001-DEF","label":"500g","price":220000,"compare_price":260000,"stock":149,"is_default":1,"sort_order":0,"created_at":"2026-09-22 21:37:05","updated_at":"2026-10-07 14:45:39"}
 {"id":10,"product_id":9,"sku":"TMF-THC-001-500G","label":"Túi 500g","price":150000,"compare_price":180000,"stock":299,"is_default":1,"sort_order":1,"created_at":null,"updated_at":"2026-09-26 09:40:05"}
 {"id":11,"product_id":4,"sku":"TMF-TD-001-1KG","label":"Túi 1KG","price":350000,"compare_price":400000,"stock":96,"is_default":0,"sort_order":2,"created_at":"2026-09-24 13:00:18","updated_at":"2026-10-04 05:30:34"}
+{"id":12,"product_id":1,"sku":"TMF-TT-001-1KG","label":"Túi 500G loại 24 củ/kg","price":1000000,"compare_price":1140000,"stock":999,"is_default":0,"sort_order":2,"created_at":"2026-10-12 11:38:05","updated_at":"2026-10-12 11:38:07"}
