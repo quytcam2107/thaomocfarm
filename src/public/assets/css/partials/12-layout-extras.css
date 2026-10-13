@@ -229,8 +229,13 @@
 .float-dock a.fd-zalo { background: #0068ff; color: #fff; }
 .float-dock a.fd-zalo:hover { background: #0057d6; }
 
-/* Trang PDP có buybar: hiện dock trên mobile */
+/* FIX (yêu cầu mới): Trang PDP (body.has-buybar) trên mobile — ẨN float-dock.
+   Lý do: buybar đã có sẵn 2 nút Gọi điện/Zalo dính đáy màn hình (07i-pdp-buybar.css),
+   giữ thêm dock sẽ treo chồng lại và che nút "Mua ngay". Dock vẫn hoạt động bình
+   thường ở desktop (>=768px, xem rule @media (min-width:768px) phía trên). */
 @media (max-width: 767.98px) {
-    body.has-buybar .float-dock { display: flex; bottom: calc(10px + env(safe-area-inset-bottom)); }
-    body.has-buybar .back-to-top { bottom: calc(4px + env(safe-area-inset-bottom)); }
+    body.has-buybar .float-dock { display: none !important; }
+    /* back-to-top (chỉ render ở màn có flag showBackToTop) không còn bị dock
+       chiếm chỗ -> nhấc lên ngay trên buybar (≈76px + safe-area) */
+    body.has-buybar .back-to-top { bottom: calc(80px + env(safe-area-inset-bottom)); }
 }

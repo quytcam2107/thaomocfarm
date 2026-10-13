@@ -1,7 +1,9 @@
 {{-- =====================================================================
 FLOAT-DOCK — Cụm 2 nút nổi "Gọi điện · Zalo" ở góc dưới phải (chỉ desktop)
-- Mobile (<768px): floatnav đã có sẵn 2 ô Gọi điện/Zalo=> CSS ẩn .float-dock
+- Mobile (<768px): floatnav đã có sẵn 2 ô Gọi điện/Zalo => CSS ẩn .float-dock
     (display:none từ partials/12-layout-extras.css), tránh treo 2 nút giữa màn hình.
+    Riêng trang chi tiết sản phẩm (body.has-buybar): buybar đáy screen cũng đã có
+    2 nút Gọi điện/Zalo => 12-layout-extras.css tiếp tục ẩn dock ở mobile (PDP).
     - Desktop (>=768px): floatnav bị CSS display:none => dock thay thế 2 chức năng
     liên hệ này. Xếp DỌC: Gọi điện ở TRÊN, Zalo ở DƯỚI; riêng nút back-to-top
     do app-backtotop.js điều khiển (ẩn ở đầu trang, hiện khi vuốt xuống qua ngưỡng)
