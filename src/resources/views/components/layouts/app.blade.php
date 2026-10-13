@@ -78,10 +78,15 @@
     <x-floatnav :hide-floatnav="$hideFloatnav" />
     <x-drawer />
 
-    {{-- Nút "lên đầu trang": chỉ render ở các màn được bật flag (trang home) --}}
+    {{-- Nút "lên đầu trang": chỉ render ở các màn được bật flag (trang home).
+    Render TRƯỚC dock để tab order hợp lý: Lên đầu trang -> Gọi điện -> Zalo. --}}
     @if($showBackToTop)
         <x-back-to-top />
     @endif
+
+    {{-- Cụm 2 nút nổi Gọi điện/Zalo góc dưới phải (chỉ hiện từ >=768px qua CSS;
+    mobile đã có 2 ô tương đương trong floatnav) --}}
+    <x-float-dock />
 
     {{ $extra ?? '' }}
 

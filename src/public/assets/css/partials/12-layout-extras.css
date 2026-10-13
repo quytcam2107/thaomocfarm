@@ -606,7 +606,10 @@
 .back-to-top {
     position: fixed;
     right: 14px;
-    /* floatnav mới là thanh full-width dính đáy (cao ~64px + safe-area) -> nâng nút lên */
+    /* floatnav là thanh full-width dính đáy (cao ~64px + safe-area) -> nâng nút lên
+       trên thanh để không đè thanh. Từ >=768px floatnav ẩn, thay bằng cụm float-dock
+       (Gọi điện/Zalo) -> xem override trong @media bên dưới: nút nằm NGAY DƯỚI dock
+       theo chiều dọc (dock chiếm tới mốc 122px -> nút ở 132px). */
     bottom: calc(96px + env(safe-area-inset-bottom));
     /* tránh đè floatnav (z 45, cao ~70px) */
     z-index: 44;
@@ -666,11 +669,87 @@
     transform: rotate(180deg);
 }
 
+/* Desktop: floatnav ẩn -> hạ back-to-top xuống sát mép dưới nhưng vẫn nằm
+   NGAY DƯỚI cụm float-dock: dock chiếm 24->122px, chừa khe 10px -> 132px */
 @media (min-width: 768px) {
-
-    /* floatnav ẩn trên desktop -> hạ nút xuống sát mép dưới */
     .back-to-top {
-        bottom: 24px;
+        bottom: 132px;
         right: 24px;
+    }
+}
+
+/* ============ FLOAT-DOCK (desktop >=768px — khi floatnav bị ẩn) ============
+   Thay thế 2 ô "Gọi điện · Zalo" của floatnav (thanh này display:none từ 768px):
+   2 nút tròn xếp DỌC ở góc dưới phải, neo sát mép dưới; nút back-to-top
+   (.back-to-top, vẫn do app-backtotop.js toggle .is-visible theo cuộn) nằm
+   NGAY DƯỚI dock trong suốt quá trình lướt xuống. Ở đầu trang dock luôn hiện,
+   back-to-top chưa hiện (JS mặc định ẩn tới khi scrollY > ngưỡng).
+   Mốc bottom (tính từ mép dưới viewport): phone = 24px -> zalo = 78px
+   -> (khe 10px) -> back-to-top = 132px. */
+/* Mặc định trên Mobile: Ẩn .float-dock đi */
+.float-dock {
+    display: none;
+}
+
+/* Từ tablet/desktop (>= 768px) trở lên: Show ra và giữ nguyên layout gốc */
+@media (min-width: 768px) {
+    .float-dock {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 45;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+.float-dock a {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--leaf);
+    box-shadow: 0 6px 18px rgb(34 48 42 / .22);
+    transition: transform .2s ease, background .2s ease;
+}
+
+.float-dock a:hover {
+    transform: translateY(-2px);
+    background: var(--leaf-soft);
+}
+
+.float-dock a:active {
+    transform: scale(.94);
+}
+
+.float-dock img {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* Zalo: nền xanh đặc trưng cho dễ nhận diện */
+.float-dock a.fd-zalo {
+    background: #0068ff;
+    color: #fff;
+}
+
+.float-dock a.fd-zalo:hover {
+    background: #0057d6;
+}
+
+/* Trang PDP có buybar: Vẫn giữ nguyên logic cũ của bạn (nếu có trang nào ngoại lệ 
+   cho hiện trên mobile thì đoạn này sẽ tự kích hoạt đè lại display: flex) */
+@media (max-width: 767.98px) {
+    body.has-buybar .float-dock {
+        display: flex; /* Đảm bảo trang có buybar trên mobile vẫn hiện dock theo đúng ý bạn */
+        bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+
+    body.has-buybar .back-to-top {
+        bottom: calc(4px + env(safe-area-inset-bottom));
     }
 }
