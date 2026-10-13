@@ -26,9 +26,9 @@
         padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
     }
 
-    body.has-buybar {
+    /* body.has-buybar {
         padding-bottom: calc(140px + env(safe-area-inset-bottom));
-    }
+    } */
 }
 
 /* ---- Nền chung cho 3 nút icon liên hệ + link giỏ hàng ---- */
