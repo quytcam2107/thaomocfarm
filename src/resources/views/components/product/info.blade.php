@@ -3,12 +3,28 @@
 <div class="pd-info">
     <h1>{{ $product->name }}</h1>
 
+    {{-- BEAUTIFY PDP META (CSS: partials/07a-pdp-layout.css, khối ".pd-meta"):
+    - Bỏ dấu "·" trong markup — khoảng cách do gap + kẻ dọc ::before của CSS tạo ra
+    nên các item tự xuống dòng gọn trên mobile, không bị "lủng" ký tự phân tách.
+    - Rating gom thành 1 chip thống nhất (sao vàng + số điểm + lượt đánh giá).
+    - "ĐÃ BÁN" tách thành chip nhấn mạnh riêng (nền kem, chữ nâu đậm) — social proof.
+    - Mã sản phẩm (SKU) đổi nhãn + sang màu xanh lá nhạt, có thể copy được (user-select).
+    Không đụng contract JS: .add-cart / #buyNow / .stars (01-base.css) giữ nguyên. --}}
     <p class="pd-meta">
-        <span class="stars" aria-label="{{ $product->avg_rating ?? 5 }} trên 5 sao">★★★★★</span>
-        {{ $product->avg_rating ?? 5.0 }}
-        <span>· {{ $product->review_count ?? 0 }} đánh giá</span>
-        <span>· {{ number_format($product->sold_count ?? 0) }} đã bán</span>
-        <span>· SKU: {{ $product->sku }}</span>
+        <span class="pd-meta__item pd-meta__rating">
+            <span class="stars" aria-label="{{ $product->avg_rating ?? 5 }} trên 5 sao">★★★★★</span>
+            <bdi>{{ number_format((float) ($product->avg_rating ?? 5), 1, '.', ',') }}</bdi>
+            <small>{{ $product->review_count ?? 0 }} đánh giá</small>
+        </span>
+
+        <span class="pd-meta__item pd-meta__sold">
+            Đã bán <strong>{{ number_format($product->sold_count ?? 0) }}</strong>
+        </span>
+
+        <span class="pd-meta__item pd-meta__sku">
+            <span class="pd-meta__label">Mã SP:</span>
+            <span class="pd-meta__value">{{ $product->sku }}</span>
+        </span>
     </p>
 
     {{-- NEW: block Flash Sale + countdown (tự ẩn khi SP không thuộc deal => UI cũ không đổi) --}}

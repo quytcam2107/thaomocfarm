@@ -34,14 +34,105 @@
     line-height: 1.35;
 }
 
+/* ---------------------------------------------------------------------
+   .pd-meta — dòng meta dưới tên SP trên PDP (Blade: components/product/info.blade.php)
+   BEAUTIFY: tách 3 "chip" rõ ràng, tông NHẸ (không màu mè):
+     - Rating : sao vàng (token .stars ở 01-base.css) + điểm + lượt đánh giá (chữ muted)
+     - Đã bán : nền kem nhạt + chữ nâu đậm, số liệu in đậm -> nhấn mạnh social proof
+     - Mã SP  : đổi sang xanh lá nhạt (khác màu cũ), mã copy được bằng cách bôi đen
+   Khoảng cách & kẻ dọc do flex gap + ::before tạo => markup không còn dấu "·".
+   ------------------------------------------------------------------- */
 .pd-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
     align-items: center;
+    gap: 6px 14px;
+    /* mobile: gap nhỏ hơn để các chip dễ xuống dòng, không tràn ngang */
     font-size: 13px;
     color: var(--muted);
-    margin: 5px 0;
+    margin: 8px 0 2px;
+    line-height: 1.4;
+}
+
+/* Kẻ dọc mảnh giữa các chip (bỏ ở chip đầu mỗi hàng nhờ row-gap) */
+.pd-meta__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.pd-meta__item+.pd-meta__item {
+    padding-left: 14px;
+    position: relative;
+}
+
+.pd-meta__item+.pd-meta__item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 13px;
+    background: var(--line);
+}
+
+/* --- Chip rating: sao + điểm + "(n) đánh giá" --- */
+.pd-meta__rating .stars {
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.pd-meta__rating bdi {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.pd-meta__rating small {
+    font-size: inherit;
+    color: black;
+}
+
+/* --- Chip "Đã bán": nhấn mạnh nhưng vẫn nhẹ nhàng (nền kem + chữ nâu đất) --- */
+.pd-meta__sold {
+    background: #fdf6e7;
+    /* cùng tông nền với .pd-price bên dưới */
+    border-radius: 8px;
+    padding: 3px 9px;
+    color: black;
+    font-weight: 600;
+}
+
+.pd-meta__sold strong {
+    /* color: var(--clay); */
+    font-weight: 800;
+    font-size: 13.5px;
+}
+
+/* --- Chip "Mã SP": màu mới (xanh lá nhạt) phân biệt rõ với phần còn lại --- */
+.pd-meta__sku .pd-meta__label {
+    color: var(--muted);
+}
+
+.pd-meta__sku .pd-meta__value {
+    color: #1b4d34;
+    font-weight: 700;
+    letter-spacing: .2px;
+    /* cho phép khách bôi đen chọn mã để copy khi hỏi mua */
+    user-select: all;
+    -webkit-user-select: all;
+}
+
+@media (min-width: 768px) {
+    .pd-meta {
+        font-size: 13.5px;
+        gap: 8px 16px;
+    }
+
+    .pd-meta__item+.pd-meta__item {
+        padding-left: 16px;
+    }
 }
 
 .pd-price {
