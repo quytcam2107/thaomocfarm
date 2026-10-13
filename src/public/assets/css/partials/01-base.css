@@ -197,7 +197,7 @@ h2,
     /* Sửa: bo vuông tròn nhẹ theo token chung thay vì pill 999px */
     border-radius: var(--r-btn);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
     padding: 11px 20px;
     min-height: 44px;
     cursor: pointer;
