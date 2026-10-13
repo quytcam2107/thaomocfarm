@@ -56,7 +56,8 @@
             "@tm/review": "{{ asset('assets/js/app-review.js') }}",
             "@tm/checkout": "{{ asset('assets/js/app-checkout.js') }}",
             "@tm/order-lookup": "{{ asset('assets/js/app-order-lookup.js') }}",
-            "@tm/hero": "{{ asset('assets/js/app-hero.js') }}"
+            "@tm/hero": "{{ asset('assets/js/app-hero.js') }}",
+            "@tm/tooltip": "{{ asset('assets/js/app-tooltip.js') }}"
         }
     }
     </script>

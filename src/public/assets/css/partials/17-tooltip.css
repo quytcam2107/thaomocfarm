@@ -1,0 +1,48 @@
+/* =====================================================================
+   PARTIAL 17 — TOOLTIP CON TRỎ TOÀN CỤC (home)
+   - 1 node #tmTooltip mount trực tiếp body, position:fixed -> thoát mọi
+     overflow:hidden / line-clamp của .pcard / .cpn (text không bị cắt).
+   - Vị trí do JS set bằng transform: translate() (GPU, không reflow).
+   - Class .is-visible điều khiển hiện/ẩn (opacity + pointer-events).
+   ===================================================================== */
+
+#tmTooltip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    /* trên header/dock/toast để không bao giờ bị che */
+    max-width: min(320px, 90vw);
+    /* text dài tự xuống dòng, không tràn màn hình */
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: var(--ink, #22302a);
+    color: #fffdf9;
+    font-family: "Be Vietnam Pro", sans-serif;
+    font-size: 9.5px;
+    line-height: 1.5;
+    text-align: left;
+    white-space: normal;
+    /* cho phép xuống dòng — chống "không hiển thị hết" */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    box-shadow: 0 4px 16px rgb(0 0 0 / .22);
+    pointer-events: none;
+    /* tooltip không chặn hover/click phần tử dưới */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .12s ease-out;
+    /* hiện gần như tức thì, vẫn mượt */
+}
+
+#tmTooltip.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Trang giảm chuyển động: bỏ fade, hiện/ẩn tức thì */
+@media (prefers-reduced-motion: reduce) {
+    #tmTooltip {
+        transition: none;
+    }
+}

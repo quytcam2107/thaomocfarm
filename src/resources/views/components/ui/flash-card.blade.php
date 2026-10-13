@@ -60,7 +60,9 @@ mỗi 3 phút (giá/số đã bán/tiến độ) mà không cần rebuild toàn 
         @endif
 
         <a href="{{ $url }}" aria-label="Xem {{ $name }}">
-            <img class="pcard__img" src="{{ asset($image) }}" alt="{{ $name }}" width="600" height="600" loading="lazy">
+            {{-- NEW TOOLTIP: hover ảnh deal flash hiện tên sản phẩm --}}
+            <img class="pcard__img" src="{{ asset($image) }}" alt="{{ $name }}" width="600" height="600" loading="lazy"
+                data-tip="{{ $name }}">
         </a>
 
         @if($discount)
@@ -71,7 +73,8 @@ mỗi 3 phút (giá/số đã bán/tiến độ) mà không cần rebuild toàn 
     </div>
 
     <div class="pcard__body">
-        <h3 class="pcard__name"><a href="{{ $url }}">{{ $name }}</a></h3>
+        {{-- NEW TOOLTIP: tên bị line-clamp 2 dòng -> hover hiện full tên --}}
+        <h3 class="pcard__name" data-tip="{{ $name }}"><a href="{{ $url }}">{{ $name }}</a></h3>
         <p class="pcard__rate">
             <span class="stars" aria-label="{{ $rating }} trên 5 sao">★★★★★</span>
             <span data-fs-rate>{{ $rating }} · {{ $sold }} đã bán</span>
@@ -123,10 +126,12 @@ mỗi 3 phút (giá/số đã bán/tiến độ) mà không cần rebuild toàn 
                 @endif
             </p>
             {{-- Giữ nguyên contract JS: .add-cart + data-product-id/data-variant-id --}}
+            {{-- NEW TOOLTIP: hover nút thêm giỏ (kể cả icon svg con) hiện gợi ý --}}
             <button class="pcard__add add-cart" type="button" data-product-id="{{ $productId }}"
-                data-variant-id="{{ $variantId }}" data-name="{{ $name }}" aria-label="Thêm {{ $name }} vào giỏ"><img
-                    class="pcard__add-icon" src="{{ asset('assets/images/svg/cart-add.svg') }}" alt="Thêm giỏ hàng"
-                    width="20" height="20"></button>
+                data-variant-id="{{ $variantId }}" data-name="{{ $name }}" aria-label="Thêm {{ $name }} vào giỏ"
+                data-tip="Thêm sản phẩm vào giỏ hàng"><img class="pcard__add-icon"
+                    src="{{ asset('assets/images/svg/cart-add.svg') }}" alt="Thêm giỏ hàng" width="20"
+                    height="20"></button>
         </div>
     </div>
 </article>

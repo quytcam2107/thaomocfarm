@@ -53,3 +53,9 @@ if (has('#orderLookupForm')) {
 if (has('.hero__stage[data-hero-slides]')) {
     import('@tm/hero');
 }
+
+// NEW TOOLTIP: chỉ trang home render scope .home-tip-scope quanh các section
+// có phần tử [data-tip] (pcard/cpn/copy-btn) -> trang khác không tải module này.
+if (has('.home-tip-scope')) {
+    import('@tm/tooltip');
+}
