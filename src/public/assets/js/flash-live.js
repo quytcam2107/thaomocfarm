@@ -219,8 +219,8 @@
                 oldEl.style.display = 'none';
                 if (offEl) offEl.style.display = 'none';
             }
-            const buybar = document.querySelector('.buybar__price');
-            if (buybar) buybar.textContent = `${fmt(data.price)}₫`;
+            // FIX: xóa đoạn ghi giá vào .buybar__price — buybar redesign (07i) đã bỏ
+            // phần tử này; thanh đáy giờ chỉ còn 5 nút liên hệ/giỏ hàng/mua hàng.
         }
     }
 

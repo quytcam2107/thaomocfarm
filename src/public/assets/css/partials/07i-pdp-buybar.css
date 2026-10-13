@@ -1,0 +1,209 @@
+/* =====================================================================
+   07i — PDP: BUYBAR THIẾT KẾ LẠI (thanh mua hàng dính đáy, mobile-first)
+   Nạp qua 07-product-detail.css -> style.css (CUỐI nhóm 07 nên override
+   an toàn các rule buybar cũ trong 07a/07c).
+   Blade tương ứng: resources/views/components/product/buybar.blade.php
+   Layout 5 mắt xích (trái -> phải):
+     Gọi điện (tel:) · Zalo (zalo.me) · Giỏ hàng (link + badge .cart-count)
+     · Thêm vào giỏ (.add-cart) · Mua ngay (#buyNowMobile)
+   JS giữ nguyên contract: .add-cart (cart-add.js), #buyNowMobile (buy-now.js),
+   .cart-count/.js-cart-count (cart-badge.js). Không còn .buybar__price.
+   Chống lỗi font: text ngắn + white-space: nowrap + overflow-wrap anywhere;
+   icon là SVG/PNG fix width/height nên không sinh "tofu" (ô vuông).
+   ===================================================================== */
+
+/* ---- Mặc định ẩn buybar trên Desktop / Tablet, chỉ hiện trên Mobile ---- */
+.buybar {
+    display: none !important;
+}
+
+@media (max-width: 1023.98px) {
+    .buybar {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        align-items: stretch;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    body.has-buybar {
+        padding-bottom: calc(140px + env(safe-area-inset-bottom));
+    }
+}
+
+/* ---- Nền chung cho 3 nút icon liên hệ + link giỏ hàng ---- */
+.buybar__iconbtn,
+.buybar__cart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 52px;
+    padding: 6px 2px;
+    border: 0;
+    border-radius: var(--r-btn);
+    background: var(--leaf-soft);
+    color: var(--leaf);
+    font-family: inherit;
+    /* kế thừa font Be Vietnam Pro của body — không khai báo font riêng */
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.buybar__iconbtn img,
+.buybar__cart img {
+    width: 20px;
+    height: 20px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.buybar__iconbtn:hover,
+.buybar__cart:hover {
+    background: #d9ecdf;
+    transform: translateY(-1px);
+}
+
+.buybar__iconbtn:active,
+.buybar__cart:active {
+    transform: scale(.95);
+}
+
+.buybar__iconbtn:focus-visible,
+.buybar__cart:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+}
+
+/* Zalo: nhận diện thương hiệu xanh dương (khớp float-dock/floatnav) */
+.buybar__iconbtn--zalo {
+    background: #e7f0ff;
+    color: #0068ff;
+}
+
+.buybar__iconbtn--zalo:hover {
+    background: #d4e4ff;
+}
+
+/* ---- Giỏ hàng: là <a> nên khử màu/gạch chân mặc định của link ---- */
+.buybar__cart {
+    position: relative;
+    /* neo badge số lượng */
+    text-decoration: none;
+}
+
+/* Badge số lượng — class .cart-count để cart-badge.js cập nhật (contract).
+   display:none !important khi [hidden]: các rule ".cart-count { display:grid }"
+   toàn cục (02-header.css) có cùng độ đặc định với rule nền của badge và được
+   @import SAU file này -> nếu không dùng !important, badge sẽ hiện "0" chèn
+   chữ "Giỏ hàng" dù JS đã đặt hidden=true. */
+.buybar__badge {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--clay);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.buybar__badge[hidden] {
+    display: none !important;
+}
+
+/* ---- 2 nút chính: Thêm vào giỏ / Mua ngay ----
+   Override các rule cũ ":is(.pd-actions,.buybar) ..." trong 07a:
+   bỏ btn__sub, dùng 1 dòng chữ + icon, cao đều với cụm icon trái. */
+.buybar .btn.add-cart.btn--leaf,
+.buybar .btn.btn--clay {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 52px;
+    padding: 6px 6px;
+    border-radius: var(--r-btn);
+    font-size: 13.5px;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: nowrap;
+    /* tiếng Việt có dấu vẫn hiển thị đúng nhờ font system fallback + Be Vietnam Pro */
+}
+
+/* Icon SVG nhỏ (cart-add.svg) — khử ảnh hưởng từ rule ".add-cart svg { width:20px }"
+   của các trang grid khác nếu có; giữ định cỡ theo width/height attribute. */
+.buybar .btn img {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.buybar .btn.add-cart.btn--leaf {
+    background: #fff;
+    color: var(--leaf);
+    border: 1.5px solid var(--leaf);
+}
+
+.buybar .btn.add-cart.btn--leaf:hover {
+    background: var(--leaf-soft);
+}
+
+.buybar .btn.btn--clay {
+    background: #2e7d4f;
+    color: #fff;
+    border: 1.5px solid transparent;
+}
+
+.buybar .btn.btn--clay:hover {
+    background: #35915c;
+    transform: none;
+    box-shadow: 0 4px 12px rgb(46 125 79 / .3);
+}
+
+/* Text trong nút Mua ngay (buy-now.js thay textContent khi loading -> chỉ còn text node) */
+.buybar .btn--clay .btn__main {
+    display: inline;
+}
+
+.buybar button span {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Chặn tràn ngang trên màn rất hẹp (<=360px): chữ dài xuống dòng thay vì đẩy nút */
+@media (max-width: 380px) {
+    .buybar {
+        gap: 6px;
+        padding-inline: 8px;
+    }
+
+    .buybar .btn.add-cart.btn--leaf,
+    .buybar .btn.btn--clay {
+        font-size: 12.5px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .buybar__iconbtn,
+    .buybar__cart {
+        font-size: 9.5px;
+    }
+}

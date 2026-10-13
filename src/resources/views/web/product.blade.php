@@ -64,7 +64,7 @@
                 const oldPriceEl = document.querySelector('.pd-price s');
                 const offEl = document.querySelector('.pd-price .off');
                 const qtyInput = document.querySelector('.qty input');
-                const buybarPrice = document.querySelector('.buybar__price');
+                // BUYBAR mới (07i) đã bỏ .buybar__price -> không còn cập nhật giá ở thanh đáy
 
                 const formatVND = (num) => new Intl.NumberFormat('vi-VN').format(num) + '₫';
 
@@ -73,8 +73,10 @@
                         const selected = variants.find(v => v.value === e.target.value);
                         if (!selected) return;
 
+                        // FIX: bỏ dòng cập nhật .buybar__price (biến buybarPrice không còn tồn tại
+                        // sau khi redesign buybar 07i) — trước đây gây ReferenceError làm chết
+                        // toàn bộ handler đổi variant. Giá giờ chỉ cập nhật trong .pd-price.
                         priceEl.textContent = formatVND(selected.price);
-                        if (buybarPrice) buybarPrice.textContent = formatVND(selected.price);
 
                         if (selected.old_price && selected.old_price > selected.price) {
                             oldPriceEl.textContent = formatVND(selected.old_price);

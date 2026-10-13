@@ -2,7 +2,7 @@
    07 — TRANG CHI TIẾT SẢN PHẨM (PDP) — FILE INDEX.
    File này đã được TÁCH THÀNH 7 partial con để dễ mở rộng (mỗi file ~60-130 dòng).
    THỨ TỰ @import BÊN DƯỚI = THỨ TỰ ĐỌC TRƯỚC TRONG BẢN 07 GỘP NHẤT,
-   vì vậy cascade + specificity GIỮ NGUYÊN 100% so với trước khi tách.
+   vì vậy cascade + cascade GIỮ NGUYÊN 100% so với trước khi tách.
    QUY TẮC thêm mới:
      - Sửa khối nào -> mở đúng file 07x tương ứng (xem bảng phân công dưới).
      - Thêm file 07 mới -> khai @import vào CUỐI nhóm 07 của style.css, sau 07g.
@@ -26,3 +26,7 @@
 @import url('07g-pdp-gallery-fx.css');
 /* NEW DESC-RICH: nạp CUỐI nhóm 07 -> override an toàn, chỉ scope .desc-rich */
 @import url('07h-pdp-desc-rich.css');
+/* NEW BUYBAR-REDESIGN: nạp sau các file 07 khác -> override rule buybar cũ trong
+   07a (:is(.pd-actions,.buybar) ...) và 07c (.buybar flex cũ), đúng quy tắc
+   "thêm file 07 mới -> khai @import CUỐI nhóm 07". */
+@import url('07i-pdp-buybar.css');
