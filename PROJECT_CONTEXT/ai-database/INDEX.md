@@ -1,7 +1,7 @@
 # Chỉ mục Database — bản xuất cho AI
 
 > Sinh tự động bởi `php artisan ai:export-database`. KHÔNG SỬA THỦ CÔNG — chạy lại lệnh để cập nhật.
-- Thời điểm xuất: 2026-10-13T02:24:35+00:00
+- Thời điểm xuất: 2026-10-13T03:17:19+00:00
 - Kết nối: `mysql` (driver: `mysql`, database: `laravel`)
 - Tổng số bảng: 95
 - Tổng số bản ghi: 5,006

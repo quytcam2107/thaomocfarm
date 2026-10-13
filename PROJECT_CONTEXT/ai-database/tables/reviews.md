@@ -1,7 +1,7 @@
 # Bảng `reviews`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-13T02:24:34+00:00
+> Bản cập nhật lúc: 2026-10-13T03:17:19+00:00
 
 ## Thông tin chung
 
