@@ -52,7 +52,7 @@
             <div class="hero__stage" data-hero-slides="{{ json_encode(array_slice(array_map(fn ($p) => asset($p), $heroSlides), 1)) }}">
                 {{-- JS chèn các lớp ảnh slide tiếp theo + dấu chấm chọn slide vào đây --}}
             </div>
-            <p class="hero__badge">★ 4.9 / 1.480 đánh giá thực</p>
+            <p class="hero__badge">★ 4.9 / 1.480 đánh giá</p>
         </div>
     </div>
 </section>
