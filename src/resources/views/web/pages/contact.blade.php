@@ -2,7 +2,7 @@
 TRANG TĨNH: LIÊN HỆ (nhóm "Về chúng tôi" — footer)
 - Nội dung fix cứng 100% trong Blade, controller không trả dữ liệu.
 ===================================================================== --}}
-<x-layouts.app title="Liên hệ Mộc Xanh | Hotline 0362 795 897"
+<x-layouts.app title="Liên hệ | Mộc Xanh"
     seoDescription="Kênh liên hệ Mộc Xanh: hotline 0362 795 897, email thaomocfarm@gmail.com, địa chỉ 789 Đường Quang Trung, Hà Đông, Hà Nội. Giờ làm việc 8:00–21:00, hỗ trợ đơn COD và đổi trả."
     :hide-catnav="true">
 

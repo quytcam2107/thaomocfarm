@@ -2,7 +2,7 @@
 TRANG TĨNH: GIỚI THIỆU (nhóm "Về chúng tôi" — footer)
 - Nội dung fix cứng trong Blade; controller chỉ gửi thêm 4 SP gợi ý.
 ===================================================================== --}}
-<x-layouts.app title="Giới thiệu Mộc Xanh | Thảo mộc & Đặc sản Tây Bắc"
+<x-layouts.app title="Giới thiệu | Mộc Xanh"
     seoDescription="Mộc Xanh — câu chuyện đưa đặc sản Tây Bắc về phố: thu mua trực tiếp từ vùng trồng Sơn La, Điện Biên, Lào Cai; sản phẩm đạt OCOP 3–4 sao, VietGAP, xưởng sơ chế ISO 22000."
     :hide-catnav="true">
 
