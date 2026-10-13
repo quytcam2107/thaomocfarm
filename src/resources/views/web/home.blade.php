@@ -1,4 +1,4 @@
-<x-layouts.app title="Mộc Xanh — Thảo mộc nguyên chất & Đặc sản Tây Bắc">
+<x-layouts.app title="Mộc Xanh — Thảo mộc nguyên chất & Đặc sản Tây Bắc" :show-back-to-top="true">
     {{-- NEW TOOLTIP: wrapper scope để app.js chỉ nạp @tm/tooltip trên trang home
     (marker .home-tip-scope). display:contents -> không phá layout grid/flex sẵn có. --}}
     <div class="home-tip-scope" style="display:contents">
