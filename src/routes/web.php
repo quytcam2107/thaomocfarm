@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ReviewController;
 use App\Http\Controllers\Web\SearchController;
+use App\Http\Controllers\Web\SitemapController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -106,6 +107,8 @@ Route::get('/cam-nang/category/{slug}', [BlogController::class, 'category'])
 Route::get('/cam-nang/{slug}', [BlogController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('web.blog.show');
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('web.sitemap');
 
 // 7. Alias pretty-url /{slug} — BẮT BUỘC ở cuối cùng
 Route::get('/{slug}', [CategoryController::class, 'show'])
