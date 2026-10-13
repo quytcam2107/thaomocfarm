@@ -11,6 +11,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ProductSeoTest extends TestCase
@@ -64,7 +65,7 @@ class ProductSeoTest extends TestCase
 
     public function test_custom_seo_reaches_metadata_and_valid_json_ld(): void
     {
-        $title = 'Trà "thảo mộc" & Mộc Xanh';
+        $title = 'Trà "thảo mộc" & Tây Bắc | Mộc Xanh';
         $description = 'Mô tả "đặc biệt" & </script><script>alert(1)</script> \\ Tây Bắc';
         $product = $this->productWithSeo(['meta_title' => $title, 'meta_description' => $description]);
 
@@ -108,6 +109,28 @@ class ProductSeoTest extends TestCase
 
         $this->assertSame('Sản phẩm mẫu | Mộc Xanh', $product->meta_title);
         $this->assertSame('Mô tả ngắn', $product->meta_description);
+    }
+
+    #[DataProvider('titleCases')]
+    public function test_title_has_a_consistent_brand_suffix(string $input, string $expected): void
+    {
+        $product = $this->productWithSeo(['meta_title' => $input]);
+
+        $this->assertSame($expected, $product->meta_title);
+    }
+
+    public static function titleCases(): array
+    {
+        return [
+            ['Trà thảo mộc', 'Trà thảo mộc | Mộc Xanh'],
+            ['Trà thảo mộc | Mộc Xanh', 'Trà thảo mộc | Mộc Xanh'],
+            ['Trà thảo mộc | Thảo Mộc Xanh', 'Trà thảo mộc | Mộc Xanh'],
+            ['Trà thảo mộc — THẢO MỘC XANH', 'Trà thảo mộc | Mộc Xanh'],
+            ['Trà thảo mộc - Mộc Xanh | Thảo Mộc Xanh', 'Trà thảo mộc | Mộc Xanh'],
+            ['Trà thảo mộc | Mộc Xanh | Mộc Xanh', 'Trà thảo mộc | Mộc Xanh'],
+            ['Trà Mộc Xanh nguyên chất', 'Trà Mộc Xanh nguyên chất | Mộc Xanh'],
+            ['Mộc Xanh', 'Mộc Xanh'],
+        ];
     }
 
     private function productWithSeo(?array $seo, ?string $subtitle = 'Mô tả ngắn'): ProductViewDTO

@@ -61,7 +61,7 @@ class CatalogService
      */
     public function getProductDetail(string $slug): array
     {
-        $cacheKey = "product_detail:v2:{$slug}";
+        $cacheKey = "product_detail:v3:{$slug}";
         $ttl = (int) config('thaomoc.cache.catalog.product_detail', 300);
 
         $cached = remember_group('catalog', $cacheKey, $ttl, function () use ($slug) {

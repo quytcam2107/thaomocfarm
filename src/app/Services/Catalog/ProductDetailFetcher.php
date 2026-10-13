@@ -132,6 +132,9 @@ class ProductDetailFetcher
         $seo = is_array($product->seo) ? $product->seo : [];
         $metaTitle = is_string($seo['meta_title'] ?? null) ? trim($seo['meta_title']) : '';
         $metaDescription = is_string($seo['meta_description'] ?? null) ? trim($seo['meta_description']) : '';
+        $titleBase = $metaTitle !== '' ? $metaTitle : $product->name;
+        $titleBase = trim(preg_replace('/(?:(?:^|\s*[|\-–—]\s*)(?:Thảo\s+Mộc\s+Xanh|Mộc\s+Xanh))+\s*$/iu', '', $titleBase));
+        $metaTitle = ($titleBase !== '' ? $titleBase . ' | ' : '') . 'Mộc Xanh';
 
         return [
             'product_id' => $product->id,
@@ -150,7 +153,7 @@ class ProductDetailFetcher
                 'sold_count' => (int) $product->sold_count,
                 'stock' => $currentStock,
                 'image' => $coverImage,
-                'meta_title' => $metaTitle !== '' ? $metaTitle : $product->name . ' | Mộc Xanh',
+                'meta_title' => $metaTitle,
                 'meta_description' => $metaDescription !== '' ? $metaDescription : (trim($product->subtitle ?? '') ?: $product->name),
                 // NEW: mảng thông số đã chuẩn hóa (key => string), rỗng khi cột NULL
                 'specs' => $specsFlat,
