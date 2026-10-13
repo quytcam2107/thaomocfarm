@@ -23,6 +23,15 @@
                 </li>
                 <li>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L4 6V12C4 17 8 20.5 12 22C16 20.5 20 17 20 12V6L12 3Z" stroke="#2E7D32"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M9 12L11 14L15 9" stroke="#FFA000" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    <span>Kiểm định an toàn</span>
+                </li>
+                <li>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 20L10 9L15 16L21 8L22 20H3Z" stroke="#2E7D32" stroke-width="1.8"
                             stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M7 20L11 14L13.5 17.5" stroke="#2E7D32" stroke-width="1.8" stroke-linecap="round"
@@ -30,15 +39,6 @@
                         <circle cx="18" cy="5" r="2" fill="#FFA000" />
                     </svg>
                     <span>Nguồn gốc xuất xứ rõ ràng</span>
-                </li>
-                <li>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 3L4 6V12C4 17 8 20.5 12 22C16 20.5 20 17 20 12V6L12 3Z" stroke="#2E7D32"
-                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M9 12L11 14L15 9" stroke="#FFA000" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                    <span>Kiểm định an toàn</span>
                 </li>
             </ul>
         </div>
