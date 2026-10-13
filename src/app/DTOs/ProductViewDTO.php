@@ -30,6 +30,7 @@ class ProductViewDTO
         // cột products.specs_json. Mỗi phần tử: ['label' => string, 'value' => string].
         // Rỗng khi sản phẩm chưa nhập thông số => component tự ẩn khối.
         public readonly array $specs = [],
+        public readonly string $meta_title = '',
     ) {
     }
 }

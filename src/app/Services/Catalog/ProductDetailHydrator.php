@@ -95,6 +95,7 @@ class ProductDetailHydrator
             category: $categoryDTO,
             flashSale: $flashBlock,
             specs: $specRows,
+            meta_title: $cached['product']['meta_title'],
         );
 
         $relatedDTOs = array_map(fn($r) => new RelatedProductDTO(
