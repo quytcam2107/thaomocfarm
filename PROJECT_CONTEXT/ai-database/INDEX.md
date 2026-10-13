@@ -1,10 +1,10 @@
 # Chỉ mục Database — bản xuất cho AI
 
 > Sinh tự động bởi `php artisan ai:export-database`. KHÔNG SỬA THỦ CÔNG — chạy lại lệnh để cập nhật.
-- Thời điểm xuất: 2026-10-12T07:05:54+00:00
+- Thời điểm xuất: 2026-10-13T02:24:35+00:00
 - Kết nối: `mysql` (driver: `mysql`, database: `laravel`)
 - Tổng số bảng: 95
-- Tổng số bản ghi: 4,892
+- Tổng số bản ghi: 5,006
 
 ## Cách đọc các file
 
@@ -22,12 +22,12 @@
 | [banners](tables/banners.md) | 0 | tables/banners.md | - |
 | [banners](tables/banners.md) | 0 | tables/banners.md | - |
 | [banners](tables/banners.md) | 0 | tables/banners.md | - |
-| [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
-| [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
-| [cart_items](tables/cart_items.md) | 9 | tables/cart_items.md | data/cart_items.jsonl |
-| [carts](tables/carts.md) | 321 | tables/carts.md | data/carts.jsonl |
-| [carts](tables/carts.md) | 321 | tables/carts.md | data/carts.jsonl |
-| [carts](tables/carts.md) | 321 | tables/carts.md | data/carts.jsonl |
+| [cart_items](tables/cart_items.md) | 5 | tables/cart_items.md | data/cart_items.jsonl |
+| [cart_items](tables/cart_items.md) | 5 | tables/cart_items.md | data/cart_items.jsonl |
+| [cart_items](tables/cart_items.md) | 5 | tables/cart_items.md | data/cart_items.jsonl |
+| [carts](tables/carts.md) | 336 | tables/carts.md | data/carts.jsonl |
+| [carts](tables/carts.md) | 336 | tables/carts.md | data/carts.jsonl |
+| [carts](tables/carts.md) | 336 | tables/carts.md | data/carts.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
 | [categories](tables/categories.md) | 5 | tables/categories.md | data/categories.jsonl |
@@ -47,15 +47,15 @@
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
 | [newsletter_subscribers](tables/newsletter_subscribers.md) | 0 | tables/newsletter_subscribers.md | - |
-| [order_items](tables/order_items.md) | 28 | tables/order_items.md | data/order_items.jsonl |
-| [order_items](tables/order_items.md) | 28 | tables/order_items.md | data/order_items.jsonl |
-| [order_items](tables/order_items.md) | 28 | tables/order_items.md | data/order_items.jsonl |
+| [order_items](tables/order_items.md) | 29 | tables/order_items.md | data/order_items.jsonl |
+| [order_items](tables/order_items.md) | 29 | tables/order_items.md | data/order_items.jsonl |
+| [order_items](tables/order_items.md) | 29 | tables/order_items.md | data/order_items.jsonl |
 | [order_status_histories](tables/order_status_histories.md) | 0 | tables/order_status_histories.md | - |
 | [order_status_histories](tables/order_status_histories.md) | 0 | tables/order_status_histories.md | - |
 | [order_status_histories](tables/order_status_histories.md) | 0 | tables/order_status_histories.md | - |
-| [orders](tables/orders.md) | 12 | tables/orders.md | data/orders.jsonl |
-| [orders](tables/orders.md) | 12 | tables/orders.md | data/orders.jsonl |
-| [orders](tables/orders.md) | 12 | tables/orders.md | data/orders.jsonl |
+| [orders](tables/orders.md) | 13 | tables/orders.md | data/orders.jsonl |
+| [orders](tables/orders.md) | 13 | tables/orders.md | data/orders.jsonl |
+| [orders](tables/orders.md) | 13 | tables/orders.md | data/orders.jsonl |
 | [payments](tables/payments.md) | 0 | tables/payments.md | - |
 | [payments](tables/payments.md) | 0 | tables/payments.md | - |
 | [payments](tables/payments.md) | 0 | tables/payments.md | - |
@@ -68,9 +68,9 @@
 | [product_images](tables/product_images.md) | 39 | tables/product_images.md | data/product_images.jsonl |
 | [product_images](tables/product_images.md) | 39 | tables/product_images.md | data/product_images.jsonl |
 | [product_images](tables/product_images.md) | 39 | tables/product_images.md | data/product_images.jsonl |
-| [product_variants](tables/product_variants.md) | 11 | tables/product_variants.md | data/product_variants.jsonl |
-| [product_variants](tables/product_variants.md) | 11 | tables/product_variants.md | data/product_variants.jsonl |
-| [product_variants](tables/product_variants.md) | 11 | tables/product_variants.md | data/product_variants.jsonl |
+| [product_variants](tables/product_variants.md) | 34 | tables/product_variants.md | data/product_variants.jsonl |
+| [product_variants](tables/product_variants.md) | 34 | tables/product_variants.md | data/product_variants.jsonl |
+| [product_variants](tables/product_variants.md) | 34 | tables/product_variants.md | data/product_variants.jsonl |
 | [products](tables/products.md) | 9 | tables/products.md | data/products.jsonl |
 | [products](tables/products.md) | 9 | tables/products.md | data/products.jsonl |
 | [products](tables/products.md) | 9 | tables/products.md | data/products.jsonl |
@@ -92,12 +92,12 @@
 | [settings](tables/settings.md) | 0 | tables/settings.md | - |
 | [settings](tables/settings.md) | 0 | tables/settings.md | - |
 | [settings](tables/settings.md) | 0 | tables/settings.md | - |
-| [shipments](tables/shipments.md) | 12 | tables/shipments.md | data/shipments.jsonl |
-| [shipments](tables/shipments.md) | 12 | tables/shipments.md | data/shipments.jsonl |
-| [shipments](tables/shipments.md) | 12 | tables/shipments.md | data/shipments.jsonl |
-| [stock_movements](tables/stock_movements.md) | 28 | tables/stock_movements.md | data/stock_movements.jsonl |
-| [stock_movements](tables/stock_movements.md) | 28 | tables/stock_movements.md | data/stock_movements.jsonl |
-| [stock_movements](tables/stock_movements.md) | 28 | tables/stock_movements.md | data/stock_movements.jsonl |
+| [shipments](tables/shipments.md) | 13 | tables/shipments.md | data/shipments.jsonl |
+| [shipments](tables/shipments.md) | 13 | tables/shipments.md | data/shipments.jsonl |
+| [shipments](tables/shipments.md) | 13 | tables/shipments.md | data/shipments.jsonl |
+| [stock_movements](tables/stock_movements.md) | 29 | tables/stock_movements.md | data/stock_movements.jsonl |
+| [stock_movements](tables/stock_movements.md) | 29 | tables/stock_movements.md | data/stock_movements.jsonl |
+| [stock_movements](tables/stock_movements.md) | 29 | tables/stock_movements.md | data/stock_movements.jsonl |
 | [stores](tables/stores.md) | 0 | tables/stores.md | - |
 | [stores](tables/stores.md) | 0 | tables/stores.md | - |
 | [stores](tables/stores.md) | 0 | tables/stores.md | - |

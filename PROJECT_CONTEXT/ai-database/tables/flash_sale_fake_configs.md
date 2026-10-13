@@ -1,7 +1,7 @@
 # Bảng `flash_sale_fake_configs`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-12T07:05:53+00:00
+> Bản cập nhật lúc: 2026-10-13T02:24:33+00:00
 
 ## Thông tin chung
 

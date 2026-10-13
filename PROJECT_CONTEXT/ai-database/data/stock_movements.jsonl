@@ -26,3 +26,4 @@
 {"id":30,"product_variant_id":4,"type":"export","qty":-3,"ref_type":"order","ref_id":11,"note":"Đặt hàng thành công","created_by":null,"created_at":"2026-10-08 03:41:53","updated_at":"2026-10-08 03:41:53"}
 {"id":31,"product_variant_id":1,"type":"export","qty":-1,"ref_type":"order","ref_id":12,"note":"Đặt hàng thành công","created_by":null,"created_at":"2026-10-08 04:42:13","updated_at":"2026-10-08 04:42:13"}
 {"id":32,"product_variant_id":1,"type":"export","qty":-1,"ref_type":"order","ref_id":13,"note":"Đặt hàng thành công","created_by":null,"created_at":"2026-10-08 04:44:08","updated_at":"2026-10-08 04:44:08"}
+{"id":33,"product_variant_id":1,"type":"export","qty":-1,"ref_type":"order","ref_id":14,"note":"Đặt hàng thành công","created_by":null,"created_at":"2026-10-12 11:14:38","updated_at":"2026-10-12 11:14:38"}
