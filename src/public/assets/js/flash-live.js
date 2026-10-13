@@ -25,6 +25,16 @@
     /* ============================ HOME ============================ */
     const TONE_CLASS = { hot: 'is-hot', deep: 'is-deep', sell: 'is-sell', new: 'is-new' };
 
+    // FIX CLAMP TÊN SP: escape ký tự HTML đặc thù trước khi nhét tên vào
+    // text node / attribute data-tip (tên sản phẩm có thể chứa & < > " ').
+    function esc(s) {
+        return String(s ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     function hookHtml(item) {
         const tone = TONE_CLASS[item.urgent_tone] || 'is-new';
         return `<span class="flash__urgent ${tone}" data-fs-hook>${item.urgent_text ?? ''}</span>`;
@@ -32,21 +42,23 @@
 
     function cardHtml(item) {
         const slots = item.slots_left > 0 ? `Còn ${fmt(item.slots_left)} slot` : '';
+        const name = esc(item.name);
         return `
 <article class="pcard pcard--flash" data-flash-card data-product-id="${item.product_id}">
   <div class="pcard__media">
     ${hookHtml(item)}
-    <a href="${item.url}" aria-label="Xem ${item.name}">
-      <img class="pcard__img" src="${item.image}" alt="${item.name}" width="600" height="600" loading="lazy">
+    <a href="${item.url}" aria-label="Xem ${name}">
+      <img class="pcard__img" src="${item.image}" alt="${name}" width="600" height="600" loading="lazy" data-tip="${name}">
     </a>
     <span class="pcard__flag pcard__flag--hot" data-fs-flag>-${item.discount_percent}%</span>
   </div>
   <div class="pcard__body">
-    <h3 class="pcard__name"><a href="${item.url}">${item.name}</a></h3>
+    {{-- NEW TOOLTIP: bản JS cũng phải gắn data-tip như Blade flash-card --}}
+    <h3 class="pcard__name" data-tip="${name}"><a href="${item.url}">${name}</a></h3>
     <p class="pcard__rate"><span class="stars">★★★★★</span>
       <span data-fs-rate>${item.rating_avg} · ${item.sold_text} đã bán</span></p>
     <div class="flash__prog" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-         aria-valuenow="${item.sold_percent}" aria-label="Tiến độ bán deal ${item.name}" data-fs-prog-wrap>
+         aria-valuenow="${item.sold_percent}" aria-label="Tiến độ bán deal ${name}" data-fs-prog-wrap>
       <span class="flash__prog-bar ${item.urgent_tone === 'hot' ? 'is-hot' : ''}" data-fs-prog-bar
             style="width:${Math.min(100, Math.max(5, item.sold_percent))}%;"></span>
     </div>
@@ -62,7 +74,8 @@
       <p class="pcard__price"><b data-fs-price>${fmt(item.flash_price)}₫</b>
         <s data-fs-old>${fmt(item.original_price)}₫</s></p>
       <button class="pcard__add add-cart" type="button" data-product-id="${item.product_id}"
-        data-variant-id="${item.variant_id}" data-name="${item.name}" aria-label="Thêm ${item.name} vào giỏ">
+        data-variant-id="${item.variant_id}" data-name="${name}" aria-label="Thêm ${name} vào giỏ"
+        data-tip="Thêm sản phẩm vào giỏ hàng">
         <img class="pcard__add-icon" src="/assets/images/svg/cart-add.svg" alt="Thêm giỏ hàng" width="20" height="20">
       </button>
     </div>
@@ -133,6 +146,15 @@
         set('[data-fs-slots]', item.slots_left > 0 ? `Còn ${fmt(item.slots_left)} slot` : '');
         set('[data-fs-sold-today]', item.sold_text_today);
         set('[data-fs-hook]', item.urgent_text ?? '');
+
+        // FIX CLAMP TÊN SP: cập nhật cả data-tip khi tên deal đổi (product_name
+        // có thể khác seed Blade) để tooltip luôn là tên đầy đủ mới nhất.
+        const nameEl = el.querySelector('.pcard__name');
+        if (nameEl && item.name) {
+            nameEl.setAttribute('data-tip', item.name);
+            const link = nameEl.querySelector('a');
+            if (link) link.textContent = item.name;
+        }
 
         const hook = el.querySelector('[data-fs-hook]');
         if (hook) {

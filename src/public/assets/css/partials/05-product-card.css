@@ -85,6 +85,10 @@
     flex: 1;
 }
 
+/* FIX CLAMP TÊN SP (mobile): line-clamp chỉ đặt trên h3 đôi khi KHÔNG sinh dấu
+   "…" và dòng cuối bị cắt giữa chữ. Nay clamp ĐỒNG THỜI cả h3 lẫn thẻ a con,
+   thêm max-height cứng = đúng 2 dòng (2 * 1.4em) để không bao giờ lòi dòng 3,
+   word-break/overflow-wrap cho phép ngắt chuỗi dài (tên không dấu cách). */
 .pcard__name {
     font-family: "Be Vietnam Pro", sans-serif;
     font-size: 13.5px;
@@ -92,9 +96,26 @@
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 2.8em;
+    max-height: 2.8em;
+    /* 2 dòng x line-height 1.4 = 2.8em — trần tuyệt đối */
+    text-overflow: ellipsis;
+}
+
+/* Clamp lại trên CHÍNH thẻ a: đây là mắt xích đảm bảo luôn hiện "…" đầy đủ
+   trên màn hình nhỏ thay vì cắt chữ thô. */
+.pcard__name a {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .pcard__body .pcard__name a {
