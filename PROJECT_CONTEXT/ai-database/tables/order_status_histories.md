@@ -1,7 +1,7 @@
 # Bảng `order_status_histories`
 
 > File này do lệnh `php artisan ai:export-database` sinh tự động — **KHÔNG SỬA THỦ CÔNG**.
-> Bản cập nhật lúc: 2026-10-14T05:16:59+00:00
+> Bản cập nhật lúc: 2026-10-14T07:25:05+00:00
 
 ## Thông tin chung
 
