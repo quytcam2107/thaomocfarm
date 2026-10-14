@@ -19,6 +19,34 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 class ProductDetailFetcher
 {
     /**
+     * FIX SEO JSON-LD (lỗi image 404): quy ước mới — MỌY field ảnh trong mảng thô
+     * trả về đều là URL TUYỆT ĐỐI đã qua asset(), KHÔNG BAO GIỜ trả path tương đối.
+     * Lý do: các bản cũ trả path trần ('products/a.png') khiến tầng view/service
+     * phải tự bọc asset(); chỗ nào bọc sai tiền tố (thiếu 'assets/images/') là
+     * sinh URL 404 — chính là bug og:image & schema Product.image vừa rồi.
+     * Hydrator vẫn giữ normalize idempotent để "tiêu hóa" cache cũ còn TTL.
+     *
+     * @param string $p path tương đối (từ cột product_images.path) hoặc URL tuyệt đối
+     */
+    private static function imageUrl(?string $p): string
+    {
+        // Path rỗng -> placeholder THẬT SỰ TỒN TẠI (public/assets/images/placeholder.svg).
+        // Bản cũ dùng 'images/placeholder.svg' khi bọc asset() thành /images/... => 404.
+        if ($p === null || trim($p) === '') {
+            return asset('assets/images/placeholder.svg');
+        }
+
+        $p = trim($p);
+
+        // Đã là URL tuyệt đối (http(s):// hoặc bắt đầu '/') -> giữ nguyên, KHÔNG bọc đúp.
+        if (preg_match('#^https?://#i', $p) || str_starts_with($p, '/')) {
+            return $p;
+        }
+
+        return asset('assets/images/' . ltrim($p, '/'));
+    }
+
+    /**
      * Lấy toàn bộ dữ liệu thô của 1 sản phẩm theo slug (kèm cả related products).
      *
      * @return array<string, mixed>
@@ -51,11 +79,21 @@ class ProductDetailFetcher
             $discountPercent = (int) round((($currentComparePrice - $currentPrice) / $currentComparePrice) * 100);
         }
 
-        $coverImage = $product->images->firstWhere('is_cover', true)?->path
+        // FIX SEO: 'image' giờ là URL TUYỆT ĐỐI (đã bọc asset đúng tiền tố assets/images/)
+        // => schema.blade.php / og:image dùng thẳng, không cần asset() nữa -> hết 404.
+        $coverImage = self::imageUrl(
+            $product->images->firstWhere('is_cover', true)?->path
             ?? $product->images->first()?->path
-            ?? 'images/placeholder.svg';
+            ?? null
+        );
 
-        $images = $product->images->map(fn($img) => asset('assets/images/' . $img->path))->values()->all();
+        // Gallery: giữ cấu trúc list (mỗi mục = 1 map {full, thumb, alt}) để Hydrator
+        // tách 2 danh sách full/thumb cho stage + lightgallery. Ảnh thiếu thumb -> thumb = full.
+        $images = $product->images->map(fn($img): array => [
+            'full' => self::imageUrl($img->path),
+            'thumb' => self::imageUrl($img->thumb_path ?: $img->path),
+            'alt' => (string) ($img->alt ?? ''),
+        ])->values()->all();
 
         $variants = $product->variants->map(function ($v) {
             return [
@@ -90,12 +128,11 @@ class ProductDetailFetcher
             ->limit(4)
             ->get()
             ->map(function ($p) {
-                $coverImg = asset(
-                    'assets/images/' . (
-                        $p->images->firstWhere('is_cover', true)?->path
-                        ?? $p->images->first()?->path
-                        ?? 'placeholder.svg'
-                    )
+                // FIX SEO: dùng helper chung -> ảnh related cũng là URL tuyệt đối đúng tiền tố
+                $coverImg = self::imageUrl(
+                    $p->images->firstWhere('is_cover', true)?->path
+                    ?? $p->images->first()?->path
+                    ?? null
                 );
                 $defVar = $p->variants->firstWhere('is_default', true) ?? $p->variants->first();
                 $pr = $defVar ? (int) $defVar->price : (int) $p->price_min;
@@ -184,6 +221,10 @@ class ProductDetailFetcher
      * (withCount review_votes — chống N+1), images (URL tuyệt đối từ cột json
      * reviews.images), admin_reply (cột text thật — phản hồi của Mộc Xanh).
      *
+     * QUAN TRỌNG CHO SEO: keys 'stats.avg' + 'stats.total' đếm trên review
+     * status=approved — đây là NGUỒN SỰ THẬT duy nhất mà JSON-LD Product
+     * aggregateRating được phép dùng (xem components/product/schema.blade.php).
+     *
      * @return array{reviews: list<array<string, mixed>>, stats: array<string, mixed>}
      */
     public static function fetchReviews(int $productId): array
@@ -257,7 +298,7 @@ class ProductDetailFetcher
 
     /**
      * NEW: chữ cái đầu của 2 từ cuối trong tên (vd "Quyết Lưu" -> "QL")
-     * làm avatar text — DB không có cột avatar nên không dùng ảnh.
+     * làm avatar text thay ảnh vì DB không có cột avatar.
      */
     private static function initials(string $name): string
     {
@@ -268,9 +309,10 @@ class ProductDetailFetcher
         }
         $take = array_slice($parts, -2);
         $out = '';
-        foreach ($take as $p) {
-            $out .= mb_strtoupper(mb_substr($p, 0, 1));
+        foreach ($take as $w) {
+            $out .= mb_strtoupper(mb_substr($w, 0, 1));
         }
+
         return $out;
     }
 }

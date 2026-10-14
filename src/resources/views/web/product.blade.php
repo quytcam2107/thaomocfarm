@@ -1,9 +1,11 @@
-<x-layouts.app :title="$product->meta_title"
-    :seoDescription="$product->meta_description" ogType="product" :ogImage="asset($product->image)"
-    bodyClass="has-buybar">
+<x-layouts.app :title="$product->meta_title" :seoDescription="$product->meta_description" ogType="product"
+    :ogImage="$product->image" bodyClass="has-buybar">
 
     <x-slot name="schema">
-        <x-product.schema :product="$product" />
+        {{-- FIX SEO: truyền ratingStats (số review approved thật) xuống schema để
+        aggregateRating CHỈ xuất hiện khi có review; $product->image đã là URL
+        tuyệt đối từ service nên KHÔNG bọc asset() nữa (tránh 404). --}}
+        <x-product.schema :product="$product" :rating-stats="$ratingStats" />
     </x-slot>
 
     {{-- NEW LIGHTGALLERY: riêng trang chi tiết sản phẩm nạp vendor CSS + JS
