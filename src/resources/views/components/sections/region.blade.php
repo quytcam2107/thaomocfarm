@@ -1,5 +1,5 @@
 <section class="container region reveal" aria-labelledby="regionTitle">
-    <img src="{{ asset('assets/images/cay_tam_that.png') }}" alt="Vùng nguyên liệu tam thất vùng cao Tây Bắc"
+    <img src="{{ asset('assets/images/cay_tam_that.webp') }}" alt="Vùng nguyên liệu tam thất vùng cao Tây Bắc"
         width="800" height="600" loading="lazy">
 
     <div class="region__text">

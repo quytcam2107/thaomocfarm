@@ -4,7 +4,7 @@
     <div class="home-tip-scope" style="display:contents">
         <x-sections.hero />
         <x-sections.usp />
-        <x-sections.collections :categories="$homeCategories ?? null" />
+        <x-sections.collections :categories="$featuredCategories ?? null" />
         <x-sections.flash-sale :products="$flashProducts ?? null" />
         <x-sections.coupons :coupons="$coupons ?? null" />
         <x-sections.best-sellers :products="$bestSellers ?? null" />
