@@ -1,10 +1,10 @@
 # Chỉ mục Database — bản xuất cho AI
 
 > Sinh tự động bởi `php artisan ai:export-database`. KHÔNG SỬA THỦ CÔNG — chạy lại lệnh để cập nhật.
-- Thời điểm xuất: 2026-10-14T04:51:09+00:00
+- Thời điểm xuất: 2026-10-14T05:17:00+00:00
 - Kết nối: `mysql` (driver: `mysql`, database: `laravel`)
 - Tổng số bảng: 95
-- Tổng số bản ghi: 5,408
+- Tổng số bản ghi: 5,438
 
 ## Cách đọc các file
 
@@ -83,9 +83,9 @@
 | [provinces](tables/provinces.md) | 34 | tables/provinces.md | data/provinces.jsonl |
 | [review_votes](tables/review_votes.md) | 3 | tables/review_votes.md | data/review_votes.jsonl |
 | [review_votes](tables/review_votes.md) | 3 | tables/review_votes.md | data/review_votes.jsonl |
-| [reviews](tables/reviews.md) | 2 | tables/reviews.md | data/reviews.jsonl |
-| [reviews](tables/reviews.md) | 2 | tables/reviews.md | data/reviews.jsonl |
-| [reviews](tables/reviews.md) | 2 | tables/reviews.md | data/reviews.jsonl |
+| [reviews](tables/reviews.md) | 12 | tables/reviews.md | data/reviews.jsonl |
+| [reviews](tables/reviews.md) | 12 | tables/reviews.md | data/reviews.jsonl |
+| [reviews](tables/reviews.md) | 12 | tables/reviews.md | data/reviews.jsonl |
 | [search_terms](tables/search_terms.md) | 6 | tables/search_terms.md | data/search_terms.jsonl |
 | [search_terms](tables/search_terms.md) | 6 | tables/search_terms.md | data/search_terms.jsonl |
 | [search_terms](tables/search_terms.md) | 6 | tables/search_terms.md | data/search_terms.jsonl |
