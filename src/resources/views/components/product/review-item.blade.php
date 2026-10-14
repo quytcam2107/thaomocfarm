@@ -5,10 +5,13 @@ sao theo máy lẻ, badge "Đã mua", nút Hữu ích (JS @tm/reviews xử lý).
 data-star để khối lọc sao client-side đọc.
 NEW: lưới ảnh đánh giá (tối đa 5, src đã là URL tuyệt đối từ Fetcher) và
 khối "Phản hồi từ Mộc Xanh" (cột admin_reply) — staff đang login thấy nút
-soạn/sửa phản hồi, JS @tm/reviews gọi web.review.reply. --}}
+soạn/sửa phản hồi, JS @tm/reviews gọi web.review.reply.
+NEW: chip SĐT đã che dạng (098****321) dưới tên khách — nguồn masked_phone
+đã được ProductDetailFetcher che số giữa, raw phone không rời khỏi tầng service. --}}
 @php
     $rvImgs = array_slice((array) ($review->images ?? []), 0, 5);
     $rvReply = $review->admin_reply ?? null;
+    $rvPhone = trim((string) ($review->masked_phone ?? '')); // chỉ chứa dạng 098****321
     $canReply = auth()->check() && auth()->user()->isStaff();
 @endphp
 <div class="review" data-star="{{ $review->rating }}">
@@ -16,6 +19,12 @@ soạn/sửa phản hồi, JS @tm/reviews gọi web.review.reply. --}}
         <span class="review__avatar" aria-hidden="true">{{ $review->initials ?? '?' }}</span>
         <div class="review__who">
             <b>{{ $review->customer }}</b>
+            {{-- NEW: SĐT khách dạng che — đẹp như app TMĐT, ẩn khi thiếu dữ liệu --}}
+            @if($rvPhone !== '')
+                <span class="review__phone" title="Số điện thoại đã được ẩn một phần để bảo mật">
+                    {{ $rvPhone }}
+                </span>
+            @endif
             <span class="review__stars" aria-label="{{ $review->rating }} trên 5 sao">
                 @for($i = 1; $i <= 5; $i++)
                     <i class="rv-star {{ $i <= $review->rating ? 'is-on' : '' }}">★</i>

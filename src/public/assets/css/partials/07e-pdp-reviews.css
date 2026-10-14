@@ -90,6 +90,8 @@
 .review__stars .rv-star { font-style: normal; color: #ddd6c4; }
 .review__stars .rv-star.is-on { color: var(--gold); }
 .review__verified { background: var(--leaf-soft); color: var(--leaf); border: 1px solid var(--leaf); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+/* NEW: chip SĐT đã che (098****321) dưới tên khách — chữ số cách đều, màu muted nhẹ */
+.review__phone { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
 .review__date { color: var(--muted); font-size: 12px; }
 .review__content { margin-top: 8px; line-height: 1.7; }
 .review__foot { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }

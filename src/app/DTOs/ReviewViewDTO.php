@@ -28,6 +28,9 @@ class ReviewViewDTO implements \ArrayAccess
         public readonly array $images = [],
         // NEW: phản hồi công khai của Mộc Xanh (cột text admin_reply)
         public readonly ?string $admin_reply = null,
+        // NEW: SĐT ĐÃ CHE dạng "098****321" (Fetcher mask trước khi cache —
+        // không bao giờ chứa số đầy đủ). '' = không có/không hợp lệ -> view ẩn chip.
+        public readonly string $masked_phone = '',
     ) {
     }
 
@@ -72,6 +75,8 @@ class ReviewViewDTO implements \ArrayAccess
             // NEW: ảnh + phản hồi admin — cache cũ thiếu key -> mặc định rỗng/null
             images: array_values((array) ($row['images'] ?? [])),
             admin_reply: isset($row['admin_reply']) && $row['admin_reply'] !== '' ? (string) $row['admin_reply'] : null,
+            // NEW: SĐT đã che — cache 'review' cũ thiếu key -> '' (view tự ẩn chip)
+            masked_phone: (string) ($row['masked_phone'] ?? ''),
         );
     }
 

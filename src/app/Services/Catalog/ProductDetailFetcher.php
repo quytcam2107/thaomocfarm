@@ -219,7 +219,8 @@ class ProductDetailFetcher
      * NEW (UI đánh giá chuẩn TMĐT): trả thêm id (nút Hữu ích), initials
      * (avatar chữ cái thay ảnh vì DB không có cột avatar), helpful_count
      * (withCount review_votes — chống N+1), images (URL tuyệt đối từ cột json
-     * reviews.images), admin_reply (cột text thật — phản hồi của Mộc Xanh).
+     * reviews.images), admin_reply (cột text thật — phản hồi của Mộc Xanh),
+     * masked_phone (SĐT ĐÃ CHE dạng 098****321 — raw phone không vào cache).
      *
      * QUAN TRỌNG CHO SEO: keys 'stats.avg' + 'stats.total' đếm trên review
      * status=approved — đây là NGUỒN SỰ THẬT duy nhất mà JSON-LD Product
@@ -252,6 +253,8 @@ class ProductDetailFetcher
                 'reviews.customer_name',
                 'reviews.images',
                 'reviews.admin_reply',
+                // NEW: SĐT khách — chỉ dùng để che và hiển thị dạng 098****321
+                'reviews.customer_phone',
             ]);
 
         $stats = [
@@ -291,9 +294,33 @@ class ProductDetailFetcher
                 'admin_reply' => $r->admin_reply !== null && trim((string) $r->admin_reply) !== ''
                     ? (string) $r->admin_reply
                     : null,
+                // NEW: SĐT ĐÃ CHE dạng "098****321" — mask ngay từ tầng fetcher
+                // nên raw phone KHÔNG BAO GIỜ vào cache group 'review' (an toàn dữ liệu).
+                'masked_phone' => self::maskPhone($r->customer_phone),
             ])->values()->all(),
             'stats' => $stats,
         ];
+    }
+
+    /**
+     * NEW: che SĐT khách hàng cho khối đánh giá PDP.
+     * Chỉ giữ 3 số đầu + 3 số cuối, giữa thay bằng dấu sao: "0987654321" -> "098****321".
+     * Trả '' khi thiếu/không hợp lệ để view tự ẩn chip (khác null — tránh in số lạ).
+     */
+    private static function maskPhone(?string $phone): string
+    {
+        $digits = preg_replace('/\D/', '', trim((string) $phone)) ?? '';
+
+        // SĐT VN sau bỏ ký tự lạ: 10 số (0xxxxxxxxx) hoặc 11 số cũ (01xx…)
+        if (strlen($digits) < 10 || strlen($digits) > 11) {
+            return '';
+        }
+
+        $head = substr($digits, 0, 3);
+        $tail = substr($digits, -3);
+        $stars = str_repeat('*', strlen($digits) - 6);
+
+        return $head . $stars . $tail;
     }
 
     /**
