@@ -24,7 +24,6 @@
             <a href="{{ url('/thit-gac-bep') }}">Thịt gác bếp</a>
             <a href="{{ url('/gia-vi-tay-bac') }}">Gia vị Tây Bắc</a>
             <a href="{{ url('/tra-hoa') }}">Trà hoa thảo dược</a>
-            <a href="{{ url('/combo-qua-tang') }}">Combo quà tặng</a>
         </nav>
         <div>
             <h4>Liên hệ</h4>
