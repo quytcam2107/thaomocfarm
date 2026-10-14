@@ -21,6 +21,13 @@
        nhà sản phẩm — vẫn giữ đủ thông tin như trước. */
     $dbSpecs = $productSpecs !== [] ? $productSpecs : (array) ($product->specs ?? []);
 
+    /* NEW PHÂN TRANG REVIEW (client-side, 5 đánh giá/trang): danh sách review
+       đã được Fetcher giới hạn tối đa 20 bản ghi trong 1 lần gọi API, nên chỉ
+       cần chia trang ngay trên DOM — KHÔNG đụng route/controller/service/cache.
+       Biến set tính sẵn để Blade render đúng số nút phân trang khi tải trang. */
+    $rvPerPage = 5;
+    $rvPages = max(1, (int) ceil(count($reviews) / $rvPerPage));
+
     $techSpecs = [];
     if ($product) {
         $techSpecs[] = ['label' => 'Mã sản phẩm (SKU)', 'value' => (string) ($product->sku ?? '')];
@@ -279,14 +286,36 @@
                 <button type="button" class="rv-filterbar__clear" id="rvFilterClear">Xem tất cả ✕</button>
             </div>
 
-            {{-- 4) Danh sách đánh giá — data-* để JS module lọc + nút Helpful --}}
-            <div class="rv-list" id="reviewList">
+            {{-- 4) Danh sách đánh giá — data-* để JS module lọc + nút Helpful.
+            NEW PHÂN TRANG: data-per-page báo số review mỗi trang cho @tm/review;
+            JS ẩn/hiện các .review theo trang (display:none như bộ lọc sao đang làm),
+            render nav bên dưới. Từ 2 trang trở lên mới hiện nút phân trang. --}}
+            <div class="rv-list" id="reviewList" data-per-page="{{ $rvPerPage }}">
                 @forelse($reviews as $review)
                     <x-product.review-item :review="$review" />
                 @empty
                     <p class="rv-empty">Chưa có đánh giá nào cho sản phẩm này. Hãy là người đầu tiên!</p>
                 @endforelse
             </div>
+
+            {{-- NEW PHÂN TRANG REVIEW: skeleton nav — Blade render sẵn số nút trang
+            (đẹp khi tắt JS / SEO crawl); app-review.js chỉ gắn sự kiện + cập nhật
+            class is-active/is-disabled, KHÔNG dựng lại DOM khi không cần thiết. --}}
+            @if($rvPages > 1)
+                <nav class="rv-pager" id="rvPager" aria-label="Phân trang đánh giá" data-pages="{{ $rvPages }}"
+                    data-per-page="{{ $rvPerPage }}">
+                    <button type="button" class="rv-pager__btn rv-pager__nav js-rv-page is-disabled" data-page="prev"
+                        aria-label="Trang trước" disabled>‹</button>
+                    @for($p = 1; $p <= $rvPages; $p++)
+                        <button type="button"
+                            class="rv-pager__btn rv-pager__num {{ $p === 1 ? 'is-active' : '' }}" data-page="{{ $p }}"
+                            aria-label="Trang {{ $p }}" @if($p === 1) aria-current="page" @endif>{{ $p }}</button>
+                    @endfor
+                    <button type="button" class="rv-pager__btn rv-pager__nav js-rv-page is-disabled" data-page="next"
+                        aria-label="Trang sau" disabled>›</button>
+                </nav>
+                <p class="rv-pager__info" id="rvPagerInfo" aria-live="polite"></p>
+            @endif
         </div>
     </div>
 </div>

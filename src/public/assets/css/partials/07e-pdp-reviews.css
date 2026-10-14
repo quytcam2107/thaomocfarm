@@ -119,3 +119,39 @@
 .rv-reply-actions .btn--clay { background: #2e7d4f; color: #fff; }
 .rv-reply-actions .btn--ghost { border: 1.5px solid var(--line); color: var(--muted); background: #fff; }
 .rv-reply-actions button:disabled { opacity: .6; cursor: wait; }
+
+/* =====================================================================
+   NEW PHÂN TRANG REVIEW (5 đánh giá/trang) — nav #rvPager do Blade render
+   skeleton, app-review.js chỉ bật/tắt class is-active / is-disabled.
+   Kế thừa cảm giác .pagination của 06-category-page nhưng bo tròn pill,
+   hiệu ứng hover nâng nhẹ — đồng bộ bảng màu --leaf/--gold của Mộc Xanh.
+   ===================================================================== */
+.rv-pager { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.rv-pager[hidden] { display: none; }
+.rv-pager__btn {
+    min-width: 40px; height: 40px; padding: 0 12px;
+    display: inline-grid; place-items: center;
+    border: 1.5px solid var(--line); border-radius: 999px;
+    background: #fff; color: #40514a;
+    font-size: 14px; font-weight: 700; line-height: 1; cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.rv-pager__num:hover:not(.is-active):not(:disabled),
+.rv-pager__nav:hover:not(:disabled) { border-color: var(--leaf); color: var(--leaf); transform: translateY(-1px); box-shadow: 0 3px 8px rgb(46 125 79 / .12); }
+.rv-pager__btn.is-active {
+    background: linear-gradient(135deg, var(--leaf), var(--leaf-deep));
+    border-color: var(--leaf); color: #fff;
+    box-shadow: 0 4px 10px rgb(46 125 79 / .25); cursor: default;
+}
+.rv-pager__btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.rv-pager__nav { font-size: 18px; }
+.rv-pager__btn.is-disabled,
+.rv-pager__btn:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.rv-pager__info { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+.rv-pager__info:empty { display: none; }
+@media (max-width: 479px) {
+    /* Mobile-first: thu gọn nút để 5 trang vẫn đủ chỗ trên màn hẹp */
+    .rv-pager { gap: 6px; }
+    .rv-pager__btn { min-width: 36px; height: 36px; padding: 0 8px; font-size: 13px; }
+    .rv-pager__nav { font-size: 16px; }
+}

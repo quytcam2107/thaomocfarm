@@ -309,15 +309,111 @@ if (zone) {
     const bar = q('#rvFilterBar');
     const label = q('#rvFilterLabel');
 
+    /* NEW PHÂN TRANG REVIEW (5 đánh giá/trang — per-page đọc từ data-per-page
+       của #reviewList, Blade render sẵn nav #rvPager):
+       - Mảng `pages` là "trang ảo": mỗi phần tử = danh sách .review THỎA bộ lọc
+         sao tại thời điểm dựng lại. Vì vậy khi đang lọc sao, phân trang chạy
+         trên tập đã lọc (không lẫn với display:none của bộ lọc cũ).
+       - Khi không lọc: pages = các lát 5 phần tử của toàn danh sách.
+       - rebuildPages() được gọi MỖI lần đổi bộ lọc sao — logic lọc gốc giữ
+         nguyên, chỉ thay dòng `el.style.display` bằng việc gom vào trang ảo. */
+    const PER_PAGE = Math.max(1, parseInt(list?.dataset.perPage || '5', 10) || 5);
+    const pager = q('#rvPager');
+    const pagerInfo = q('#rvPagerInfo');
+    /** @type {HTMLElement[][]} Danh sách review của từng trang sau khi lọc */
+    let pages = [];
+    /** Trang hiện tại (1-based; 0 khi chưa có dữ liệu) */
+    let curPage = 1;
+
+    /* Dựng lại các trang theo bộ lọc sao hiện tại rồi nhảy về trang 1 */
+    function rebuildPages(star) {
+        if (!list) return;
+        const items = qa('.review', list);
+        // Trang ảo rỗng nếu JS Blade chưa kịp load (progressive enhancement:
+        // không có JS thì mọi .review vẫn hiển thị bình thường như trước)
+        pages = [];
+        if (pager) {
+            let bucket = [];
+            items.forEach(el => {
+                const on = !star || el.dataset.star === String(star);
+                if (!on) { el.style.display = 'none'; return; }
+                bucket.push(el);
+                if (bucket.length >= PER_PAGE) { pages.push(bucket); bucket = []; }
+            });
+            if (bucket.length > 0) pages.push(bucket);
+            // Ẩn tất cả trước — showPage sẽ bật lại đúng trang hiện hành
+            items.forEach(el => { el.style.display = 'none'; });
+            pager.hidden = pages.length <= 1; // ≤1 trang: ẩn nút phân trang
+            curPage = 1;
+            showPage(1);
+        } else if (!star) {
+            // Không có nav (≤5 review) + không lọc: khôi phục hiển thị mặc định
+            items.forEach(el => { el.style.display = ''; });
+        }
+    }
+
+    /* Hiển thị trang `p` (1-based) + cập nhật nút + dòng thông tin */
+    function showPage(p) {
+        if (!list || !pager) return;
+        const total = pages.length;
+        if (total === 0) {
+            if (pagerInfo) pagerInfo.textContent = '';
+            return;
+        }
+        curPage = Math.min(Math.max(1, p), total);
+        // Bật/tắt display theo trang ảo hiện tại (ẩn hết rồi hiện lát của trang)
+        qa('.review', list).forEach(el => { el.style.display = 'none'; });
+        pages[curPage - 1].forEach(el => { el.style.display = ''; });
+
+        // Nút số: is-active + aria-current
+        qa('.rv-pager__num', pager).forEach(btn => {
+            const n = parseInt(btn.dataset.page, 10);
+            const on = n === curPage;
+            btn.classList.toggle('is-active', on);
+            btn.toggleAttribute('aria-current', false);
+            if (on) btn.setAttribute('aria-current', 'page');
+        });
+        // prev/next disabled ở biên
+        const setNav = (dir, off) => {
+            const b = pager.querySelector(`.rv-pager__nav[data-page="${dir}"]`);
+            if (!b) return;
+            b.disabled = off;
+            b.classList.toggle('is-disabled', off);
+        };
+        setNav('prev', curPage <= 1);
+        setNav('next', curPage >= total);
+
+        // Dòng "Xem 1–5 / 12 đánh giá"
+        if (pagerInfo) {
+            const first = (curPage - 1) * PER_PAGE + 1;
+            const last = Math.min(curPage * PER_PAGE, total * PER_PAGE);
+            pagerInfo.textContent = `Xem ${first}\u2013${last} / ${total * PER_PAGE} đánh giá`;
+        }
+    }
+
+    /* Bấm nút phân trang: prev/next/số — delegation để an toàn với DOM tương lai */
+    pager?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.rv-pager__btn');
+        if (!btn || btn.disabled) return;
+        const d = btn.dataset.page;
+        if (d === 'prev') showPage(curPage - 1);
+        else if (d === 'next') showPage(curPage + 1);
+        else showPage(parseInt(d, 10) || 1);
+        // Cuộn nhẹ về đầu danh sách cho tiện trên mobile
+        list?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
     function applyStarFilter(star) {
         if (!list) return;
         const items = qa('.review', list);
         let shown = 0;
         items.forEach(el => {
             const on = !star || el.dataset.star === String(star);
-            el.style.display = on ? '' : 'none';
             if (on) shown++;
         });
+        // NEW PHÂN TRANG: dựng lại trang ảo theo tập đã lọc (thay cho việc
+        // set display trực tiếp ở code cũ — kết quả hiển thị tương thích)
+        rebuildPages(star);
         if (bar) bar.hidden = !star;
         if (label && star) label.textContent = `${star} sao (${shown})`;
         // Đổi highlight giữa các thanh
@@ -328,6 +424,10 @@ if (zone) {
         btn.addEventListener('click', () => applyStarFilter(btn.dataset.star));
     });
     q('#rvFilterClear')?.addEventListener('click', () => applyStarFilter(null));
+
+    /* Khởi tạo phân trang khi tải trang (chưa lọc sao = toàn bộ danh sách).
+       Nếu Blade không render #rvPager (≤5 review) thì hàm này gần như no-op. */
+    rebuildPages(null);
 
     /* ============ 5) HỮU ÍCH — POST /danh-gia/{id}/huu-ich ============
        Delegation trên list: chống double-click bằng disabled + class is-voted. */
