@@ -69,8 +69,7 @@
         <button class="btn btn--clay" id="buyNow" type="button" data-product-id="{{ $product->id }}"
             data-name="{{ $product->name }}">
             <span class="btn__main">Mua ngay</span>
-            <a class="btn__sub" href="#" onclick="event.stopPropagation()"
-                aria-label="Gọi điện và giao tận nơi qua hotline 0362 795 897">Gọi điện xác nhận và giao tận nơi</a>
+            <span class="btn__sub">Gọi điện xác nhận và giao tận nơi</span>
         </button>
         {{-- <button class="btn btn--ghost pcard__fav--lg" aria-label="Thêm vào yêu thích" aria-pressed="false"
             data-product-id="{{ $product->id }}">♡ Yêu thích</button> --}}
