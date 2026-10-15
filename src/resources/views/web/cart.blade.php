@@ -430,18 +430,30 @@
                         document.body.removeChild(ta);
                     }
                     const drawer = document.getElementById('cartDrawer');
-                    const inputId = (drawer && drawer.classList.contains('is-open'))
-                        ? 'drawerCouponCode'
-                        : 'couponCode';
+                    const inDrawer = !!(drawer && drawer.classList.contains('is-open'));
+                    const inputId = inDrawer ? 'drawerCouponCode' : 'couponCode';
                     const input = document.getElementById(inputId);
                     if (input) {
                         input.value = code;
                         // FIRE EVENT: để syncApplyButton biết input đã thay đổi và enable nút "Áp dụng"
                         input.dispatchEvent(new Event('input', { bubbles: true }));
-                        input.focus();
-                        input.select();
+                        if (inDrawer) {
+                            // Mobile: không focus input (tránh bật bàn phím), nhấp nháy nút Áp dụng thay thế
+                            pulseApplyButton(document.getElementById('drawerApplyCoupon'));
+                        } else {
+                            input.focus();
+                            input.select();
+                        }
                     }
                     showCouponToast('Đã sao chép mã ' + code + ' — bấm "Áp dụng" để dùng');
+                }
+
+                function pulseApplyButton(btn) {
+                    if (!btn || btn.disabled) return;
+                    btn.classList.remove('is-pulse');
+                    void btn.offsetWidth; // reflow để chạy lại animation khi bấm Sao chép liên tiếp
+                    btn.classList.add('is-pulse');
+                    btn.addEventListener('animationend', () => btn.classList.remove('is-pulse'), { once: true });
                 }
 
                 /**
