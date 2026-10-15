@@ -230,6 +230,13 @@
     box-shadow: 0 0 0 3px rgb(46 125 79 / 0.1);
 }
 
+/* iOS Safari tự zoom khi focus input có font-size < 16px */
+@media (max-width: 1023.98px) {
+    .coupon-input input {
+        font-size: 16px;
+    }
+}
+
 /* ============ COUPON APPLIED (Chip mã đang áp ở summary) ============ */
 .coupon-applied {
     display: flex;
