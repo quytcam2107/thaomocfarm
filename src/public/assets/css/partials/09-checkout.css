@@ -1,4 +1,9 @@
 /* ============ CHECKOUT ============ */
+.container-checkout {
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 5px;
+}
 .co-layout {
     display: grid;
     gap: 18px;
