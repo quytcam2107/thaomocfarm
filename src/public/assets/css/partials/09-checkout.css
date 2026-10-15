@@ -1,9 +1,4 @@
 /* ============ CHECKOUT ============ */
-.container-checkout {
-    max-width: 1240px;
-    margin-inline: auto;
-    padding-inline: 5px;
-}
 .co-layout {
     display: grid;
     gap: 18px;
@@ -281,6 +276,18 @@ body.has-co-bar {
 /* Mobile: nút Đặt hàng trong summary bị co-bar thay thế → ẩn đi, tránh 2 CTA trùng */
 @media (max-width: 1023.98px) {
     .summary .co-submit-desktop {
+        display: none;
+    }
+
+    /* iOS Safari tự zoom khi focus field có font-size < 16px */
+    .field input,
+    .field select,
+    .field textarea {
+        font-size: 16px;
+    }
+
+    /* Bàn phím ảo mở làm lệch thanh fixed đáy → ẩn co-bar khi đang nhập */
+    body.co-typing .co-bar {
         display: none;
     }
 }

@@ -30,6 +30,22 @@ if (coBar) {
     const coForm = q('#checkoutForm');
     const coSubmit = q('#coBarSubmit', coBar);
 
+    if (coForm) {
+        const isTypingField = (el) => el instanceof Element
+            && el.matches('input:not([type="radio"]):not([type="checkbox"]), textarea, select');
+        coForm.addEventListener('focusin', (e) => {
+            if (isTypingField(e.target)) document.body.classList.add('co-typing');
+        });
+        coForm.addEventListener('focusout', () => {
+            // Chờ focus chuyển sang field kế tiếp để co-bar không nháy giữa 2 ô
+            setTimeout(() => {
+                if (!isTypingField(document.activeElement)) {
+                    document.body.classList.remove('co-typing');
+                }
+            }, 100);
+        });
+    }
+
     if (coSubmit && coForm) {
         /* ===== VALIDATE 2 TẦNG khi bấm CTA #coBarSubmit:
            1) CLIENT: form mang novalidate nên trình duyệt KHÔNG tự chặn submit →
